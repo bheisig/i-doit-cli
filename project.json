@@ -1,0 +1,6 @@
+{
+    "title": "i-doit CLI tool",
+    "description": "Access your CMDB on the command line interface",
+    "version": "0.1",
+    "tag": "i-doit-cli"
+}
