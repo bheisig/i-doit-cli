@@ -8,7 +8,12 @@ DISTTARBALL = $(TAG)-$(VERSION).tar.gz
 all : build
 
 build :
-	phar-composer build .
+	./vendor/bin/phar-composer build .
+	mv idoitcli.phar idoit
+
+install :
+	test -x idoit
+	install -m 775 idoit /usr/local/bin/
 
 get-setting-% :
 	php -r '$$project = json_decode(trim(file_get_contents("project.json")), true); echo $$project["$*"];'
@@ -45,4 +50,4 @@ phpdox :
 	phpdox
 
 phploc :
-	phploc --exclude=lib --exclude=tests .
+	phploc --exclude=vendor --exclude=tests .
