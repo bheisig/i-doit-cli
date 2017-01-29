@@ -1,14 +1,14 @@
 TITLE = $(shell make -s get-setting-title)
 VERSION = $(shell make -s get-setting-version)
 TAG = $(shell make -s get-setting-tag)
-DISTFILES = bin/ src/ vendor/ COPYING project.json README
+DISTFILES = idoit COPYING README
 DISTDIR = $(TAG)
 DISTTARBALL = $(TAG)-$(VERSION).tar.gz
 
 all : build
 
 build :
-	./vendor/bin/phar-composer build .
+	php -d phar.readonly=off ./vendor/bin/phar-composer build https://github.com/bheisig/i-doit-cli.git
 	mv idoitcli.phar idoit
 
 install :
@@ -22,6 +22,7 @@ readme :
 	pandoc --from markdown --to plain --smart README.md > README
 
 dist : readme
+	test -x idoit
 	rm -rf $(DISTDIR)/
 	mkdir $(DISTDIR)/
 	cp -r $(DISTFILES) $(DISTDIR)/
