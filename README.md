@@ -26,17 +26,17 @@ FIXME
 FIXME
 
 
-####    Updates
-
-FIXME
-
-
 ### Download Release
 
 FIXME
 
 
 ### Fetch Source Code
+
+FIXME
+
+
+##  Updates
 
 FIXME
 
@@ -63,6 +63,6 @@ Please, report any issues to [our issue tracker](https://github.com/bheisig/i-do
 
 ##  Copyright & License
 
-Copyright (C) 2016 [Benjamin Heisig](https://benjamin.heisig.name/)
+Copyright (C) 2017 [Benjamin Heisig](https://benjamin.heisig.name/)
 
 Licensed under the [GNU Affero GPL version 3 or later (AGPLv3+)](https://gnu.org/licenses/agpl.html). This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.

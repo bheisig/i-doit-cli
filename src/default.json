@@ -1,0 +1,12 @@
+{
+    "api": {
+        "url": "",
+        "key": "",
+        "username": "",
+        "password": "",
+        "language": "en"
+    },
+    "cache": {
+        "lifetime": 0
+    }
+}
