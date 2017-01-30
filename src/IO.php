@@ -33,8 +33,6 @@ class IO {
             $message = call_user_func_array('sprintf', $argList);
         }
 
-        $message = ucfirst($message);
-
         fwrite(STDOUT, $message . PHP_EOL);
     }
 
@@ -45,8 +43,6 @@ class IO {
             $message = call_user_func_array('sprintf', $argList);
         }
 
-        $message = ucfirst($message);
-
         fwrite(STDERR, $message . PHP_EOL);
     }
 
@@ -56,8 +52,6 @@ class IO {
         if (count($argList) >= 2) {
             $message = call_user_func_array('sprintf', $argList);
         }
-
-        $message = ucfirst($message);
 
         fwrite(STDOUT, $message . ' ');
 
