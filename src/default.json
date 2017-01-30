@@ -8,5 +8,12 @@
     },
     "cache": {
         "lifetime": 0
+    },
+    "limitBatchRequests": 0,
+    "types": {
+        "countries": "C__OBJTYPE__COUNTRY",
+        "cities": "C__OBJTYPE__CITY",
+        "buildings": "C__OBJTYPE__BUILDING",
+        "rooms": "C__OBJTYPE__ROOM"
     }
 }

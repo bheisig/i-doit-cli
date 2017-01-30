@@ -1,0 +1,1309 @@
+{
+    "countries": {
+        "Abkhazia": {
+            "cities": {
+                "Sukhumi": {}
+            }
+        },
+        "Afghanistan": {
+            "cities": {
+                "Kabul": {}
+            }
+        },
+        "Akrotiri and Dhekelia": {
+            "cities": {
+                "Episkopi Cantonment": {}
+            }
+        },
+        "Albania": {
+            "cities": {
+                "Tirana": {}
+            }
+        },
+        "Algeria": {
+            "cities": {
+                "Algiers": {}
+            }
+        },
+        "Andorra": {
+            "cities": {
+                "Andorra la Vella": {}
+            }
+        },
+        "Angola": {
+            "cities": {
+                "Luanda": {}
+            }
+        },
+        "Anguilla": {
+            "cities": {
+                "The Valley": {}
+            }
+        },
+        "Antigua and Barbuda": {
+            "cities": {
+                "St. John's": {}
+            }
+        },
+        "Armenia": {
+            "cities": {
+                "Yerevan": {}
+            }
+        },
+        "Aruba": {
+            "cities": {
+                "Oranjestad": {}
+            }
+        },
+        "Australia": {
+            "cities": {
+                "Adelaide": {},
+                "Brisbane": {},
+                "Canberra": {},
+                "Darwin": {},
+                "Melbourne": {},
+                "Perth": {},
+                "Sidney": {}
+            }
+        },
+        "Austria": {
+            "cities": {
+                "Insbruck": {},
+                "Salzburg": {},
+                "Vienna": {}
+            }
+        },
+        "Azerbaijan": {
+            "cities": {
+                "Baku": {}
+            }
+        },
+        "Bahrain": {
+            "cities": {
+                "Manama": {}
+            }
+        },
+        "Bangladesh": {
+            "cities": {
+                "Dhaka": {}
+            }
+        },
+        "Belarus": {
+            "cities": {
+                "Minsk": {}
+            }
+        },
+        "Belgium": {
+            "cities": {
+                "Brussels": {}
+            }
+        },
+        "Benin": {
+            "cities": {
+                "Porto-Novo": {}
+            }
+        },
+        "Bhutan": {
+            "cities": {
+                "Thimphu": {}
+            }
+        },
+        "Bosnia and Herzegovina": {
+            "cities": {
+                "Sarajevo": {}
+            }
+        },
+        "British Indian Ocean Territory": {
+            "cities": {
+                "Diego Garcia": {}
+            }
+        },
+        "Botswana": {
+            "cities": {
+                "Gaborone": {}
+            }
+        },
+        "Brazil": {
+            "cities": {
+                "Brasília": {}
+            }
+        },
+        "Brunei": {
+            "cities": {
+                "Bandar Seri Begawan": {}
+            }
+        },
+        "Bulgaria": {
+            "cities": {
+                "Sofia": {}
+            }
+        },
+        "Burkina Faso": {
+            "cities": {
+                "Ouagadougou": {}
+            }
+        },
+        "Burundi": {
+            "cities": {
+                "Bujumbura": {}
+            }
+        },
+        "Camaroon": {
+            "cities": {
+                "Yaoundé": {}
+            }
+        },
+        "Cambodia": {
+            "cities": {
+                "Phnom Penh": {}
+            }
+        },
+        "Canada": {
+            "cities": {
+                "Montreal": {},
+                "Ottawa": {},
+                "Toronto": {},
+                "Vancouver": {}
+            }
+        },
+        "Cap Verde": {
+            "cities": {
+                "Praia": {}
+            }
+        },
+        "Central African Republic": {
+            "cities": {
+                "Bangui": {}
+            }
+        },
+        "Chad": {
+            "cities": {
+                "N'Djamena": {}
+            }
+        },
+        "China": {
+            "cities": {
+                "Beijing": {},
+                "Shanghai": {}
+            }
+        },
+        "Christmas Island": {
+            "cities": {
+                "Flying Fish Cove": {}
+            }
+        },
+        "Cocos (Keeling) Islands": {
+            "cities": {
+                "West Island": {}
+            }
+        },
+        "Comoros": {
+            "cities": {
+                "Moroni": {}
+            }
+        },
+        "Congo": {
+            "cities": {
+                "Brazzaville": {}
+            }
+        },
+        "Croatia": {
+            "cities": {
+                "Zagreb": {}
+            }
+        },
+        "Cyprus": {
+            "cities": {
+                "Nicosia": {}
+            }
+        },
+        "Czech Republic": {
+            "cities": {
+                "Prague": {}
+            }
+        },
+        "Democratic Republic of the Congo": {
+            "cities": {
+                "Kinshasa": {}
+            }
+        },
+        "Denmark": {
+            "cities": {
+                "Copenhagen": {}
+            }
+        },
+        "Djibouti": {
+            "cities": {
+                "Djibouti City": {}
+            }
+        },
+        "East Timor": {
+            "cities": {
+                "Dili": {}
+            }
+        },
+        "Egypt": {
+            "cities": {
+                "Cairo": {}
+            }
+        },
+        "Equatorial Guinea": {
+            "cities": {
+                "Malabo": {}
+            }
+        },
+        "Eritrea": {
+            "cities": {
+                "Asmara": {}
+            }
+        },
+        "Estonia": {
+            "cities": {
+                "Tallinn": {}
+            }
+        },
+        "Ethiopia": {
+            "cities": {
+                "Addis Ababa": {}
+            }
+        },
+        "Foroe Islands": {
+            "cities": {
+                "Tórshavn": {}
+            }
+        },
+        "Finland": {
+            "cities": {
+                "Helsinki": {}
+            }
+        },
+        "France": {
+            "cities": {
+                "Paris": {},
+                "Strasbourg": {}
+            }
+        },
+        "Gabon": {
+            "cities": {
+                "Libreville": {}
+            }
+        },
+        "Gambia": {
+            "cities": {
+                "Banjul": {}
+            }
+        },
+        "Georgia": {
+            "cities": {
+                "Tbilisi": {}
+            }
+        },
+        "Germany": {
+            "cities": {
+                "Berlin": {},
+                "Cologne": {},
+                "Düsseldorf": {},
+                "Hamburg": {},
+                "Munich": {}
+            }
+        },
+        "Ghana": {
+            "cities": {
+                "Accra": {}
+            }
+        },
+        "Gibraltar": {
+            "cities": {
+                "Gibraltar": {}
+            }
+        },
+        "United Kingdom": {
+            "cities": {
+                "Belfast": {},
+                "Cardiff": {},
+                "Edinburgh": {},
+                "London": {}
+            }
+        },
+        "Greece": {
+            "cities": {
+                "Athens": {}
+            }
+        },
+        "Guernsey": {
+            "cities": {
+                "Saint Peter Port": {}
+            }
+        },
+        "Guinea": {
+            "cities": {
+                "Conakry": {}
+            }
+        },
+        "Guinea-Bissau": {
+            "cities": {
+                "Bissau": {}
+            }
+        },
+        "Hong Kong": {
+            "cities": {
+                "Hong Kong": {}
+            }
+        },
+        "Hungary": {
+            "cities": {
+                "Budapest": {}
+            }
+        },
+        "Iceland": {
+            "cities": {
+                "Reykjavík": {}
+            }
+        },
+        "Ireland": {
+            "cities": {
+                "Dublin": {}
+            }
+        },
+        "India": {
+            "cities": {
+                "New Delhi": {}
+            }
+        },
+        "Indonesia": {
+            "cities": {
+                "Jarkarta": {}
+            }
+        },
+        "Iran": {
+            "cities": {
+                "Tehran": {}
+            }
+        },
+        "Irak": {
+            "cities": {
+                "Baghdad": {}
+            }
+        },
+        "Isle of Man": {
+            "cities": {
+                "Douglas": {}
+            }
+        },
+        "Israel": {
+            "cities": {
+                "Jerusalem": {}
+            }
+        },
+        "Italy": {
+            "cities": {
+                "Rome": {}
+            }
+        },
+        "Ivory Coast": {
+            "cities": {
+                "Yamoussoukro": {}
+            }
+        },
+        "Japan": {
+            "cities": {
+                "Tokyo": {}
+            }
+        },
+        "Jersey": {
+            "cities": {
+                "Saint Helier": {}
+            }
+        },
+        "Jordan": {
+            "cities": {
+                "Amman": {}
+            }
+        },
+        "Kazakhstan": {
+            "cities": {
+                "Astana": {}
+            }
+        },
+        "Kenya": {
+            "cities": {
+                "Nairobi": {}
+            }
+        },
+        "Kosovo": {
+            "cities": {
+                "Pristina": {}
+            }
+        },
+        "Kuwait": {
+            "cities": {
+                "Kuwait City": {}
+            }
+        },
+        "Kyrgyzstan": {
+            "cities": {
+                "Bishkek": {}
+            }
+        },
+        "Laos": {
+            "cities": {
+                "Vientiane": {}
+            }
+        },
+        "Latvia": {
+            "cities": {
+                "Riga": {}
+            }
+        },
+        "Lebanon": {
+            "cities": {
+                "Beirut": {}
+            }
+        },
+        "Lesotho": {
+            "cities": {
+                "Maseru": {}
+            }
+        },
+        "Liberia": {
+            "cities": {
+                "Monrovia": {}
+            }
+        },
+        "Libya": {
+            "cities": {
+                "Tripoli": {}
+            }
+        },
+        "Liechtenstein": {
+            "cities": {
+                "Vaduz": {}
+            }
+        },
+        "Lithuania": {
+            "cities": {
+                "Vilnius": {}
+            }
+        },
+        "Luxembourg": {
+            "cities": {
+                "Luxembourg": {}
+            }
+        },
+        "Macedonia": {
+            "cities": {
+                "Skopje": {}
+            }
+        },
+        "Madagascar": {
+            "cities": {
+                "Antananarivo": {}
+            }
+        },
+        "Malawi": {
+            "cities": {
+                "Lilongwe": {}
+            }
+        },
+        "Malaysia": {
+            "cities": {
+                "Kuala Lumpur": {}
+            }
+        },
+        "Maldives": {
+            "cities": {
+                "Malé": {}
+            }
+        },
+        "Mali": {
+            "cities": {
+                "Bamako": {}
+            }
+        },
+        "Malta": {
+            "cities": {
+                "Valletta": {}
+            }
+        },
+        "Mauritania": {
+            "cities": {
+                "Nouakchott": {}
+            }
+        },
+        "Mauritius": {
+            "cities": {
+                "Port Louis": {}
+            }
+        },
+        "Mayotte": {
+            "cities": {
+                "Mamoudzou": {}
+            }
+        },
+        "Moldova": {
+            "cities": {
+                "Chişinău": {}
+            }
+        },
+        "Monaco": {
+            "cities": {
+                "Monaco": {}
+            }
+        },
+        "Mongolia": {
+            "cities": {
+                "Ulaanbaatar": {}
+            }
+        },
+        "Montenegro": {
+            "cities": {
+                "Podgorica": {}
+            }
+        },
+        "Morocco": {
+            "cities": {
+                "Rabat": {}
+            }
+        },
+        "Mozambique": {
+            "cities": {
+                "Maputo": {}
+            }
+        },
+        "Myanmar": {
+            "cities": {
+                "Naypyidaw": {}
+            }
+        },
+        "Nagorno-Karabakh": {
+            "cities": {
+                "Stepanakert": {}
+            }
+        },
+        "Namibia": {
+            "cities": {
+                "Windhoek": {}
+            }
+        },
+        "Nepal": {
+            "cities": {
+                "Kathmandu": {}
+            }
+        },
+        "Netherlands": {
+            "cities": {
+                "Amsterdam": {},
+                "Den Hague": {},
+                "Rotterdam": {}
+            }
+        },
+        "New Zealand": {
+            "cities": {
+                "Wellington": {}
+            }
+        },
+        "Niger": {
+            "cities": {
+                "Niamey": {}
+            }
+        },
+        "Nigeria": {
+            "cities": {
+                "Abuja": {}
+            }
+        },
+        "Northern Cyprus": {
+            "cities": {
+                "Nicosia": {}
+            }
+        },
+        "North Korea": {
+            "cities": {
+                "Pyongyang": {}
+            }
+        },
+        "Norway": {
+            "cities": {
+                "Oslo": {}
+            }
+        },
+        "Oman": {
+            "cities": {
+                "Muscat": {}
+            }
+        },
+        "Pakistan": {
+            "cities": {
+                "Islamabad": {}
+            }
+        },
+        "Palestine": {
+            "cities": {
+                "Gaza": {}
+            }
+        },
+        "Poland": {
+            "cities": {
+                "Warsaw": {}
+            }
+        },
+        "Portugal": {
+            "cities": {
+                "Lisbon": {}
+            }
+        },
+        "Philippines": {
+            "cities": {
+                "Manila": {}
+            }
+        },
+        "Qatar": {
+            "cities": {
+                "Doha": {}
+            }
+        },
+        "Réunion": {
+            "cities": {
+                "Saint-Denis": {}
+            }
+        },
+        "Romania": {
+            "cities": {
+                "Bucharest": {}
+            }
+        },
+        "Russia": {
+            "cities": {
+                "Moscow": {}
+            }
+        },
+        "Rwanda": {
+            "cities": {
+                "Kigali": {}
+            }
+        },
+        "Sahrawi Arab Democratic Republic": {
+            "cities": {
+                "El Aaiún": {}
+            }
+        },
+        "Saint Helena": {
+            "cities": {
+                "Jamestown": {}
+            }
+        },
+        "San Marino": {
+            "cities": {
+                "San Marino": {}
+            }
+        },
+        "Saudi Arabia": {
+            "cities": {
+                "Riyadh": {}
+            }
+        },
+        "Serbia": {
+            "cities": {
+                "Belgrade": {}
+            }
+        },
+        "Singapore": {
+            "cities": {
+                "Singapore": {}
+            }
+        },
+        "Slovakia": {
+            "cities": {
+                "Bratislava": {}
+            }
+        },
+        "Slovenia": {
+            "cities": {
+                "Ljubljana": {}
+            }
+        },
+        "South Korea": {
+            "cities": {
+                "Seoul": {}
+            }
+        },
+        "South Ossetia": {
+            "cities": {
+                "Tskhinvali": {}
+            }
+        },
+        "Spain": {
+            "cities": {
+                "Barcelona": {},
+                "Madrid": {}
+            }
+        },
+        "São Tomé and Príncipe": {
+            "cities": {
+                "São Tomé": {}
+            }
+        },
+        "Senegal": {
+            "cities": {
+                "Dakar": {}
+            }
+        },
+        "Seychelles": {
+            "cities": {
+                "Victoria": {}
+            }
+        },
+        "Sierra Leone": {
+            "cities": {
+                "Freetown": {}
+            }
+        },
+        "Somalia": {
+            "cities": {
+                "Mogadishu": {}
+            }
+        },
+        "Somaliland": {
+            "cities": {
+                "Hargeisa": {}
+            }
+        },
+        "South Africa": {
+            "cities": {
+                "Bloemfontein": {},
+                "Cape Town": {},
+                "Pretoria": {}
+            }
+        },
+        "South Sudan": {
+            "cities": {
+                "Juba": {}
+            }
+        },
+        "Sri Lanka": {
+            "cities": {
+                "Sri Jayawardenapura Kotte": {}
+            }
+        },
+        "Sudan": {
+            "cities": {
+                "Khartoum": {}
+            }
+        },
+        "Svalbard": {
+            "cities": {
+                "Longyearbyen": {}
+            }
+        },
+        "Swaziland": {
+            "cities": {
+                "Lobamba": {},
+                "Mbabane": {}
+            }
+        },
+        "Sweden": {
+            "cities": {
+                "Stockholm": {}
+            }
+        },
+        "Switzerland": {
+            "cities": {
+                "Basel": {},
+                "Geneva": {},
+                "Zurich": {}
+            }
+        },
+        "Syria": {
+            "cities": {
+                "Damascus": {}
+            }
+        },
+        "Taiwan": {
+            "cities": {
+                "Taipei": {}
+            }
+        },
+        "Tajikistan": {
+            "cities": {
+                "Dushanbe": {}
+            }
+        },
+        "Tanzania": {
+            "cities": {
+                "Dodoma": {}
+            }
+        },
+        "Thailand": {
+            "cities": {
+                "Bangkok": {}
+            }
+        },
+        "Togo": {
+            "cities": {
+                "Lomé": {}
+            }
+        },
+        "Transnistria": {
+            "cities": {
+                "Tiraspol": {}
+            }
+        },
+        "Tunisia": {
+            "cities": {
+                "Tunis": {}
+            }
+        },
+        "Turkey": {
+            "cities": {
+                "Istanbul": {},
+                "Ankara": {}
+            }
+        },
+        "Turkmenistan": {
+            "cities": {
+                "Ashgabat": {}
+            }
+        },
+        "Uganda": {
+            "cities": {
+                "Kampala": {}
+            }
+        },
+        "Ukraine": {
+            "cities": {
+                "Kiev": {}
+            }
+        },
+        "United Arab Emirates": {
+            "cities": {
+                "Abu Dhabi": {}
+            }
+        },
+        "United States": {
+            "cities": {
+                "Boston": {},
+                "Chicago": {},
+                "Los Angeles": {},
+                "New York City": {},
+                "Seattle": {},
+                "San Francisco": {},
+                "Washington D.C.": {}
+            }
+        },
+        "Uzbekistan": {
+            "cities": {
+                "Tashkent": {}
+            }
+        },
+        "Vatican City": {
+            "cities": {
+                "Vatican City": {}
+            }
+        },
+        "Vietnam": {
+            "cities": {
+                "Hanoi": {}
+            }
+        },
+        "Yemen": {
+            "cities": {
+                "Sana'a": {}
+            }
+        },
+        "Zambia": {
+            "cities": {
+                "Lusaka": {}
+            }
+        },
+        "Zimbabwe": {
+            "cities": {
+                "Harare": {}
+            }
+        },
+        "Bahamas": {
+            "cities": {
+                "Nassau": {}
+            }
+        },
+        "Barbados": {
+            "cities": {
+                "Bridgetown": {}
+            }
+        },
+        "Belize": {
+            "cities": {
+                "Belmopan": {}
+            }
+        },
+        "Bermuda": {
+            "cities": {
+                "Hamilton": {}
+            }
+        },
+        "Bonaire": {
+            "cities": {
+                "Kralendijk": {}
+            }
+        },
+        "British Virgin Islands": {
+            "cities": {
+                "Road Town": {}
+            }
+        },
+        "Cayman Islands": {
+            "cities": {
+                "George Town": {}
+            }
+        },
+        "Costa Rica": {
+            "cities": {
+                "San José": {}
+            }
+        },
+        "Cuba": {
+            "cities": {
+                "Havana": {}
+            }
+        },
+        "Curaçao": {
+            "cities": {
+                "Willemstad": {}
+            }
+        },
+        "Dominica": {
+            "cities": {
+                "Roseau": {}
+            }
+        },
+        "Dominican Republic": {
+            "cities": {
+                "Santo Domingo": {}
+            }
+        },
+        "El Salvador": {
+            "cities": {
+                "San Salvador": {}
+            }
+        },
+        "Greenland": {
+            "cities": {
+                "Nuuk": {}
+            }
+        },
+        "Grenada": {
+            "cities": {
+                "St. George's": {}
+            }
+        },
+        "Guadeloupe": {
+            "cities": {
+                "Basse-Terre": {}
+            }
+        },
+        "Guatemala": {
+            "cities": {
+                "Guatemala City": {}
+            }
+        },
+        "Haiti": {
+            "cities": {
+                "Port-au-Prince": {}
+            }
+        },
+        "Honduras": {
+            "cities": {
+                "Tegucigalpa": {}
+            }
+        },
+        "Jamaica": {
+            "cities": {
+                "Kingston": {}
+            }
+        },
+        "Martinique": {
+            "cities": {
+                "Fort-de-France": {}
+            }
+        },
+        "Mexico": {
+            "cities": {
+                "Mexico City": {}
+            }
+        },
+        "Montserrat": {
+            "cities": {
+                "Plymouth": {}
+            }
+        },
+        "Navassa Island": {
+            "cities": {
+                "Lulu Town": {}
+            }
+        },
+        "Nicaragua": {
+            "cities": {
+                "Managua": {}
+            }
+        },
+        "Panama": {
+            "cities": {
+                "Panama City": {}
+            }
+        },
+        "Puerto Rico": {
+            "cities": {
+                "San Juan": {}
+            }
+        },
+        "Saba": {
+            "cities": {
+                "The Bottom": {}
+            }
+        },
+        "Saint Barthélemy": {
+            "cities": {
+                "Gustavia": {}
+            }
+        },
+        "Saint Kitts and Nevis": {
+            "cities": {
+                "Basseterre": {}
+            }
+        },
+        "Saint Lucia": {
+            "cities": {
+                "Castries": {}
+            }
+        },
+        "Saint Martin": {
+            "cities": {
+                "Marigot": {}
+            }
+        },
+        "Saint Pierre and Miquelon": {
+            "cities": {
+                "Saint-Pierre": {}
+            }
+        },
+        "Saint Vincent and the Grenadines": {
+            "cities": {
+                "Kingstown": {}
+            }
+        },
+        "Sint Eustatius": {
+            "cities": {
+                "Oranjestad": {}
+            }
+        },
+        "Sint Maarten": {
+            "cities": {
+                "Philipsburg": {}
+            }
+        },
+        "Trinidad and Tobago": {
+            "cities": {
+                "Port of Spain": {}
+            }
+        },
+        "Turks and Caicos Islands": {
+            "cities": {
+                "Cockburn Town": {}
+            }
+        },
+        "United Virgin Islands": {
+            "cities": {
+                "Charlotte Amalie": {}
+            }
+        },
+        "Åland Islands": {
+            "cities": {
+                "Mariehamn": {}
+            }
+        },
+        "Argentina": {
+            "cities": {
+                "Buenos Aires": {}
+            }
+        },
+        "Bolivia": {
+            "cities": {
+                "Sucre": {}
+            }
+        },
+        "Chile": {
+            "cities": {
+                "Santiago": {}
+            }
+        },
+        "Colombia": {
+            "cities": {
+                "Bogotá": {}
+            }
+        },
+        "Ecuador": {
+            "cities": {
+                "Quito": {}
+            }
+        },
+        "Falkland Islands": {
+            "cities": {
+                "Stanley": {}
+            }
+        },
+        "French Guiana": {
+            "cities": {
+                "Cayenne": {}
+            }
+        },
+        "Guyana": {
+            "cities": {
+                "Georgetown": {}
+            }
+        },
+        "Paraguay": {
+            "cities": {
+                "Asunción": {}
+            }
+        },
+        "Peru": {
+            "cities": {
+                "Lima": {}
+            }
+        },
+        "South Georgia and the South Sandwich Islands": {
+            "cities": {
+                "King Edward Point": {}
+            }
+        },
+        "Uruguay": {
+            "cities": {
+                "Montevideo": {}
+            }
+        },
+        "Venezuela": {
+            "cities": {
+                "Caracas": {}
+            }
+        },
+        "Amarican Samoa": {
+            "cities": {
+                "Pago Pago": {}
+            }
+        },
+        "Cook Islands": {
+            "cities": {
+                "Avarua": {}
+            }
+        },
+        "Fiji": {
+            "cities": {
+                "Suva": {}
+            }
+        },
+        "Guam": {
+            "cities": {
+                "Hagåtña": {}
+            }
+        },
+        "Kiribati": {
+            "cities": {
+                "South Tarawa": {}
+            }
+        },
+        "Marshall Islands": {
+            "cities": {
+                "Majuro": {}
+            }
+        },
+        "Micronesia": {
+            "cities": {
+                "Palikir": {}
+            }
+        },
+        "Nauru": {
+            "cities": {
+                "Yaren": {}
+            }
+        },
+        "New Caledonia": {
+            "cities": {
+                "Nouméa": {}
+            }
+        },
+        "Niue": {
+            "cities": {
+                "Alofi": {}
+            }
+        },
+        "Norfolk Islands": {
+            "cities": {
+                "Kingston": {}
+            }
+        },
+        "Northern Mariana Islands": {
+            "cities": {
+                "Saipan": {}
+            }
+        },
+        "Palau": {
+            "cities": {
+                "Ngerulmud": {}
+            }
+        },
+        "Papua New Guinea": {
+            "cities": {
+                "Port Moresby": {}
+            }
+        },
+        "Pitcairn Islands": {
+            "cities": {
+                "Adamstown": {}
+            }
+        },
+        "Samoa": {
+            "cities": {
+                "Apia": {}
+            }
+        },
+        "Solomon Islands": {
+            "cities": {
+                "Honiara": {}
+            }
+        },
+        "Tokelau": {
+            "cities": {
+                "Nukunonu": {}
+            }
+        },
+        "Tongo": {
+            "cities": {
+                "Nuku'alofa": {}
+            }
+        },
+        "Tuvalu": {
+            "cities": {
+                "Funafuti": {}
+            }
+        },
+        "Vanuatu": {
+            "cities": {
+                "Port Vila": {}
+            }
+        },
+        "Wallis and Futuna": {
+            "cities": {
+                "Mata-Utu": {}
+            }
+        }
+    },
+    "buildings": {
+        "minPerCity": 1,
+        "maxPerCity": 3,
+        "titlePrefix": "B "
+    },
+    "rooms": {
+        "minPerBuilding": 10,
+        "maxPerBuilding": 100,
+        "titlePrefix": "R "
+    }
+}
