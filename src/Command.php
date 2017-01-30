@@ -41,15 +41,33 @@ abstract class Command implements Executes {
 
     protected $cacheAssignedCategories = [];
 
+    /**
+     * UNIX timestamp when execution starts
+     *
+     * @var int
+     */
+    protected $start = 0;
+
+    /**
+     * Duration in seconds how long execution has taken time
+     *
+     * @var int
+     */
+    protected $executionTime = 0;
+
     public function __construct(array $config) {
         $this->config = $config;
     }
 
     public function setup() {
+        $this->start = time();
+
         return $this;
     }
 
     public function tearDown() {
+        $this->executionTime = time() - $this->start;
+
         return $this;
     }
 

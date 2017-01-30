@@ -24,7 +24,6 @@
 
 namespace bheisig\idoitcli;
 
-use bheisig\idoitapi\API;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBCategory;
 
@@ -37,7 +36,7 @@ class Read extends Command {
             throw new \Exception('Unsufficient data. Please run "idoitcli init" first.', 400);
         }
 
-        $this->api = new API($this->config['api']);
+        $this->initiateAPI();
 
         $this->api->login();
 
