@@ -31,10 +31,10 @@ class Help extends Command {
 
 Commands:
 
-init        Create configuration settings and create cache
-status      Current status information
-read        Fetch information from your CMDB
-random      Create randomized data
+init                Create configuration settings and create cache
+status              Current status information
+read                Fetch information from your CMDB
+random              Create randomized data
 
 Show specific help for these commands:
 
@@ -43,17 +43,20 @@ idoit [COMMAND] --help
 
 Options:
 
--h, --help  Show this help
---version   Show version information
+-c [FILE],
+--config=[FILE]     Additional configuration settings in a JSON-formatted file
 
 -o [FORMAT],
---output [FORMAT]   Supported output formats are "plain" (default) and "json"
+--output=[FORMAT]   Supported output formats are "plain" (default) and "json"
+
+-h, --help          Show this help
+--version           Show version information
 
 Verbosity:
 
--v          Be verbose
--V          Be more verbose
--D          Debug mode
+-v                  Be verbose
+-V                  Be more verbose
+-D                  Debug mode
 
 First steps:
 

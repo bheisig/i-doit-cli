@@ -25,6 +25,8 @@
 
 namespace bheisig\idoitcli;
 
+$config = [];
+
 try {
     /**
      * Load classes
@@ -90,8 +92,6 @@ try {
         $_SERVER['HOME'] . '/.idoitcli/config.json'
     ];
 
-    $config = [];
-
     foreach ($configFiles as $configFile) {
         if (is_readable($configFile)) {
             $settings = json_decode(
@@ -126,8 +126,9 @@ try {
      */
 
     $config['options'] = getopt(
-        'o::hvVD',
+        'c::o::hvVD',
         [
+            'config::',
             'output::',
             'help',
             'version'
@@ -144,8 +145,70 @@ try {
 
     $config['args'] = $GLOBALS['argv'];
 
+    $additionalConfigFile = null;
+
+    if (array_key_exists('c', $config['options'])) {
+        for ($i = 0; $i < count($config['args']); $i++) {
+            if ($config['args'][$i] === '-c') {
+                $additionalConfigFile = $config['args'][$i + 1];
+                break;
+            }
+        }
+    } else if (array_key_exists('config', $config['args'])) {
+        $additionalConfigFile = $config['args']['config'];
+    }
+
+    if (isset($additionalConfigFile)) {
+        if (!is_readable($additionalConfigFile)) {
+            throw new \Exception(sprintf(
+                'Unable to read onfiguration file "%s"',
+                $additionalConfigFile
+            ), 400);
+        }
+
+        $settings = json_decode(
+            trim(
+                file_get_contents(
+                    $additionalConfigFile
+                )
+            ),
+            true
+        );
+
+        if ($settings === false) {
+            throw new \Exception(sprintf(
+                'Configuration file "%s" contains invalid JSON data.',
+                500
+            ));
+        }
+
+        $config = array_merge_recursive_overwrite(
+            $config,
+            $settings
+        );
+    }
+
     if (count($config['args']) < 2) {
         throw new \Exception('Too few arguments', 400);
+    }
+
+    /**
+     * Read important JSON files
+     */
+
+    $files = [
+        'composer',
+        'project'
+    ];
+
+    foreach ($files as $file) {
+        $path = __DIR__ . '/../' . $file . '.json';
+
+        if (!is_readable($path)) {
+            throw new \Exception(sprintf('%s.json not found', $file));
+        }
+
+        $config[$file] = json_decode(trim(file_get_contents($path)), true);
     }
 
     /**
@@ -212,7 +275,7 @@ try {
     IO::err($e->getMessage());
 
     if ($e->getCode() === 400) {
-        $help = new Help([]);
+        $help = new Help($config);
         $help->execute();
     }
 

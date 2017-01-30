@@ -35,22 +35,6 @@ class Status extends Command {
 
         $info = $idoit->readVersion();
 
-        $composerFile = __DIR__ . '/../composer.json';
-
-        if (!is_readable($composerFile)) {
-            throw new \Exception('composer.json not found');
-        }
-
-        $composerInfo = json_decode(trim(file_get_contents($composerFile)), true);
-
-        $projectFile = __DIR__ . '/../project.json';
-
-        if (!is_readable($projectFile)) {
-            throw new \Exception('project.json not found');
-        }
-
-        $projectInfo = json_decode(trim(file_get_contents($projectFile)), true);
-
         IO::out('About i-doit:');
         IO::out('Version: i-doit %s %s', $info['type'], $info['version']);
         IO::out('Tenant: %s', $info['login']['mandator']);
@@ -59,11 +43,11 @@ class Status extends Command {
         IO::out('');
 
         IO::out('About this script:');
-        IO::out('Name: %s', $projectInfo['title']);
-        IO::out('Description: %s', $projectInfo['description']);
-        IO::out('Version: %s', $projectInfo['version']);
-        IO::out('Website: %s', $composerInfo['homepage']);
-        IO::out('License: %s', $composerInfo['license']);
+        IO::out('Name: %s', $this->config['project']['title']);
+        IO::out('Description: %s', $this->config['project']['description']);
+        IO::out('Version: %s', $this->config['project']['version']);
+        IO::out('Website: %s', $this->config['composer']['homepage']);
+        IO::out('License: %s', $this->config['composer']['license']);
 
         IO::out('');
 
