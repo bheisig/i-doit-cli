@@ -265,13 +265,14 @@ try {
                 /** @var Command $command */
                 $command = new $class($config);
 
-                if (count($config['args']) >= 3 && (
-                    $config['args'][2] === '-h' ||
-                    $config['args'][2] === '--help')) {
-                    $command->showUsage();
-                } else {
-                    $command->setup()->execute()->tearDown();
+                foreach ($config['args'] as $arg) {
+                    if (in_array($arg, ['-h', '--help'])) {
+                        $command->showUsage();
+                        exit(0);
+                    }
                 }
+
+                $command->setup()->execute()->tearDown();
 
                 exit(0);
             }
