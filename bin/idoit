@@ -126,10 +126,10 @@ try {
      */
 
     $config['options'] = getopt(
-        'c::o::hvVD',
+        'c:o:hvVD',
         [
-            'config::',
-            'output::',
+            'config:',
+            'output:',
             'help',
             'version'
         ]
@@ -140,25 +140,52 @@ try {
         'random',
         'help',
         'init',
-        'status'
+        'status',
+        'nextip'
     ];
 
     $config['args'] = $GLOBALS['argv'];
 
-    $additionalConfigFile = null;
-
-    if (array_key_exists('c', $config['options'])) {
-        for ($i = 0; $i < count($config['args']); $i++) {
-            if ($config['args'][$i] === '-c') {
-                $additionalConfigFile = $config['args'][$i + 1];
-                break;
-            }
-        }
-    } else if (array_key_exists('config', $config['args'])) {
-        $additionalConfigFile = $config['args']['config'];
+    if (count($config['args']) < 2) {
+        throw new \Exception('Too few arguments', 400);
     }
 
-    if (isset($additionalConfigFile)) {
+    /**
+     * Load additional configuration files
+     */
+
+    $additionalConfigFiles = [];
+
+    foreach ($config['options'] as $option => $value) {
+        if (in_array($option, ['c', 'config'])) {
+            switch(gettype($value)) {
+                case 'string':
+                    $additionalConfigFiles[] = $value;
+                    break;
+                case 'array':
+                    foreach ($value as $item) {
+                        if (!is_string($item)) {
+                            throw new \Exception(sprintf(
+                                'Unknown value "%s" for option "%s"',
+                                $item,
+                                $option
+                            ));
+                        }
+
+                        $additionalConfigFiles[] = $item;
+                    }
+                    break;
+                default:
+                    throw new \Exception(sprintf(
+                        'Unknown value "%s" for option "%s"',
+                        $value,
+                        $option
+                    ));
+            }
+        }
+    }
+
+    foreach ($additionalConfigFiles as $additionalConfigFile) {
         if (!is_readable($additionalConfigFile)) {
             throw new \Exception(sprintf(
                 'Unable to read onfiguration file "%s"',
@@ -186,10 +213,6 @@ try {
             $config,
             $settings
         );
-    }
-
-    if (count($config['args']) < 2) {
-        throw new \Exception('Too few arguments', 400);
     }
 
     /**
