@@ -35,6 +35,7 @@ init                Create configuration settings and create cache
 status              Current status information
 read                Fetch information from your CMDB
 random              Create randomized data
+nextip              Fetch the next free IP address for a given subnet
 
 Show specific help for these commands:
 
