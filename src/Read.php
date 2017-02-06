@@ -44,10 +44,14 @@ class Read extends Command {
     }
 
     public function execute() {
-        $path = end($this->config['args']);
+        $path = '';
 
-        if (count($GLOBALS['argv']) == 2) {
-            $path = '';
+        foreach ($this->config['args'] as $index => $arg) {
+            if ($arg === 'read' &&
+                array_key_exists(($index + 1), $this->config['args'])) {
+                $path = $this->config['args'][$index + 1];
+                break;
+            }
         }
 
         $parts = explode('/', $path);
