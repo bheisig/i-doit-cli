@@ -41,6 +41,8 @@ abstract class Command implements Executes {
 
     protected $cacheAssignedCategories = [];
 
+    protected $hostDir;
+
     /**
      * UNIX timestamp when execution starts
      *
@@ -84,12 +86,31 @@ abstract class Command implements Executes {
         return $this;
     }
 
+    protected function getHostDir() {
+        if (!array_key_exists('api', $this->config) ||
+            !array_key_exists('url', $this->config['api'])) {
+            throw new \Exception(
+                'No proper configuration found' . PHP_EOL .
+                'Run "idoit init" to create configuration settings'
+            );
+        }
+
+        if (!isset($this->hostDir)) {
+            $this->hostDir = $this->config['dataDir'] . '/' .
+                sha1($this->config['api']['url']);
+        }
+
+        return $this->hostDir;
+    }
+
     protected function isCached() {
-        if (!is_dir($this->config['dataDir'])) {
+        $hostDir = $this->getHostDir();
+
+        if (!is_dir($hostDir)) {
             return false;
         }
 
-        $dir = new \DirectoryIterator($this->config['dataDir']);
+        $dir = new \DirectoryIterator($hostDir);
 
         foreach ($dir as $file) {
             if ($file->isFile()) {
@@ -105,7 +126,9 @@ abstract class Command implements Executes {
     }
 
     protected function getObjectTypes() {
-        return unserialize(file_get_contents($this->config['dataDir'] . '/object_types'));
+        $hostDir = $this->getHostDir();
+
+        return unserialize(file_get_contents($hostDir . '/object_types'));
     }
 
     protected function getCategoryInfo($category) {
@@ -118,8 +141,9 @@ abstract class Command implements Executes {
 
     protected function getCategories() {
         $categories = [];
+        $hostDir = $this->getHostDir();
 
-        $dir = new \DirectoryIterator($this->config['dataDir']);
+        $dir = new \DirectoryIterator($hostDir);
 
         foreach ($dir as $file) {
             if ($file->isFile() === false) {
@@ -131,7 +155,7 @@ abstract class Command implements Executes {
             }
 
             $categories[] = unserialize(
-                file_get_contents($this->config['dataDir'] . '/' . $file->getFilename())
+                file_get_contents($hostDir . '/' . $file->getFilename())
             );
         }
 

@@ -66,7 +66,7 @@ class Init extends Command {
      * @throws \Exception on error
      */
     protected function serialize($file, $value) {
-        $filePath = $this->config['dataDir'] . '/' . $file;
+        $filePath = $this->getHostDir() . '/' . $file;
 
         $status = file_put_contents($filePath, serialize($value));
 
@@ -123,7 +123,8 @@ class Init extends Command {
                 case 'n':
                     return $this;
                 default:
-                    throw new \Exception('Do not know what to do.');
+                    IO::err('Do not know what to do.');
+                    return $this->createUserConfig();
             }
         }
 
@@ -216,21 +217,26 @@ class Init extends Command {
      * @throws \Exception on error
      */
     protected function clearCache() {
-        if (!is_dir($this->config['dataDir'])) {
-            IO::out('Create cache directory');
+        $hostDir = $this->getHostDir();
 
-            $status = mkdir($this->config['dataDir'], 0775, true);
+        if (!is_dir($hostDir)) {
+            IO::out(
+                'Create cache directory for i-doit instance "%s"',
+                $this->config['api']['url']
+            );
+
+            $status = mkdir($hostDir, 0775, true);
 
             if ($status === false) {
                 throw new \Exception(sprintf(
-                    'Unable to create cache directory "%s"',
-                    $this->config['dataDir']
+                    'Unable to create data directory "%s"',
+                    $hostDir
                 ));
             }
         } else {
             IO::out('Clear cache files');
 
-            $files = new \DirectoryIterator($this->config['dataDir']);
+            $files = new \DirectoryIterator($hostDir);
 
             foreach ($files as $file) {
                 if ($file->isFile()) {
@@ -238,8 +244,8 @@ class Init extends Command {
 
                     if ($status === false) {
                         throw new \Exception(sprintf(
-                            'Unable to clear cache in "%s". Unable to delete file "%s"',
-                            $this->config['dataDir'],
+                            'Unable to clear data in "%s". Unable to delete file "%s"',
+                            $hostDir,
                             $file->getPathname()
                         ));
                     }
