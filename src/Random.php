@@ -26,6 +26,7 @@ namespace bheisig\idoitcli;
 
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBCategory;
+use bheisig\idoitapi\Subnet;
 
 class Random extends Command {
 
@@ -40,6 +41,10 @@ class Random extends Command {
      * @var \bheisig\idoitapi\CMDBCategory
      */
     protected $cmdbCategory;
+
+    protected $subnetIDs = [];
+    protected $subnet;
+    protected $subnetID;
 
     public function setup () {
         parent::setup();
@@ -59,10 +64,19 @@ class Random extends Command {
 
         $worked = false;
 
-        if (array_key_exists('countries', $this->config)) {
-            $this->createCountries();
+        $topics = [
+            'countries',
+            'subnets',
+            'servers'
+        ];
 
-            $worked = true;
+        foreach ($topics as $topic) {
+            if (array_key_exists($topic, $this->config)) {
+                $method = 'create' . ucfirst($topic);
+                $this->$method();
+
+                $worked = true;
+            }
         }
 
         if ($worked === false) {
@@ -77,46 +91,48 @@ class Random extends Command {
 
         $this->api->logout();
 
-        $this->statistics['API calls: '] = $this->api->countRequests();
+        IO::out('Some statistics:');
 
-        if (count($this->statistics) > 0) {
-            IO::out('Some statistics:');
+        $this->statistics['API calls'] = $this->api->countRequests();
+        $this->statistics['Memory peak usage (megabytes)'] = round(
+            (memory_get_peak_usage(true) / 1014 / 1024),
+            2
+        );
 
-            $tabSize = 4;
+        $tabSize = 4;
 
-            $longestText = 0;
+        $longestText = 0;
 
-            $chars = 0;
+        $chars = 0;
 
-            foreach ($this->statistics as $key => $value) {
-                if (strlen($key) > $longestText) {
-                    $longestText = strlen($key);
-                }
-
-                if (strlen($value) > $chars) {
-                    $chars = strlen($value);
-                }
+        foreach ($this->statistics as $key => $value) {
+            if (strlen($key) > $longestText) {
+                $longestText = strlen($key);
             }
 
-            // Because of the ':':
-            $longestText++;
-
-            $gap = ($longestText % $tabSize);
-
-            if ($gap !== 0) {
-                $gap = $tabSize - $gap;
+            if (strlen($value) > $chars) {
+                $chars = strlen($value);
             }
+        }
 
-            $maxLength = $longestText + $gap + $tabSize;
+        // Because of the ':':
+        $longestText++;
 
-            foreach ($this->statistics as $key => $value) {
-                $line = str_repeat(' ', $tabSize);
-                $line .= ucfirst($key) . ':';
-                $line .= str_repeat(' ', ($maxLength - strlen($key) + 1));
-                $line .= str_repeat(' ', ($chars - strlen($value))) . $value;
+        $gap = ($longestText % $tabSize);
 
-                IO::out($line);
-            }
+        if ($gap !== 0) {
+            $gap = $tabSize - $gap;
+        }
+
+        $maxLength = $longestText + $gap + $tabSize;
+
+        foreach ($this->statistics as $key => $value) {
+            $line = str_repeat(' ', $tabSize);
+            $line .= ucfirst($key) . ':';
+            $line .= str_repeat(' ', ($maxLength - strlen($key) + 1));
+            $line .= str_repeat(' ', ($chars - strlen($value))) . $value;
+
+            IO::out($line);
         }
 
         IO::out('This took %s seconds.', $this->executionTime);
@@ -144,6 +160,8 @@ class Random extends Command {
 
         $countryIDs = $this->createObjects($countryObjects);
 
+        unset($countryObjects);
+
         $this->assignObjectsToLocation($countryIDs, 1);
 
         $this->logStat('Created country objects', count($countryIDs));
@@ -165,6 +183,8 @@ class Random extends Command {
 
                 $cityIDs = $this->createObjects($cityObjects);
 
+                unset($cityObjects);
+
                 $this->logStat('Created city objects', count($cityIDs));
 
                 $this->assignObjectsToLocation($cityIDs, $countryIDs[$countryIndex]);
@@ -185,17 +205,17 @@ class Random extends Command {
                             $buildingObjects = [];
 
                             for ($i = 0; $i < $amount; $i++) {
-                                $hash = sha1(microtime());
-                                $title = $this->config['buildings']['titlePrefix'] .
-                                    substr($hash, 0, 5);
-
                                 $buildingObjects[] = [
-                                    'title' => $title,
+                                    'title' => $this->genTitle(
+                                        $this->config['buildings']['titlePrefix']
+                                    ),
                                     'type' => $this->config['types']['buildings']
                                 ];
                             }
 
                             $buildingIDs = $this->createObjects($buildingObjects);
+
+                            unset($buildingObjects);
 
                             $this->logStat('Created building objects', count($buildingIDs));
 
@@ -217,17 +237,17 @@ class Random extends Command {
                                     $roomObjects = [];
 
                                     for ($i = 0; $i < $amount; $i++) {
-                                        $hash = sha1(microtime());
-                                        $title = $this->config['rooms']['titlePrefix'] .
-                                            substr($hash, 0, 5);
-
                                         $roomObjects[] = [
-                                            'title' => $title,
+                                            'title' => $this->genTitle(
+                                                $this->config['rooms']['titlePrefix']
+                                            ),
                                             'type' => $this->config['types']['rooms']
                                         ];
                                     }
 
                                     $roomIDs = $this->createObjects($roomObjects);
+
+                                    unset($roomObjects);
 
                                     $this->logStat('Created room objects', count($roomIDs));
 
@@ -241,6 +261,201 @@ class Random extends Command {
 
             $countryIndex++;
         }
+
+        return $this;
+    }
+
+    protected function createSubnets() {
+        IO::out('Create subnets');
+
+        $subnetObjects = [];
+
+        foreach (array_keys($this->config['subnets']) as $subnet) {
+            $subnetObjects[] = [
+                'title' => $subnet,
+                'type' => $this->config['types']['subnets']
+            ];
+        }
+
+        $subnetIDs = $this->createObjects($subnetObjects);
+
+        unset($subnetObjects);
+
+        $index = 0;
+
+        foreach ($this->config['subnets'] as $attributes) {
+            $type = null;
+
+            switch ($attributes['type']) {
+                case 'IPv4':
+                    $type = 1;
+                    break;
+                case 'IPv6':
+                    $type = 1000;
+                    break;
+            }
+
+            $this->createCategoryEntry(
+                $subnetIDs[$index],
+                'C__CATS__NET',
+                [
+                    'type' => $type,
+                    'address' => $attributes['address'],
+                    'netmask' => $attributes['mask']
+                ],
+                false
+            );
+
+            $index++;
+        }
+
+        $this->logStat('Created subnet objects', count($subnetIDs));
+
+        return $this;
+    }
+
+    protected function createServers() {
+        IO::out('Create servers');
+
+        if (!is_array($this->config['servers']) ||
+            count($this->config['servers']) === 0) {
+            throw new \Exception('Missing configuration settings for servers', 400);
+        }
+
+        if (!array_key_exists('amount', $this->config['servers']) ||
+            !is_int($this->config['servers']['amount']) ||
+            $this->config['servers']['amount'] <= 0) {
+            throw new \Exception('Do not know how many servers to create', 400);
+        }
+
+        $serverObjects = [];
+
+        for ($i = 0; $i < $this->config['servers']['amount']; $i++) {
+            $prefix = null;
+
+            if (array_key_exists('prefix', $this->config['servers'])) {
+                $prefix = $this->config['servers']['prefix'];
+            }
+
+            $title = $this->genTitle($prefix);
+
+            $serverObjects[] = [
+                'title' => $title,
+                'type' => $this->config['types']['servers']
+            ];
+        }
+
+        $serverIDs = $this->createObjects($serverObjects);
+
+        $this->logStat('Created server objects', count($serverIDs));
+
+        if (array_key_exists('ips', $this->config['servers'])) {
+            IO::out('Create IP addresses');
+
+            if (!is_int($this->config['servers']['ips']) ||
+                $this->config['servers']['ips'] <= 0) {
+                throw new \Exception(
+                    'Do not how many IP addresses to create per server',
+                    400
+                );
+            }
+
+            $subnetObjects = $this->cmdbObjects->readByType(
+                $this->config['types']['subnets']
+            );
+
+            $this->subnetIDs = [];
+
+            foreach ($subnetObjects as $subnetObject) {
+                // Ignore "global" subnets:
+                if (in_array($subnetObject['title'], ['Global v4', 'Global v6'])) {
+                    continue;
+                }
+
+                $this->subnetIDs[] = (int) $subnetObject['id'];
+            }
+
+            unset($subnetObjects);
+
+            if (count($this->subnetIDs) === 0) {
+                throw new \Exception(
+                    'There are no proper subnets'
+                );
+            }
+
+            $index = 0;
+
+            foreach ($serverIDs as $serverID) {
+                $attributes = [];
+
+                for ($i = 0; $i < $this->config['servers']['ips']; $i++) {
+                    $nextIP = $this->nextIP();
+
+                    $attributes[] = [
+                        'active' => 1,
+                        'primary' => 1,
+                        'type' => 1, // "IPv4 (Internet Protocol v4)"
+                        'net' => $this->subnetID,
+                        'ipv4_assignment' => 2, // "static"
+                        'ipv4_address' => $nextIP,
+                        'hostname' => $serverObjects[$index]['title']
+                    ];
+                }
+
+                $this->createMultipleCategoryEntriesPerObject(
+                    $serverID,
+                    'C__CATG__IP',
+                    $attributes
+                );
+
+                $index++;
+            }
+
+        }
+
+        return $this;
+    }
+
+    protected function nextIP() {
+        if (!isset($this->subnet)) {
+            if (count($this->subnetIDs) === 0) {
+                throw new \Exception('No IP addresses left', 400);
+            }
+            $this->subnetID = array_shift($this->subnetIDs);
+            $this->subnet = new Subnet($this->api);
+            $this->subnet->load($this->subnetID);
+        }
+
+        if ($this->subnet->hasNext() === false) {
+            $this->subnet = null;
+            return $this->nextIP();
+        }
+
+        $next = $nextIP = $this->subnet->next();
+
+        if (array_key_exists('density', $this->config) &&
+            is_array($this->config['density']) &&
+            array_key_exists('subnets', $this->config['density'])) {
+            if (!is_float($this->config['density']['subnets']) ||
+                $this->config['density']['subnets'] <= 0 ||
+                $this->config['density']['subnets'] > 1) {
+                throw new \Exception('Subnet density must be a float between greater than 0 and lower equal 1');
+            }
+
+            $density = round($this->config['density']['subnets'] * 100);
+            $dice = mt_rand(1, 100);
+
+            if ($density < $dice) {
+                if ($this->subnet->hasNext() === false) {
+                    $this->subnet = null;
+                    return $this->nextIP();
+                }
+
+                return $this->subnet->next();
+            }
+        }
+
+        return $next;
     }
 
     protected function createObjects($objects) {
@@ -269,6 +484,15 @@ class Random extends Command {
                 $objects, $index, $length, true
             );
 
+            if ($this->config['limitBatchRequests'] > 0 &&
+                $count > $this->config['limitBatchRequests']) {
+                if (count($chunk) === 1) {
+                    IO::out('Create 1 object');
+                } else {
+                    IO::out('Create %s objects', count($chunk));
+                }
+            }
+
             $objectIDs = array_merge(
                 $objectIDs,
                 $this->cmdbObjects->create($chunk)
@@ -285,7 +509,37 @@ class Random extends Command {
     }
 
     protected function assignObjectsToLocation($objectIDs, $locationID) {
+        return $this->createCategoryEntries(
+            $objectIDs,
+            'C__CATG__LOCATION',
+            [
+                'parent' => $locationID
+            ]
+        );
+    }
+
+    protected function createCategoryEntry($objectID, $categoryConst, $attributes, $isGlobal = true) {
+        IO::out(
+            'Create one entry into category "%s" for object %s',
+            $categoryConst,
+            $objectID
+        );
+
+        $this->cmdbCategory->create($objectID, $categoryConst, $attributes, $isGlobal);
+
+        $this->logStat('Created category entries', 1);
+
+        return $this;
+    }
+
+    protected function createCategoryEntries($objectIDs, $categoryConst, $attributes, $isGlobal = true) {
         $count = count($objectIDs);
+
+        IO::out(
+            'Create same entry into category "%s" for %s objects',
+            $count,
+            $categoryConst
+        );
 
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
@@ -308,12 +562,20 @@ class Random extends Command {
                 $objectIDs, $index, $length, true
             );
 
+            if ($this->config['limitBatchRequests'] > 0 &&
+                $count > $this->config['limitBatchRequests']) {
+                if (count($chunk) === 1) {
+                    IO::out('Push 1 sub request');
+                } else {
+                    IO::out('Push %s sub requests', count($chunk));
+                }
+            }
+
             $this->cmdbCategory->batchCreate(
                 $chunk,
-                'C__CATG__LOCATION',
-                [[
-                    'parent' => $locationID
-                ]]
+                $categoryConst,
+                [$attributes],
+                $isGlobal
             );
 
             if ($this->config['limitBatchRequests'] <= 0) {
@@ -323,7 +585,68 @@ class Random extends Command {
             $index += $this->config['limitBatchRequests'];
         }
 
-        $this->logStat('Created category entries', count($objectIDs));
+        $this->logStat('Created category entries', $count);
+
+        return $this;
+    }
+
+    protected function createMultipleCategoryEntriesPerObject($objectID, $categoryConst, $attributes, $isGlobal = true) {
+        $count = count($attributes);
+
+        IO::out(
+            'Create %s entries into category "%s" for object %s',
+            $count,
+            $categoryConst,
+            $objectID
+        );
+
+        if ($this->config['limitBatchRequests'] > 0 &&
+            $count > $this->config['limitBatchRequests']) {
+            IO::out(
+                'Batch requests are limited to %s sub requests',
+                $this->config['limitBatchRequests']
+            );
+        }
+
+        $index = 0;
+
+        while ($index < $count) {
+            $length = null;
+
+            if ($this->config['limitBatchRequests'] > 0) {
+                $length = $this->config['limitBatchRequests'];
+            }
+
+            $chunk = array_slice(
+                $attributes, $index, $length, true
+            );
+
+            if ($this->config['limitBatchRequests'] > 0 &&
+                $count > $this->config['limitBatchRequests']) {
+                if (count($chunk) === 1) {
+                    IO::out('Push 1 sub request');
+                } else {
+                    IO::out('Push %s sub requests', count($chunk));
+                }
+            }
+
+            $this->cmdbCategory->batchCreate(
+                [$objectID],
+                $categoryConst,
+                $chunk,
+                $isGlobal
+            );
+
+            if ($this->config['limitBatchRequests'] <= 0) {
+                break;
+            }
+
+            $index += $this->config['limitBatchRequests'];
+        }
+
+        $this->logStat('Created category entries', $count);
+
+        return $this;
     }
 
     protected function logStat($key, $value) {
@@ -332,6 +655,22 @@ class Random extends Command {
         } else {
             $this->statistics[$key] += $value;
         }
+    }
+
+    protected function genTitle($prefix = null, $suffix = null) {
+        $title = '';
+
+        if (isset($prefix)) {
+            $title = $prefix;
+        }
+
+        $title .= substr(sha1(microtime()), 0, 5);
+
+        if (isset($suffix)) {
+            $title .= $suffix;
+        }
+
+        return $title;
     }
 
 }

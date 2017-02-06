@@ -14,6 +14,8 @@
         "countries": "C__OBJTYPE__COUNTRY",
         "cities": "C__OBJTYPE__CITY",
         "buildings": "C__OBJTYPE__BUILDING",
-        "rooms": "C__OBJTYPE__ROOM"
+        "rooms": "C__OBJTYPE__ROOM",
+        "subnets": "C__OBJTYPE__LAYER3_NET",
+        "servers": "C__OBJTYPE__SERVER"
     }
 }
