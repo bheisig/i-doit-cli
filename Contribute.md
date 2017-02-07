@@ -3,24 +3,24 @@
 Thank you very much for your interest in this project! There are plenty of ways you can support us. :-)
 
 
-##  Use it!
+##  Use it
 
 The best and (probably) easiest way is to use the script in your daily work. It would be very nice to share your thoughts with us. We love to hear from you.
 
 If you have questions how to use it properly read the [documentation](Readme.md) carefully.
 
 
-##  Report bugs!
+##  Report bugs
 
 If you find something strange please report it to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
 
 
-##  Make a wish!
+##  Make a wish
 
 Of course, there are some features in the pipeline. But if you have good ideas how to improve the script please let us know! Write a feature request [in our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
 
 
-##  Translation/Localization
+##  Translate/localize
 
 _tbd_
 
@@ -43,6 +43,8 @@ composer install
 
 Now it is the time to do your stuff. Do not forget to commit your changes. When you are done consider to make a pull requests.
 
+Notice, that your contribution merged into this repository will be [licensed under the AGPLv3](COPYING).
+
 
 ##  Requirements
 
@@ -51,11 +53,11 @@ This projects has some dependencies:
 *   [PHP](https://php.net/), version 5.6+
 *   [Composer](https://getcomposer.org/)
 *   Composer package [`bheisig\idoitapi`](https://github.com/bheisig/i-doit-api-client-php)
-*   A working copy of [i-doit](https://i-doit.com/).
+*   One or more working copies of [i-doit](https://i-doit.com/) (otherwise this script is senseless)
 
 Developers must meet some more requirements:
 
-*   [Git](https://git-scm.com/) (obviously)
+*   [Git](https://git-scm.com/)
 *   [Pandoc](https://pandoc.org/)
 *   make
 *   Composer package [`clue/phar-composer`](https://github.com/clue/phar-composer)
@@ -63,7 +65,7 @@ Developers must meet some more requirements:
 
 ##  Create a binary
 
-Just call `make` or `make build`. This creates a file `idoit`.
+Just call `make` or `make build`. This creates a file called `idoit`.
 
 
 ##  Create a distribution tarball
@@ -72,5 +74,10 @@ Just call `make` or `make build`. This creates a file `idoit`.
 *   Call `make`
 *   Call `make dist`
 
-The last call creates a file `i-doit-cli-<VERSION>.tar.gz`.
+The last call creates a file caleld `i-doit-cli-<VERSION>.tar.gz`.
+
+
+##  Donate
+
+Last but not least, if you think this script is useful for your daily work, consider a donation. What about a beer?
 
