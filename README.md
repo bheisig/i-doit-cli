@@ -181,7 +181,7 @@ The configuration files are JSON-formatted.
 
 ##  Contribute
 
-Please, report any issues to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues). Pull requests and distribution packages are very welcomed.
+Please, report any issues to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues). Pull requests and OS distribution packages are very welcomed. For further information, see file [`Contribute.md`](Contribute.md).
 
 
 ##  Copyright & License
