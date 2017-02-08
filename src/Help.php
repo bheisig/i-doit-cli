@@ -24,8 +24,18 @@
 
 namespace bheisig\idoitcli;
 
+/**
+ * Command "help"
+ */
 class Help extends Command {
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
         IO::out('Usage: idoit [OPTIONS] [COMMAND]
 
@@ -68,6 +78,11 @@ First steps:
         return $this;
     }
 
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
     public function showUsage() {
         IO::out('Congratulations! You opened the gate to an unknown world.');
     }

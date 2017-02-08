@@ -24,21 +24,43 @@
 
 namespace bheisig\idoitcli;
 
+/**
+ * Interface for commands
+ */
 interface Executes {
 
     /**
+     * Processes some routines before the execution
+     *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
     public function setup();
 
     /**
+     * Executes the command
+     *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
     public function execute();
 
     /**
+     * Processes some routines after the execution
+     *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
     public function tearDown();
+
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
+    public function showUsage();
 
 }

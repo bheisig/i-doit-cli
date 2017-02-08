@@ -71,7 +71,7 @@ class Search extends Command {
         foreach ($results as $result) {
             IO::out('');
             IO::out('%s', $result['value']);
-            IO::out('Origin: %s [%s]', $result['key'], $result['type']);
+            IO::out('Source: %s [%s]', $result['key'], $result['type']);
             IO::out('Link: %s', $baseLink . $result['link']);
         }
 

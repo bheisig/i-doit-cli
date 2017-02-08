@@ -27,8 +27,18 @@ namespace bheisig\idoitcli;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBCategory;
 
+/**
+ * Command "read"
+ */
 class Read extends Command {
 
+    /**
+     * Processes some routines before the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function setup() {
         parent::setup();
 
@@ -43,16 +53,15 @@ class Read extends Command {
         return $this;
     }
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
-        $path = '';
-
-        foreach ($this->config['args'] as $index => $arg) {
-            if ($arg === 'read' &&
-                array_key_exists(($index + 1), $this->config['args'])) {
-                $path = $this->config['args'][$index + 1];
-                break;
-            }
-        }
+        $path = $this->getQuery();
 
         $parts = explode('/', $path);
 
@@ -182,6 +191,13 @@ class Read extends Command {
         return $this;
     }
 
+    /**
+     * Processes some routines after the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function tearDown () {
         $this->api->logout();
 
@@ -396,6 +412,12 @@ class Read extends Command {
         return $this;
     }
 
+
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
     public function showUsage() {
         IO::out('Usage: idoit [OPTIONS] read [PATH]
 
@@ -406,6 +428,8 @@ Wildcards:
 Examples:
 
 ');
+
+        return $this;
     }
 
 }

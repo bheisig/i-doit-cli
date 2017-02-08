@@ -28,6 +28,9 @@ use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBCategory;
 use bheisig\idoitapi\Subnet;
 
+/**
+ * Command "random"
+ */
 class Random extends Command {
 
     protected $statistics = [];
@@ -46,6 +49,13 @@ class Random extends Command {
     protected $subnet;
     protected $subnetID;
 
+    /**
+     * Processes some routines before the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function setup () {
         parent::setup();
 
@@ -59,6 +69,13 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
         IO::err('Current date and time: %s', date('c', $this->start));
 
@@ -86,6 +103,13 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     * Processes some routines after the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function tearDown () {
         parent::tearDown();
 
@@ -142,8 +166,15 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
     public function showUsage() {
         IO::out('Roll the dice');
+
+        return $this;
     }
 
     protected function createCountries() {

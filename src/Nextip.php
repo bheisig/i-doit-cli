@@ -27,23 +27,27 @@ namespace bheisig\idoitcli;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\Subnet;
 
+/**
+ * Command "nextip"
+ */
 class Nextip extends Command {
 
     protected $freeIPAddresses = [];
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
         $this->initiateAPI();
 
-        $value = '';
+        $value = $this->getQuery();;
 
-        foreach ($this->config['args'] as $index => $arg) {
-            if ($arg === 'nextip') {
-                if (!array_key_exists(($index + 1), $this->config['args'])) {
-                    throw new \Exception('Missing SUBNET', 400);
-                }
-
-                $value = $this->config['args'][$index + 1];
-            }
+        if ($value === '') {
+            throw new \Exception('Missing SUBNET', 400);
         }
 
         if (is_numeric($value)) {
@@ -67,6 +71,11 @@ class Nextip extends Command {
         return $this;
     }
 
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
     public function showUsage() {
         IO::out('Usage: idoit nextip SUBNET
 
@@ -76,6 +85,8 @@ Examples:
 
 1) idoit nextip "Global v4"
 2) idoit nextip 20');
+
+        return $this;
     }
 
 }

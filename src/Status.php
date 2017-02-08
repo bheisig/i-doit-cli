@@ -26,8 +26,18 @@ namespace bheisig\idoitcli;
 
 use bheisig\idoitapi\Idoit;
 
+/**
+ * Command "status"
+ */
 class Status extends Command {
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
         $this->initiateAPI();
 

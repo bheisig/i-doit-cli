@@ -26,6 +26,9 @@ namespace bheisig\idoitcli;
 
 use bheisig\idoitapi\API;
 
+/**
+ * Base command
+ */
 abstract class Command implements Executes {
 
     protected $config = [];
@@ -61,12 +64,26 @@ abstract class Command implements Executes {
         $this->config = $config;
     }
 
+    /**
+     * Processes some routines before the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function setup() {
         $this->start = time();
 
         return $this;
     }
 
+    /**
+     * Processes some routines after the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function tearDown() {
         $this->executionTime = time() - $this->start;
 
@@ -176,6 +193,11 @@ abstract class Command implements Executes {
         return $query;
     }
 
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
     public function showUsage() {
         IO::out('No specific help needed');
 

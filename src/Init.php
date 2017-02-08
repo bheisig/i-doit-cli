@@ -29,8 +29,18 @@ use bheisig\idoitapi\CMDBObjectTypes;
 use bheisig\idoitapi\CMDBObjectTypeCategories;
 use bheisig\idoitapi\CMDBCategoryInfo;
 
+/**
+ * Command "init"
+ */
 class Init extends Command {
 
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     public function execute() {
         try {
             $this

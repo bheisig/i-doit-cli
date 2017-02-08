@@ -268,8 +268,8 @@ try {
                 /** @var Command $command */
                 $command = new $class($config);
 
-                foreach ($config['args'] as $arg) {
-                    if (in_array($arg, ['-h', '--help'])) {
+                foreach ($config['args'] as $help) {
+                    if (in_array($help, ['-h', '--help'])) {
                         $command->showUsage();
                         exit(0);
                     }
