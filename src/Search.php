@@ -84,7 +84,7 @@ class Search extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Usage: idoit [OPTIONS] search [QUERY]
+        IO::out('Usage: %1$s [OPTIONS] search [QUERY]
 
 Find your needle in the haystack called CMDB
 
@@ -92,8 +92,8 @@ QUERY could be any string.
 
 Examples:
 
-1) idoit search myserver
-2) idoit search "My Server"');
+1) %1$s search myserver
+2) %1$s search "My Server"', $this->config['basename']);
 
         return $this;
     }

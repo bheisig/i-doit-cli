@@ -37,43 +37,24 @@ class Help extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        IO::out('Usage: idoit [OPTIONS] [COMMAND]
+        $command = $this->getQuery();
 
-Commands:
+        if ($command === 'help') {
+            $this->showUsage();
+        } else if (array_key_exists($command, $this->config['commands'])) {
+            $class = __NAMESPACE__ . '\\' . ucfirst($command);
 
-init                Create configuration settings and create cache
-status              Current status information
-read                Fetch information from your CMDB
-search              Find your needle in the haystack called CMDB
-random              Create randomized data
-nextip              Fetch the next free IP address for a given subnet
+            /** @var \bheisig\idoitcli\Executes $instance */
+            $instance = new $class($this->config);
 
-Show specific help for these commands:
+            $instance->showUsage();
+        } else if ($command === '') {
+            $this->showUsage();
+        } else {
+            IO::err('Unknown command');
 
-idoit help [COMMAND]
-idoit [COMMAND] --help
-
-Options:
-
--c [FILE],
---config=[FILE]     Additional configuration settings in a JSON-formatted file
-
--o [FORMAT],
---output=[FORMAT]   Supported output formats are "plain" (default) and "json"
-
--h, --help          Show this help
---version           Show version information
-
-Verbosity:
-
--v                  Be verbose
--V                  Be more verbose
--D                  Debug mode
-
-First steps:
-
-1) idoit init
-2) idoit read server/host.example.net/model');
+            $this->showUsage();
+        }
 
         return $this;
     }
@@ -84,7 +65,42 @@ First steps:
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Congratulations! You opened the gate to an unknown world.');
+        $commandList = '';
+
+        foreach ($this->config['commands'] as $command => $description) {
+            if ($command === 'help') {
+                continue;
+            }
+
+            $commandList .= PHP_EOL . $command . "\t\t    " . $description;
+        }
+
+        IO::out('Usage: %1$s [OPTIONS] [COMMAND]
+
+Commands:
+%2$s
+
+Show specific help for these commands:
+
+%1$s help [COMMAND]
+%1$s [COMMAND] --help
+
+Options:
+
+-c [FILE],
+--config=[FILE]     Additional configuration settings in a JSON-formatted file
+
+-h, --help          Show this help
+--version           Show version information
+
+First steps:
+
+1) %1$s init
+2) %1$s read server/host.example.net/model',
+            $this->config['basename'],
+            $commandList);
+
+        return $this;
     }
 
 }

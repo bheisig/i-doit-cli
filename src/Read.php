@@ -419,7 +419,7 @@ class Read extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Usage: idoit [OPTIONS] read [PATH]
+        IO::out('Usage: %1$s [OPTIONS] read [PATH]
 
 Path:
 
@@ -427,7 +427,7 @@ Wildcards:
 
 Examples:
 
-');
+', $this->config['basename']);
 
         return $this;
     }

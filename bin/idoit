@@ -125,6 +125,8 @@ try {
      * Process command line options
      */
 
+    $config['basename'] = basename(__FILE__);
+
     $config['options'] = getopt(
         'c:o:hvVD',
         [
@@ -136,13 +138,13 @@ try {
     );
 
     $config['commands'] = [
-        'read',
-        'random',
-        'help',
-        'init',
-        'status',
-        'nextip',
-        'search'
+        'init' => 'Create configuration settings and create cache',
+        'status' => 'Current status information',
+        'read' => 'Fetch information from your CMDB',
+        'search' => 'Find your needle in the haystack called CMDB',
+        'random' => 'Create randomized data',
+        'nextip' => 'Fetch the next free IP address for a given subnet',
+        'help' => 'Show this help'
     ];
 
     $config['args'] = $GLOBALS['argv'];
@@ -257,7 +259,7 @@ try {
      */
 
     foreach ($config['args'] as $arg) {
-        if (in_array($arg, $config['commands'])) {
+        if (array_key_exists($arg, $config['commands'])) {
             $class = __NAMESPACE__ . '\\' . ucfirst($arg);
 
             $config['command'] = $arg;
