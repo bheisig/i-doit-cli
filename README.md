@@ -13,6 +13,7 @@ This client provides a simple, but powerful command line interface to access you
 ##  Features
 
 *   Read information about objects their types and even their attributes
+*   Find your needle in the haystack called CMDB
 *   Do you need a free IP address in a particular subnet? This script suggests one for you.
 *   Stress your system: auto-generate thousands of objects
 
@@ -130,6 +131,16 @@ Or just show the serial number:
 
 ~~~ {.bash}
 idoit read server/host123/model/serial
+~~~
+
+
+##  Find Your Data
+
+Find your needle in the haystack called CMDB:
+
+~~~ {.bash}
+idoit search myserver
+idoit search "My Server"
 ~~~
 
 

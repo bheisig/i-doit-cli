@@ -34,6 +34,7 @@ Commands:
 init                Create configuration settings and create cache
 status              Current status information
 read                Fetch information from your CMDB
+search              Find your needle in the haystack called CMDB
 random              Create randomized data
 nextip              Fetch the next free IP address for a given subnet
 

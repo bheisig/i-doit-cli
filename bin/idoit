@@ -141,7 +141,8 @@ try {
         'help',
         'init',
         'status',
-        'nextip'
+        'nextip',
+        'search'
     ];
 
     $config['args'] = $GLOBALS['argv'];
@@ -258,6 +259,8 @@ try {
     foreach ($config['args'] as $arg) {
         if (in_array($arg, $config['commands'])) {
             $class = __NAMESPACE__ . '\\' . ucfirst($arg);
+
+            $config['command'] = $arg;
 
             if (class_exists($class) &&
                 is_subclass_of($class, '\bheisig\idoitcli\Executes')

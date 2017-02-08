@@ -162,8 +162,24 @@ abstract class Command implements Executes {
         return $categories;
     }
 
+    protected function getQuery() {
+        $query = '';
+
+        foreach ($this->config['args'] as $index => $arg) {
+            if ($arg === $this->config['command'] &&
+                array_key_exists(($index + 1), $this->config['args'])) {
+                $query = $this->config['args'][$index + 1];
+                break;
+            }
+        }
+
+        return $query;
+    }
+
     public function showUsage() {
         IO::out('No specific help needed');
+
+        return $this;
     }
 
 }
