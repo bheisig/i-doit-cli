@@ -14,6 +14,8 @@ build :
 install :
 	test -x idoit
 	install -m 775 idoit /usr/local/bin/
+	install -m 644 idoit.bash-completion /etc/bash_completion.d/idoit
+	source /etc/bash_completion
 
 get-setting-% :
 	php -r '$$project = json_decode(trim(file_get_contents("project.json")), true); echo $$project["$*"];'
