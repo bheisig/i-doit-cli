@@ -151,6 +151,8 @@ You may leave the object type empty for specific objects, for example:
 idoit read host.example.net/model
 ~~~
 
+**Notice:** These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.
+
 
 ##  Find Your Data
 

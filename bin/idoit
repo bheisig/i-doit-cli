@@ -128,7 +128,7 @@ try {
     $config['basename'] = basename(__FILE__);
 
     $config['options'] = getopt(
-        'c:o:hvVD',
+        'c:o:h',
         [
             'config:',
             'output:',

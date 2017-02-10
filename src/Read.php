@@ -700,13 +700,52 @@ class Read extends Command {
     public function showUsage() {
         IO::out('Usage: %1$s [OPTIONS] read [PATH]
 
-Path:
+%2$s
 
-Wildcards:
+List object types:
 
-Examples:
+    idoit read
+    idoit read /
 
-', $this->config['basename']);
+List objects:
+
+    idoit read server
+    idoit read server/
+    idoit read server/*
+
+Show common information about an object:
+
+    idoit read server/host.example.net
+    idoit read host.example.net
+
+List assigned categories:
+
+    idoit read server/host.example.net/
+    idoit read server/host.example.net/*
+    idoit read host.example.net/
+    idoit read host.example.net/*
+
+List category attributes:
+
+    idoit read server/host.example.net/model/
+    idoit read server/host.example.net/model/*
+    idoit read host.example.net/model/
+    idoit read host.example.net/model/*
+
+Show category entries:
+
+    idoit read server/host.example.net/model
+    idoit read host.example.net/model
+
+Show atttribute value:
+
+    idoit read server/host.example.net/model/model
+    idoit read host.example.net/model/model
+
+Notice: These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.',
+            $this->config['basename'],
+            $this->config['commands'][$this->config['command']]
+        );
 
         return $this;
     }
