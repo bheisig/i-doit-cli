@@ -81,6 +81,13 @@ class Read extends Command {
         switch (count($parts)) {
             case 1:
                 if (in_array($parts[0], ['*', ''])) {
+                    /**
+                     * List object types
+                     *
+                     * Examples:
+                     *
+                     * idoit read
+                     */
                     switch (count($objectTypes)) {
                         case 1:
                             IO::err('Found 1 object type');
@@ -92,10 +99,15 @@ class Read extends Command {
 
                     IO::err('');
 
-                    foreach ($objectTypes as $objectType) {
-                        IO::out($objectType['title']);
-                    }
+                    $this->printTitle($objectTypes);
                 } else if (isset($objectTypeConst)) {
+                    /**
+                     * List objects
+                     *
+                     * Examples:
+                     *
+                     * idoit read server
+                     */
                     $objects = $cmdbObjects->readByType($objectTypeConst);
 
                     switch (count($objects)) {
@@ -112,10 +124,15 @@ class Read extends Command {
 
                     IO::err('');
 
-                    foreach ($objects as $object) {
-                        IO::out($object['title']);
-                    }
+                    $this->printTitle($objects);
                 } else {
+                    /**
+                     * Show common information about an object
+                     *
+                     * Examples:
+                     *
+                     * idoit read host.example.net
+                     */
                     $objects = $cmdbObjects->read(['title' => $parts[0]]);
 
                     switch (count($objects)) {
@@ -138,48 +155,244 @@ class Read extends Command {
 
                 break;
             case 2:
-                if (isset($objectTypeConst)) {
-                    $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
-
-                    switch (count($objects)) {
-                        case 0:
-                            IO::err('Unknown object');
-                            break 2;
+                if ($path === '/') {
+                    /**
+                     * List object types
+                     *
+                     * Examples:
+                     *
+                     * idoit read /
+                     */
+                    switch (count($objectTypes)) {
                         case 1:
-                            IO::err('Found 1 object');
+                            IO::err('Found 1 object type');
                             break;
                         default:
-                            IO::err('Found %s objects', count($objects));
+                            IO::err('Found %s object types', count($objectTypes));
                             break;
                     }
 
-                    foreach ($objects as $object) {
+                    IO::err('');
+
+                    $this->printTitle($objectTypes);
+                } else if (isset($objectTypeConst)) {
+                    if (in_array($parts[1], ['', '*'])) {
+                        /**
+                         * List objects
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/
+                         * idoit read server/*
+                         */
+                        $objects = $cmdbObjects->readByType($objectTypeConst);
+
+                        switch (count($objects)) {
+                            case 0:
+                                IO::err('Unknown object');
+                                break;
+                            case 1:
+                                IO::err('Found 1 object');
+                                break;
+                            default:
+                                IO::err('Found %s objects', count($objects));
+                                break;
+                        }
+
                         IO::err('');
-                        $this->formatObject($object);
+
+                        $this->printTitle($objects);
+                    } else {
+                        /**
+                         * Show common information about an object
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/host.example.net
+                         */
+                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+
+                        switch (count($objects)) {
+                            case 0:
+                                IO::err('Unknown object');
+                                break 2;
+                            case 1:
+                                IO::err('Found 1 object');
+                                break;
+                            default:
+                                IO::err('Found %s objects', count($objects));
+                                break;
+                        }
+
+                        foreach ($objects as $object) {
+                            IO::err('');
+                            $this->formatObject($object);
+                        }
                     }
                 } else {
                     $objects = $cmdbObjects->read(['title' => $parts[0]]);
 
-                    $this->formatCategory($objects, $parts[1]);
+                    if (in_array($parts[1], ['', '*'])) {
+                        /**
+                         * List assigned categories
+                         *
+                         * Examples:
+                         *
+                         * idoit read host.example.net/
+                         * idoit read host.example.net/*
+                         */
+                        switch (count($objects)) {
+                            case 0:
+                                throw new \Exception('Unknown object');
+                            case 1:
+                                IO::err('Assigned categories');
+                                IO::err('');
+                                break;
+                            default:
+                                throw new \Exception('Found %s objects', count($objects));
+                                break;
+                        }
+
+                        $found = false;
+
+                        foreach ($objectTypes as $objectType) {
+                            if ($objectType['id'] === $objects[0]['type']) {
+                                $assignedCategories = $this->getAssignedCategories($objectType['const']);
+
+                                $this->formatAssignedCategories($assignedCategories);
+
+                                $found = true;
+
+                                break;
+                            }
+                        }
+
+                        if ($found === false) {
+                            throw new \Exception(sprintf(
+                                'Object "%s" [%s] has unknown object type with identifier %s. Cache seems to be outdated. Please re-run "idoit init".',
+                                $objects[0]['title'],
+                                $objects[0]['id'],
+                                $objects[0]['type']
+                            ));
+                        }
+                    } else {
+                        /**
+                         * Show category entries
+                         *
+                         * Examples:
+                         *
+                         * idoit read host.example.net/model
+                         */
+                        $this->formatCategory($objects, $parts[1]);
+                    }
                 }
 
                 break;
             case 3:
                 if (isset($objectTypeConst)) {
-                    $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                    if (in_array($parts[2], ['', '*'])) {
+                        /**
+                         * List  assigned categories
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/host.example.net/
+                         * idoit read server/host.example.net/*
+                         *
+                         */
+                        $assignedCategories = $this->getAssignedCategories($objectTypeConst);
 
-                    $this->formatCategory($objects, $parts[2]);
+                        $this->formatAssignedCategories($assignedCategories);
+                    } else {
+                        /**
+                         * Show category entries
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/host.example.net/model
+                         */
+                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+
+                        $this->formatCategory($objects, $parts[2]);
+                    }
                 } else {
                     $objects = $cmdbObjects->read(['title' => $parts[0]]);
 
-                    $this->formatAttribute($objects, $parts[1], $parts[2]);
+                    if (in_array($parts[2], ['', '*'])) {
+                        /**
+                         * List attributes
+                         *
+                         * Examples:
+                         *
+                         * idoit read host.example.net/model/
+                         * idoit read host.example.net/model/*
+                         */
+                        switch (count($objects)) {
+                            case 0:
+                                throw new \Exception('Unknown object');
+                            case 1:
+                                break;
+                            default:
+                                throw new \Exception('Found %s objects', count($objects));
+                                break;
+                        }
+
+                        $found = false;
+
+                        foreach ($objectTypes as $objectType) {
+                            if ($objectType['id'] === $objects[0]['type']) {
+                                $this->formatAttributes($objectType['const'], $parts[1]);
+
+                                $found = true;
+
+                                break;
+                            }
+                        }
+
+                        if ($found === false) {
+                            throw new \Exception(sprintf(
+                                'Object "%s" [%s] has unknown object type with identifier %s. Cache seems to be outdated. Please re-run "idoit init".',
+                                $objects[0]['title'],
+                                $objects[0]['id'],
+                                $objects[0]['type']
+                            ));
+                        }
+                    } else {
+                        /**
+                         * Show atttribute value
+                         *
+                         * Examples:
+                         *
+                         * idoit read host.example.net/model/model
+                         */
+                        $this->formatAttribute($objects, $parts[1], $parts[2]);
+                    }
                 }
                 break;
             case 4:
                 if (isset($objectTypeConst)) {
-                    $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                    if (in_array($parts[3], ['', '*'])) {
+                        /**
+                         * List attributes
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/host.example.net/model/
+                         * idoit read server/host.example.net/model/*
+                         */
+                        $this->formatAttributes($objectTypeConst, $parts[2]);
+                    } else {
+                        /**
+                         * Show attribute value
+                         *
+                         * Examples:
+                         *
+                         * idoit read server/host.example.net/model/model
+                         */
+                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
-                    $this->formatAttribute($objects, $parts[2], $parts[3]);
+                        $this->formatAttribute($objects, $parts[2], $parts[3]);
+                    }
                 } else {
                     throw new \Exception('Bad request');
                 }
@@ -238,7 +451,7 @@ class Read extends Command {
             }
         }
 
-        if (!isset($identifiedCategory)) {
+        if (count($identifiedCategory) === 0) {
             IO::err('Unknown category');
             return $this;
         }
@@ -377,7 +590,7 @@ class Read extends Command {
 
             foreach ($batchEntries[$counter] as $entry) {
                 foreach ($identifiedCategory['properties'] as $attributeKey => $attributeInfo) {
-                    if ($attribute !== $attributeKey) {
+                    if (strtolower($attribute) !== strtolower($attributeInfo['title'])) {
                         continue;
                     }
 
@@ -407,6 +620,72 @@ class Read extends Command {
             }
 
             $counter++;
+        }
+
+        return $this;
+    }
+
+    protected function formatAssignedCategories($assignedCategories) {
+        $list = [];
+
+        foreach ($assignedCategories as $types => $categories) {
+            foreach ($categories as $category) {
+                $list[] = $category['title'];
+            }
+        }
+
+        natsort($list);
+
+        foreach ($list as $category) {
+            IO::out($category);
+        }
+
+        return $this;
+    }
+
+    protected function formatAttributes($objectType, $categoryTitle) {
+        IO::err('Category attributes');
+        IO::err('');
+
+        $assignedCategories = $this->getAssignedCategories($objectType);
+
+        $categoryConst = '';
+
+        foreach ($assignedCategories as $type => $categories) {
+            foreach ($categories as $category) {
+                if (strtolower($category['title']) === strtolower($categoryTitle)) {
+                    $categoryConst = $category['const'];
+                    break 2;
+                }
+            }
+        }
+
+        if ($categoryConst === '') {
+            throw new \Exception(sprintf(
+                'This object type [%s] has no category "%s". Maybe you cache is outdated. Please re-run "idoit init".',
+                $objectType,
+                $categoryTitle
+            ));
+        }
+
+        $cageoryInfo = $this->getCategoryInfo($categoryConst);
+
+        foreach ($cageoryInfo['properties'] as $attribute) {
+            IO::out($attribute['title']);
+        }
+    }
+
+    protected function printTitle($items) {
+        $sorted = [];
+
+        foreach ($items as $item) {
+            $sorted[] = $item['title'];
+        }
+
+        natsort($sorted);
+
+        foreach ($sorted as $value) {
+            IO::out($value);
         }
 
         return $this;

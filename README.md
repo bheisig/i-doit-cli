@@ -115,22 +115,40 @@ List all servers:
 idoit read server
 ~~~
 
-Show basic information about server "host123":
+Show common information about server "host.example.net":
 
 ~~~ {.bash}
-idoit read server/host123
+idoit read server/host.example.net
 ~~~
 
-List the attributes from category "model" for this server:
+List assigned categories:
 
 ~~~ {.bash}
-idoit read server/host123/model
+idoit read server/host.example.net/
 ~~~
 
-Or just show the serial number:
+Show values from category "model" for this server:
 
 ~~~ {.bash}
-idoit read server/host123/model/serial
+idoit read server/host.example.net/model
+~~~
+
+Or just show the name of the model:
+
+~~~ {.bash}
+idoit read server/host.example.net/model/model
+~~~
+
+List available attributes for category "model":
+
+~~~ {.bash}
+idoit read server/host.example.net/model/
+~~~
+
+You may leave the object type empty for specific objects, for example:
+
+~~~ {.bash}
+idoit read host.example.net/model
 ~~~
 
 

@@ -148,12 +148,16 @@ abstract class Command implements Executes {
         return unserialize(file_get_contents($hostDir . '/object_types'));
     }
 
-    protected function getCategoryInfo($category) {
+    protected function getCategoryInfo($categoryConst) {
+        $hostDir = $this->getHostDir();
 
+        return unserialize(file_get_contents($hostDir . '/category__' . $categoryConst));
     }
 
     protected function getAssignedCategories($type) {
+        $hostDir = $this->getHostDir();
 
+        return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
     }
 
     protected function getCategories() {
