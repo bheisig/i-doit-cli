@@ -4,6 +4,7 @@ TAG = $(shell make -s get-setting-tag)
 DISTFILES = idoit COPYING README
 DISTDIR = $(TAG)
 DISTTARBALL = $(TAG)-$(VERSION).tar.gz
+BINDIR = $(DESTDIR)/usr/local/bin
 
 all : build
 
@@ -13,8 +14,13 @@ build :
 
 install :
 	test -x idoit
-	install -m 775 idoit /usr/local/bin/
-	install -m 644 idoit.bash-completion /etc/bash_completion.d/idoit
+	install -m 775 idoit $(BINDIR)/idoit
+	install -m 644 idoit.bash-completion $(DESTDIR)/etc/bash_completion.d/idoit
+	source /etc/bash_completion
+
+make uninstall :
+	rm -f $(BINDIR)/idoit
+	rm -f $(DESTDIR)/etc/bash_completion.d/idoit
 	source /etc/bash_completion
 
 get-setting-% :
