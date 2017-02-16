@@ -1,0 +1,23 @@
+{
+    "racks": {
+        "amount": 10,
+        "prefix": "rack-",
+        "rackUnits": 47,
+        "verticalSlots": 2
+    },
+    "servers": {
+        "amount": 50,
+        "prefix": "srv-",
+        "rackUnits": {
+            "min": 1,
+            "max": 4
+        }
+    },
+    "density": {
+        "rackUnits": 0.6,
+        "racksPerRoom": {
+            "min": 1,
+            "max": 4
+        }
+    }
+}
