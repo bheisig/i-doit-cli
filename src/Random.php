@@ -755,6 +755,31 @@ class Random extends Command {
             $this->rackRUs = $rack['rackunits'];
 
             $this->rackPos = 0;
+
+            // We need an empty rack:
+            $locallyAssignedObjects = $this->cmdbCategory->read(
+                $this->rackID,
+                'C__CATG__OBJECT'
+            );
+
+            if (count($locallyAssignedObjects) > 0) {
+                IO::out(
+                    'Rack #%s is not empty',
+                    $this->rackID
+                );
+
+                $this->rackID = null;
+
+                return $this->assignHostToRack(
+                    $objectID,
+                    $neededRUs
+                );
+            }
+
+            IO::out(
+                'Use rack #%s',
+                $this->rackID
+            );
         }
 
         // @todo This is not the right way to calculate rack unit density:
@@ -786,7 +811,10 @@ class Random extends Command {
 
             $this->rackID = null;
 
-            return $this->assignHostToRack($objectID, $neededRUs);
+            return $this->assignHostToRack(
+                $objectID,
+                $neededRUs
+            );
         }
 
 
@@ -798,7 +826,10 @@ class Random extends Command {
 
             $this->rackID = null;
 
-            return $this->assignHostToRack($objectID, $neededRUs);
+            return $this->assignHostToRack(
+                $objectID,
+                $neededRUs
+            );
         }
 
         $this->createCategoryEntry(
