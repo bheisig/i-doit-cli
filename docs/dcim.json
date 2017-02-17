@@ -1,16 +1,51 @@
 {
     "racks": {
-        "amount": 10,
+        "amount": 100,
         "prefix": "rack-",
         "rackUnits": 47,
         "verticalSlots": 2
     },
     "servers": {
-        "amount": 50,
+        "amount": 5000,
         "prefix": "srv-",
         "rackUnits": {
             "min": 1,
             "max": 4
+        },
+        "model": [
+            {
+                "manufacturer": "Hell",
+                "title": "PowerBadge R415"
+            },
+            {
+                "manufacturer": "Venolo",
+                "title": "y3650"
+            },
+            {
+                "manufacturer": "Hans-Peter",
+                "title": "ProLiar DL585"
+            }
+        ],
+        "cpu": {
+            "amount": 2,
+            "manufacturer": "Amdtel",
+            "type": "Neon",
+            "cores": 12,
+            "frequency": "2,4 GHz"
+        },
+        "memory": {
+            "amount": 16,
+            "type": "DDR4 ECC",
+            "capacity": "16 GB"
+        },
+        "hdd": {
+            "amount": 4,
+            "raid": 6,
+            "capacity": "4 TB"
+        },
+        "power": {
+            "amount": 2,
+            "watt": 200
         }
     },
     "density": {

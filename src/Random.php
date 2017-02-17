@@ -534,14 +534,11 @@ class Random extends Command {
     protected function createServers() {
         IO::out('Create servers');
 
-        if (!array_key_exists('amount', $this->config['servers']) ||
-            !is_int($this->config['servers']['amount']) ||
-            $this->config['servers']['amount'] <= 0) {
-            throw new \Exception(
-                'Do not know how many servers to create',
-                400
-            );
-        }
+        $this->assertInteger(
+            'amount',
+            $this->config['servers'],
+            'Do not know how many servers to create'
+        );
 
         $serverObjects = [];
 
@@ -564,16 +561,16 @@ class Random extends Command {
 
         $this->logStat('Created server objects', count($serverIDs));
 
+        $requests = [];
+
         if (array_key_exists('ips', $this->config['servers'])) {
             IO::out('Create IP addresses');
 
-            if (!is_int($this->config['servers']['ips']) ||
-                $this->config['servers']['ips'] <= 0) {
-                throw new \Exception(
-                    'Do not how many IP addresses to create per server',
-                    400
-                );
-            }
+            $this->assertInteger(
+                'ips',
+                $this->config['servers'],
+                'Do not how many IP addresses to create per server'
+            );
 
             $subnetObjects = $this->cmdbObjects->readByType(
                 $this->config['types']['subnets']
@@ -625,8 +622,9 @@ class Random extends Command {
 
                 $index++;
             }
-
         }
+
+        $hostsInRacks = [];
 
         if (array_key_exists('rackUnits', $this->config['servers'])) {
             IO::out('Mount servers into racks');
@@ -672,21 +670,157 @@ class Random extends Command {
             foreach ($serverIDs as $serverID) {
                 $rackUnits = mt_rand($min, $max);
 
-                $this->createCategoryEntry(
-                    $serverID,
-                    'C__CATG__FORMFACTOR',
-                    [
-                        // Dialog+: 19"
-                        'formfactor' => 1,
-                        'rackunits' => $rackUnits
+                $requests[] = [
+                    'method' => 'cmdb.category.create',
+                    'params' => [
+                        'objID' => $serverID,
+                        'catgID' => 'C__CATG__FORMFACTOR',
+                        'data' => [
+                            // Dialog+: 19"
+                            'formfactor' => 1,
+                            'rackunits' => $rackUnits
+                        ]
                     ]
+                ];
+
+                $hostsInRacks[$serverID] = $rackUnits;
+            }
+        }
+
+        if (array_key_exists('model', $this->config['servers'])) {
+            IO::out('Add information about models');
+
+            $this->assertArray(
+                'model',
+                $this->config['servers'],
+                'No information about models provided'
+            );
+
+            foreach ($serverIDs as $serverID) {
+                $index = mt_rand(
+                    0,
+                    (count($this->config['servers']['model']) - 1)
                 );
 
-                $this->assignHostToRack(
-                    $serverID,
-                    $rackUnits
+                $attributes = $this->config['servers']['model'][$index];
+
+                $this->assertString(
+                    'manufacturer',
+                    $attributes,
+                    'Invalid model manufacturer'
                 );
+
+                $this->assertString(
+                    'title',
+                    $attributes,
+                    'Invalid model name'
+                );
+
+                if (array_key_exists('serial', $attributes)) {
+                    $this->assertString(
+                        'serial',
+                        $attributes,
+                        'Invalid serial number'
+                    );
+                } else {
+                    $attributes['serial'] = $this->genTitle() . $this->genTitle();
+                }
+
+                $requests[] = [
+                    'method' => 'cmdb.category.create',
+                    'params' => [
+                        'objID' => $serverID,
+                        'catgID' => 'C__CATG__MODEL',
+                        'data' => $attributes
+                    ]
+                ];
             }
+        }
+
+        if (array_key_exists('cpu', $this->config['servers'])) {
+            IO::out('Add information about CPU');
+
+            $this->assertArray(
+                'cpu',
+                $this->config['servers'],
+                'No information about CPU'
+            );
+
+            $this->assertInteger(
+                'amount',
+                $this->config['servers']['cpu'],
+                'Invalid amount of CPUs'
+            );
+
+            $this->assertString(
+                'manufacturer',
+                $this->config['servers']['cpu'],
+                'Invalid CPU manufacturer'
+            );
+
+            $this->assertString(
+                'type',
+                $this->config['servers']['cpu'],
+                'Invalid CPU type'
+            );
+
+            $this->assertInteger(
+                'cores',
+                $this->config['servers']['cpu'],
+                'Invalid amount of CPU cores'
+            );
+
+            $this->assertString(
+                'frequency',
+                $this->config['servers']['cpu'],
+                'Invalid CPU frequency'
+            );
+
+            $attributes = [
+                'manufacturer' => $this->config['servers']['cpu']['manufacturer'],
+                'type' => $this->config['servers']['cpu']['type'],
+                'cores' => $this->config['servers']['cpu']['cores'],
+                'frequency' => $this->config['servers']['cpu']['frequency'],
+            ];
+
+            if (array_key_exists('title', $this->config['servers']['cpu'])) {
+                $this->assertString(
+                    'title',
+                    $this->config['servers']['cpu'],
+                    'Invalid CPU name'
+                );
+
+                $attributes['title'] = $this->config['servers']['cpu']['title'];
+            }
+
+            foreach ($serverIDs as $serverID) {
+                for ($i = 0; $i < $this->config['servers']['cpu']['amount']; $i++) {
+                    if (!array_key_exists('title', $attributes)) {
+                        $attributes['title'] = '#' . $i;
+                    }
+
+                    $requests[] = [
+                        'method' => 'cmdb.category.create',
+                        'params' => [
+                            'objID' => $serverID,
+                            'catgID' => 'C__CATG__CPU',
+                            'data' => $attributes
+                        ]
+                    ];
+                }
+            }
+        }
+
+        if (count($requests) > 0) {
+            $this->sendBatchRequest($requests);
+            $this->logStat('Created category entries', count($requests));
+        }
+
+        foreach ($hostsInRacks as $objectID => $neededRUs) {
+            $this->assignHostToRack(
+                $objectID,
+                $neededRUs
+            );
         }
 
         return $this;
@@ -1041,6 +1175,63 @@ class Random extends Command {
         return $this;
     }
 
+    protected function sendBatchRequest($requests) {
+        $count = count($requests);
+
+        switch ($count) {
+            case 0:
+                IO::out('Send 1 sub request in a batch request');
+                break;
+            default:
+                IO::out(
+                    'Send %s sub requests in a batch request',
+                    $count
+                );
+                break;
+        }
+
+        if ($this->config['limitBatchRequests'] > 0 &&
+            $count > $this->config['limitBatchRequests']) {
+            IO::out(
+                'Batch requests are limited to %s sub requests',
+                $this->config['limitBatchRequests']
+            );
+        }
+
+        $index = 0;
+
+        while ($index < $count) {
+            $length = null;
+
+            if ($this->config['limitBatchRequests'] > 0) {
+                $length = $this->config['limitBatchRequests'];
+            }
+
+            $chunk = array_slice(
+                $requests, $index, $length, true
+            );
+
+            if ($this->config['limitBatchRequests'] > 0 &&
+                $count > $this->config['limitBatchRequests']) {
+                if (count($chunk) === 1) {
+                    IO::out('Push 1 sub request');
+                } else {
+                    IO::out('Push %s sub requests', count($chunk));
+                }
+            }
+
+            $this->api->batchRequest($chunk);
+
+            if ($this->config['limitBatchRequests'] <= 0) {
+                break;
+            }
+
+            $index += $this->config['limitBatchRequests'];
+        }
+
+        return $this;
+    }
+
     protected function logStat($key, $value) {
         if (!array_key_exists($key, $this->statistics)) {
             $this->statistics[$key] = $value;
@@ -1063,6 +1254,45 @@ class Random extends Command {
         }
 
         return $title;
+    }
+
+    protected function assertArray($needle, $haystack, $error, $min = 1) {
+        if (!array_key_exists($needle, $haystack) ||
+            !is_array($haystack[$needle]) ||
+            count($haystack[$needle]) < $min) {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
+    }
+
+    protected function assertString($needle, $haystack, $error) {
+        if (!array_key_exists($needle, $haystack) ||
+            !is_string($haystack[$needle]) ||
+            $haystack[$needle] === '') {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
+    }
+
+    protected function assertInteger($needle, $haystack, $error, $isPositive = true) {
+        if (!array_key_exists($needle, $haystack) ||
+            !is_int($haystack[$needle])) {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
+
+        if ($isPositive && $haystack[$needle] <= 0) {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
     }
 
 }
