@@ -187,7 +187,8 @@ abstract class Command implements Executes {
         $query = '';
 
         foreach ($this->config['args'] as $index => $arg) {
-            if ($arg === $this->config['command'] &&
+            if (array_key_exists('command', $this->config) &&
+                $arg === $this->config['command'] &&
                 array_key_exists(($index + 1), $this->config['args'])) {
                 $query = $this->config['args'][$index + 1];
                 break;
