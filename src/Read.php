@@ -512,6 +512,9 @@ class Read extends Command {
                         $value = '-';
                     }
 
+                    // Rich text editor uses HTML:
+                    $value = strip_tags($value);
+
                     IO::out(
                         '%s: %s',
                         $attributeInfo['title'],
@@ -563,7 +566,10 @@ class Read extends Command {
             $objectIDs[] = $object['id'];
         }
 
-        $batchEntries = $cmdbCategory->batchRead($objectIDs, [$identifiedCategory['const']]);
+        $batchEntries = $cmdbCategory->batchRead(
+            $objectIDs,
+            [$identifiedCategory['const']]
+        );
 
         $counter = 0;
 
@@ -610,6 +616,9 @@ class Read extends Command {
                     if (!isset($value) || $value === '') {
                         $value = '-';
                     }
+
+                    // Rich text editor uses HTML:
+                    $value = strip_tags($value);
 
                     IO::out(
                         '%s: %s',
