@@ -6,9 +6,7 @@
         "password": "",
         "language": "en"
     },
-    "cache": {
-        "lifetime": 0
-    },
+    "cacheLifetime": 15768000,
     "limitBatchRequests": 0,
     "types": {
         "countries": "C__OBJTYPE__COUNTRY",

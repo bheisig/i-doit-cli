@@ -183,23 +183,28 @@ abstract class Command implements Executes {
         $dir = new \DirectoryIterator($hostDir);
 
         foreach ($dir as $file) {
-            if ($file->isFile()) {
-                return true;
+            if ($file->isDot() || $file->isDir()) {
+                continue;
             }
+
+            if ($file->isFile() === false) {
+                return false;
+            }
+
+            if ($this->config['cacheLifetime'] > 0 &&
+                (time() - $this->config['cacheLifetime'] > $file->getCTime())) {
+                IO::err(
+                    'Your cache is out-dated. Please re-run "%s init".',
+                    $this->config['basename']
+                );
+                IO::err('');
+            }
+
+            // First file is valid – this is all I need to know:
+            return true;
         }
 
         return false;
-    }
-
-    /**
-     * Is cache for current host not up-to-date anymore?
-     *
-     * @return bool
-     *
-     * @throws \Exception on error
-     */
-    protected function isOutdated() {
-
     }
 
     /**

@@ -53,7 +53,10 @@ class Read extends Command {
         parent::setup();
 
         if ($this->isCached() === false) {
-            throw new \Exception('Unsufficient data. Please run "idoitcli init" first.', 400);
+            throw new \Exception(sprintf(
+                'Unsufficient data. Please run "%s init" first.',
+                $this->config['basename']
+            ), 500);
         }
 
         $this->initiateAPI();
