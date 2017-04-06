@@ -37,12 +37,14 @@ class Help extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        $command = $this->config['command'];
         $query = $this->getQuery();
 
-        if ($command === 'help' && $query === '') {
+        if (!array_key_exists('command', $this->config)) {
             $this->showUsage();
-        } else if ($command === 'help' &&
+        } else if ($this->config['command'] === 'help' &&
+            $query === '') {
+            $this->showUsage();
+        } else if ($this->config['command'] === 'help' &&
             array_key_exists($query, $this->config['commands'])) {
             $class = __NAMESPACE__ . '\\' . ucfirst($query);
 
@@ -50,8 +52,6 @@ class Help extends Command {
             $instance = new $class($this->config);
 
             $instance->showUsage();
-        } else if ($command === '') {
-            $this->showUsage();
         } else {
             IO::err('Unknown command');
 
