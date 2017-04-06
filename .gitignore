@@ -2,3 +2,5 @@
 vendor/
 *.tar.gz
 composer.lock
+README
+idoit
