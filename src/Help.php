@@ -37,12 +37,14 @@ class Help extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        $command = $this->getQuery();
+        $command = $this->config['command'];
+        $query = $this->getQuery();
 
-        if ($command === 'help') {
+        if ($command === 'help' && $query === '') {
             $this->showUsage();
-        } else if (array_key_exists($command, $this->config['commands'])) {
-            $class = __NAMESPACE__ . '\\' . ucfirst($command);
+        } else if ($command === 'help' &&
+            array_key_exists($query, $this->config['commands'])) {
+            $class = __NAMESPACE__ . '\\' . ucfirst($query);
 
             /** @var \bheisig\idoitcli\Executes $instance */
             $instance = new $class($this->config);
