@@ -33,6 +33,16 @@ use bheisig\idoitapi\CMDBCategory;
 class Read extends Command {
 
     /**
+     * @var \bheisig\idoitapi\CMDBObjects
+     */
+    protected $cmdbObjects;
+
+    /**
+     * @var \bheisig\idoitapi\CMDBCategory
+     */
+    protected $cmdbCategory;
+
+    /**
      * Processes some routines before the execution
      *
      * @return self Returns itself
@@ -49,6 +59,9 @@ class Read extends Command {
         $this->initiateAPI();
 
         $this->api->login();
+
+        $this->cmdbObjects = new CMDBObjects($this->api);
+        $this->cmdbCategory = new CMDBCategory($this->api);
 
         return $this;
     }
@@ -75,8 +88,6 @@ class Read extends Command {
                 break;
             }
         }
-
-        $cmdbObjects = new CMDBObjects($this->api);
 
         switch (count($parts)) {
             case 1:
@@ -108,7 +119,7 @@ class Read extends Command {
                      *
                      * idoit read server
                      */
-                    $objects = $cmdbObjects->readByType($objectTypeConst);
+                    $objects = $this->fetchObjects(['type' => $objectTypeConst]);
 
                     switch (count($objects)) {
                         case 0:
@@ -133,7 +144,7 @@ class Read extends Command {
                      *
                      * idoit read host.example.net
                      */
-                    $objects = $cmdbObjects->read(['title' => $parts[0]]);
+                    $objects = $this->fetchObjects(['title' => $parts[0]]);
 
                     switch (count($objects)) {
                         case 0:
@@ -185,7 +196,7 @@ class Read extends Command {
                          * idoit read server/
                          * idoit read server/*
                          */
-                        $objects = $cmdbObjects->readByType($objectTypeConst);
+                        $objects = $this->fetchObjects(['type' => $objectTypeConst]);
 
                         switch (count($objects)) {
                             case 0:
@@ -210,7 +221,8 @@ class Read extends Command {
                          *
                          * idoit read server/host.example.net
                          */
-                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+
 
                         switch (count($objects)) {
                             case 0:
@@ -230,7 +242,7 @@ class Read extends Command {
                         }
                     }
                 } else {
-                    $objects = $cmdbObjects->read(['title' => $parts[0]]);
+                    $objects = $this->fetchObjects(['title' => $parts[0]]);
 
                     if (in_array($parts[1], ['', '*'])) {
                         /**
@@ -311,12 +323,12 @@ class Read extends Command {
                          *
                          * idoit read server/host.example.net/model
                          */
-                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
                         $this->formatCategory($objects, $parts[2]);
                     }
                 } else {
-                    $objects = $cmdbObjects->read(['title' => $parts[0]]);
+                    $objects = $this->fetchObjects(['title' => $parts[0]]);
 
                     if (in_array($parts[2], ['', '*'])) {
                         /**
@@ -389,7 +401,7 @@ class Read extends Command {
                          *
                          * idoit read server/host.example.net/model/model
                          */
-                        $objects = $cmdbObjects->read(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
                         $this->formatAttribute($objects, $parts[2], $parts[3]);
                     }
@@ -417,17 +429,30 @@ class Read extends Command {
         return parent::tearDown();
     }
 
-    protected function formatObjects($objects) {
-
-    }
-
+    /**
+     * Formats common information about an object
+     *
+     * @param array $object Associative array
+     *
+     * @return self Returns itself
+     */
     protected function formatObject($object) {
         IO::out('Title: %s', $object['title']);
         IO::out('ID: %s', $object['id']);
         IO::out('Type: %s', $object['type_title']);
+
+        return $this;
     }
 
-    protected function formatCategory($objects, $category) {
+    /**
+     * Formats attributes of one or more objects
+     *
+     * @param array $objects Associative array
+     * @param string $category Category title
+     *
+     * @return self Returns itself
+     */
+    protected function formatCategory(array $objects, $category) {
         switch (count($objects)) {
             case 0:
                 IO::err('Unknown object');
@@ -456,15 +481,13 @@ class Read extends Command {
             return $this;
         }
 
-        $cmdbCategory = new CMDBCategory($this->api);
-
         $objectIDs = [];
 
         foreach ($objects as $object) {
             $objectIDs[] = $object['id'];
         }
 
-        $batchEntries = $cmdbCategory->batchRead($objectIDs, [$identifiedCategory['const']]);
+        $batchEntries = $this->fetchCategoryEntries($objectIDs, $identifiedCategory['const']);
 
         $counter = 0;
 
@@ -529,7 +552,16 @@ class Read extends Command {
         return $this;
     }
 
-    protected function formatAttribute($objects, $category, $attribute) {
+    /**
+     * Formats an attributes for one or more objects
+     *
+     * @param array $objects Associative array
+     * @param string $category Category title
+     * @param string $attribute Attribute title
+     *
+     * @return self Returns itself
+     */
+    protected function formatAttribute(array $objects, $category, $attribute) {
         switch (count($objects)) {
             case 0:
                 IO::err('Unknown object');
@@ -558,17 +590,15 @@ class Read extends Command {
             return $this;
         }
 
-        $cmdbCategory = new CMDBCategory($this->api);
-
         $objectIDs = [];
 
         foreach ($objects as $object) {
             $objectIDs[] = $object['id'];
         }
 
-        $batchEntries = $cmdbCategory->batchRead(
+        $batchEntries = $this->fetchCategoryEntries(
             $objectIDs,
-            [$identifiedCategory['const']]
+            $identifiedCategory['const']
         );
 
         $counter = 0;
@@ -634,7 +664,14 @@ class Read extends Command {
         return $this;
     }
 
-    protected function formatAssignedCategories($assignedCategories) {
+    /**
+     * Formats list of assigned categories
+     *
+     * @param array $assignedCategories Indexed array of associative arrays
+     *
+     * @return self Returns itself
+     */
+    protected function formatAssignedCategories(array $assignedCategories) {
         $list = [];
 
         foreach ($assignedCategories as $types => $categories) {
@@ -652,6 +689,16 @@ class Read extends Command {
         return $this;
     }
 
+    /**
+     * Formats list of attributes which belong to category which is assigned to an object type
+     *
+     * @param string $objectType Object type constant
+     * @param string $categoryTitle Category title
+     *
+     * @throws \Exception on error
+     *
+     * @return self Returns itself
+     */
     protected function formatAttributes($objectType, $categoryTitle) {
         IO::err('Category attributes');
         IO::err('');
@@ -682,9 +729,131 @@ class Read extends Command {
         foreach ($cageoryInfo['properties'] as $attribute) {
             IO::out($attribute['title']);
         }
+
+        return $this;
     }
 
-    protected function printTitle($items) {
+    /**
+     * Fetches objects from i-doit
+     *
+     * @param array $filter Associative array, see CMDBObjects::read()
+     *
+     * @return array Indexed array of associative arrays
+     *
+     * @throws \Exception on error
+     */
+    protected function fetchObjects($filter) {
+        $limit = $this->config['limitBatchRequests'];
+
+        $objects = [];
+        $offset = 0;
+        $counter = 0;
+
+        while (true) {
+            if ($limit > 0) {
+                $result = $this->cmdbObjects->read($filter, $limit, $offset);
+
+                $offset += $limit;
+                $counter++;
+
+                if ($counter === 3) {
+                    IO::err('This could take a while…');
+                }
+            } else {
+                $result = $this->cmdbObjects->read($filter, $limit, $offset);
+            }
+
+            if (count($result) === 0) {
+                break;
+            }
+
+            foreach ($result as $object) {
+                $objects[] = [
+                    'id' => $object['id'],
+                    'title' => $object['title'],
+                    'type' => $object['type'],
+                    'type_title' => $object['type_title'],
+                ];
+            }
+
+            if (count($result) < $limit) {
+                break;
+            }
+
+            if ($limit === 0) {
+                break;
+            }
+        }
+
+        return $objects;
+    }
+
+    /**
+     * Fetches category entries of one category for one or more objects
+     *
+     * @param int[] $objectIDs List of object identifiers
+     * @param string $categoryConst Category constant
+     *
+     * @return array Indexed array of associative arrays
+     *
+     * @throws \Exception on error
+     */
+    protected function fetchCategoryEntries(array $objectIDs, $categoryConst) {
+        $limit = $this->config['limitBatchRequests'];
+
+        if ($limit === 0) {
+            return $this->cmdbCategory->batchRead(
+                $objectIDs,
+                [$categoryConst]
+            );
+        }
+
+        $entries = [];
+        $offset = 0;
+        $counter = 0;
+
+        while (true) {
+            $counter++;
+
+            if ($counter === 3) {
+                IO::err('This could take a while…');
+            }
+
+            $slicedObjectIDs = array_slice(
+                $objectIDs,
+                $offset,
+                $limit
+            );
+
+            $result = $this->cmdbCategory->batchRead(
+                $slicedObjectIDs,
+                [$categoryConst]
+            );
+
+            if (count($result) === 0) {
+                break;
+            }
+
+            $offset += $limit;
+
+            $entries = array_merge($entries, $result);
+
+            if (count($result) < $limit) {
+                break;
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Prints item titles
+     *
+     * @param array $items Indexed array of associative arrays
+     *
+     * @return self Returns itself
+     */
+    protected function printTitle(array $items) {
         $sorted = [];
 
         foreach ($items as $item) {

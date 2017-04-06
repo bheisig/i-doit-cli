@@ -31,19 +31,46 @@ use bheisig\idoitapi\API;
  */
 abstract class Command implements Executes {
 
+    /**
+     * Configuration settings
+     *
+     * @var array Associative array
+     */
     protected $config = [];
 
     /**
+     * API
+     *
      * @var \bheisig\idoitapi\API
      */
     protected $api;
 
+    /**
+     * Cached object types
+     *
+     * @var array Indexed array of associative arrays
+     */
     protected $cacheObjectTypes = [];
 
+    /**
+     * Cached categories
+     *
+     * @var array Indexed array of associative arrays
+     */
     protected $cacheCategories = [];
 
+    /**
+     * Cached assignments between categories and object types
+     *
+     * @var array Indexed array of associative arrays
+     */
     protected $cacheAssignedCategories = [];
 
+    /**
+     * Cache directory for current i-doit host
+     *
+     * @var string
+     */
     protected $hostDir;
 
     /**
@@ -60,6 +87,11 @@ abstract class Command implements Executes {
      */
     protected $executionTime = 0;
 
+    /**
+     * Constructor
+     *
+     * @param array $config Configuration settings
+     */
     public function __construct(array $config) {
         $this->config = $config;
     }
@@ -90,6 +122,13 @@ abstract class Command implements Executes {
         return $this;
     }
 
+    /**
+     * Initiates API
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception when configuration settings are missing
+     */
     protected function initiateAPI() {
         try {
             $this->api = new API($this->config['api']);
@@ -103,6 +142,13 @@ abstract class Command implements Executes {
         return $this;
     }
 
+    /**
+     * Gets cache directory for current i-doit host
+     *
+     * @return string
+     *
+     * @throws \Exception when configuration settings are missing
+     */
     protected function getHostDir() {
         if (!array_key_exists('api', $this->config) ||
             !array_key_exists('url', $this->config['api'])) {
@@ -120,6 +166,13 @@ abstract class Command implements Executes {
         return $this->hostDir;
     }
 
+    /**
+     * Is cache for current host available?
+     *
+     * @return bool
+     *
+     * @throws \Exception on error
+     */
     protected function isCached() {
         $hostDir = $this->getHostDir();
 
@@ -138,28 +191,67 @@ abstract class Command implements Executes {
         return false;
     }
 
+    /**
+     * Is cache for current host not up-to-date anymore?
+     *
+     * @return bool
+     *
+     * @throws \Exception on error
+     */
     protected function isOutdated() {
 
     }
 
+    /**
+     * Reads list of object types from cache
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
     protected function getObjectTypes() {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/object_types'));
     }
 
+    /**
+     * Reads information about a category from cache
+     *
+     * @param string $categoryConst Category constant
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
     protected function getCategoryInfo($categoryConst) {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/category__' . $categoryConst));
     }
 
+    /**
+     * Reads list of categories from cache which are assigned to an object type
+     *
+     * @param string $type Object type constant
+     *
+     * @return array ['catg' => [['id' => 1, …], ['id' => 1, …]], 'cats' => …]
+     *
+     * @throws \Exception on error
+     */
     protected function getAssignedCategories($type) {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
     }
 
+    /**
+     * Reads a list of categories from cache
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
     protected function getCategories() {
         $categories = [];
         $hostDir = $this->getHostDir();
@@ -183,6 +275,11 @@ abstract class Command implements Executes {
         return $categories;
     }
 
+    /**
+     * Looks for a query from given arguments
+     *
+     * @return string
+     */
     protected function getQuery() {
         $query = '';
 
