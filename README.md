@@ -212,6 +212,16 @@ idoit init
 Just type `n` (no) if you want to keep your existing configuration settings.
 
 
+##  Playground
+
+Perform self-defined API requests:
+
+~~~ {.bash}
+idoit call '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}'
+echo '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}' | idoit call
+~~~
+
+
 ##  Configuration
 
 There are some ways to set your configurations settings:

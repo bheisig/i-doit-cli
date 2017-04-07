@@ -47,13 +47,17 @@ class IO {
     }
 
     public static function in($message, $args = null) {
-        $argList = func_get_args();
+        if ($message !== '') {
+            $argList = func_get_args();
 
-        if (count($argList) >= 2) {
-            $message = call_user_func_array('sprintf', $argList);
+            if (count($argList) >= 2) {
+                $message = call_user_func_array('sprintf', $argList);
+            }
+
+            $message .= ' ';
         }
 
-        fwrite(STDOUT, $message . ' ');
+        fwrite(STDOUT, $message);
 
         return trim(fgets(STDIN));
     }

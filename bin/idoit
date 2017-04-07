@@ -145,6 +145,7 @@ try {
         'search' => 'Find your needle in the haystack called CMDB',
         'random' => 'Create randomized data',
         'nextip' => 'Fetch the next free IP address for a given subnet',
+        'call' => 'Perform self-defined API requests',
         'help' => 'Show this help'
     ];
 
