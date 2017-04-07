@@ -160,6 +160,15 @@ idoit read host.example.net/model
 **Notice:** These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.
 
 
+##  Show Everything About an Object
+
+~~~ {.bash}
+idoit show myserver
+idoit show "My Server"
+idoit show 42
+~~~
+
+
 ##  Find Your Data
 
 Find your needle in the haystack called CMDB:

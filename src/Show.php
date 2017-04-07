@@ -1,0 +1,274 @@
+<?php
+
+/**
+ * Copyright (C) 2017 Benjamin Heisig
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Benjamin Heisig <https://benjamin.heisig.name/>
+ * @copyright Copyright (C) 2016-17 Benjamin Heisig
+ * @license http://www.gnu.org/licenses/agpl-3.0 GNU Affero General Public License (AGPL)
+ * @link https://github.com/bheisig/i-doit-cli
+ */
+
+namespace bheisig\idoitcli;
+
+use bheisig\idoitapi\CMDBObject;
+use bheisig\idoitapi\CMDBObjects;
+
+/**
+ * Command "show"
+ */
+class Show extends Command {
+
+    /**
+     * Processes some routines before the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    public function setup() {
+        parent::setup();
+
+        if ($this->isCached() === false) {
+            throw new \Exception(sprintf(
+                'Unsufficient data. Please run "%s init" first.',
+                $this->config['basename']
+            ), 500);
+        }
+
+        $this->initiateAPI();
+
+        $this->api->login();
+
+        return $this;
+    }
+
+    /**
+     * Executes the command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    public function execute() {
+        $query = $this->getQuery();
+
+        $objectID = 0;
+
+        if ($query === '') {
+            throw new \Exception('Empty query. Please specify an object title or identifier');
+        } else if (is_numeric($query)) {
+            $objectID = (int) $query;
+
+            if ($objectID <= 0) {
+                throw new \Exception('Invalid query. Please specify an object identifier');
+            }
+        } else {
+            $cmdbObjects = new CMDBObjects($this->api);
+
+            $objects = $cmdbObjects->read(['title' => $query]);
+
+            switch (count($objects)) {
+                case 0:
+                    throw new \Exception('No object found.');
+                    break;
+                case 1:
+                    $objectID = (int) $objects[0]['id'];
+                    break;
+                default:
+                    IO::err('Found %s objects', count($objects));
+                    IO::err('');
+
+                    foreach ($objects as $object) {
+                        IO::err(
+                            '%s: %s',
+                            $object['id'],
+                            $object['title']
+                        );
+                    }
+
+                    IO::err('');
+
+                    while (true) {
+                        $objectID = (int) IO::in('Which object do you like to show? [identifier]');
+
+                        if ($objectID <= 0) {
+                            IO::err('Please try again.');
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        $cmdbObject = new CMDBObject($this->api);
+
+        $object = $cmdbObject->load($objectID);
+
+        IO::out('Title: %s', $object['title']);
+        IO::out('ID: %s', $object['id']);
+        IO::out('Type: %s', $object['type_title']);
+        IO::out('SYS-ID: %s', $object['sysid']);
+        IO::out('CMDB status: %s', $object['cmdb_status_title']);
+        IO::out('Created: %s', $object['created']);
+        IO::out('Updated: %s', $object['updated']);
+
+        $categories = $this->getCategories();
+
+        $categoryTypes = ['catg', 'cats'];
+
+        foreach ($categoryTypes as $categoryType) {
+            if (!array_key_exists($categoryType, $object)) {
+                continue;
+            }
+
+            foreach ($object[$categoryType] as $category) {
+                if (in_array($category['const'], ['C__CATG__RELATION', 'C__CATG__LOGBOOK'])) {
+                    continue;
+                }
+
+                $identifiedCategory = [];
+
+                foreach ($categories as $categoryInfo) {
+                    if (strtolower($categoryInfo['const']) === strtolower($category['const'])) {
+                        $identifiedCategory = $categoryInfo;
+                        break;
+                    }
+                }
+
+                IO::err('');
+
+                if (!isset($identifiedCategory)) {
+                    IO::err('Unknown category');
+                    continue;
+                }
+
+                switch (count($category['entries'])) {
+                    case 0;
+                        IO::out(
+                            'No entries in category "%s"',
+                            $category['title']
+                        );
+                        break 2;
+                    case 1:
+                        IO::out(
+                            '1 entry in category "%s":',
+                            $category['title']
+                        );
+                        break;
+                    default:
+                        IO::out(
+                            '%s entries in category "%s":',
+                            count($category['entries']),
+                            $category['title']
+                        );
+                        break;
+                }
+
+                foreach ($category['entries'] as $entry) {
+                    IO::err('');
+
+                    foreach ($entry as $attribute => $value) {
+                        if (in_array($attribute, ['id', 'objID'])) {
+                            continue;
+                        }
+
+                        switch (gettype($value)) {
+                            case 'array':
+                                if (array_key_exists('ref_title', $value)) {
+                                    $value = $value['ref_title'];
+                                } else if (array_key_exists('title', $value)) {
+                                    $value = $value['title'];
+                                } else {
+                                    $values = [];
+
+                                    foreach ($value as $subObject) {
+                                        if (array_key_exists('title', $subObject)) {
+                                            $values[] = $subObject['title'];
+                                        }
+                                    }
+
+                                    $value = implode(', ', $values);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (!isset($value) || $value === '') {
+                            $value = '-';
+                        }
+
+                        // Rich text editor uses HTML:
+                        $value = strip_tags($value);
+
+                        IO::out(
+                            '%s: %s',
+                            $identifiedCategory['properties'][$attribute]['title'],
+                            $value
+                        );
+                    }
+                }
+            }
+        }
+
+
+
+        return $this;
+    }
+
+    /**
+     * Processes some routines after the execution
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    public function tearDown () {
+        $this->api->logout();
+
+        return parent::tearDown();
+    }
+
+    /**
+     * Shows usage of this command
+     *
+     * @return self Returns itself
+     */
+    public function showUsage() {
+        $command = strtolower((new \ReflectionClass($this))->getShortName());
+
+        IO::out('Usage: %1$s [OPTIONS] %2$s [QUERY]
+
+%3$s
+
+QUERY could be any object title or identifier.
+
+Examples:
+
+1) %1$s %2$s myserver
+2) %1$s %2$s "My Server"
+3) %1$s %2$s 42',
+            $this->config['basename'],
+            $command,
+            $this->config['commands'][$command]
+        );
+
+        return $this;
+    }
+
+}
