@@ -51,7 +51,7 @@ cd i-doit-cli/
 The executable is located under `bin/idoit`. If you want to use it system-wide you will need [Composer](https://getcomposer.org/):
 
 ~~~ {.bash}
-composer install --no-dev
+composer install
 make
 sudo make install
 ~~~
