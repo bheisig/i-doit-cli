@@ -24,6 +24,7 @@
 
 namespace bheisig\idoitcli;
 
+use bheisig\idoitapi\CMDBObject;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBCategory;
 
@@ -139,9 +140,37 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objects);
+                } else if (is_numeric($parts[0])) {
+                    /**
+                     * Show common information about an object by its identifier
+                     *
+                     * Examples:
+                     *
+                     * idoit read 9
+                     */
+                    $objectID = (int) $parts[0];
+
+                    if ($objectID === 0) {
+                        throw new \Exception(sprintf(
+                            'Unable to find object by "%s". Please specify a valid object identifier',
+                            $parts[0]
+                        ));
+                    }
+
+                    $cmdbObject = new CMDBObject($this->api);
+
+                    $result = $cmdbObject->read($objectID);
+
+                    if (count($result) === 0) {
+                        IO::err('Unknown object');
+                    } else {
+                        IO::err('Found 1 object');
+                        IO::err('');
+                        $this->printTitle([$result]);
+                    }
                 } else {
                     /**
-                     * Show common information about an object
+                     * Show common information about an object by its title
                      *
                      * Examples:
                      *
@@ -879,53 +908,62 @@ class Read extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Usage: %1$s [OPTIONS] read [PATH]
+        $command = strtolower((new \ReflectionClass($this))->getShortName());
 
-%2$s
+        IO::out('Usage: %1$s [OPTIONS] %2$s [PATH]
+
+%3$s
 
 List object types:
 
-    idoit read
-    idoit read /
+    idoit %2$s
+    idoit %2$s /
 
 List objects:
 
-    idoit read server
-    idoit read server/
-    idoit read server/*
+    idoit %2$s server
+    idoit %2$s server/
+    idoit %2$s server/*
 
-Show common information about an object:
+Show common information about an object by its title:
 
-    idoit read server/host.example.net
-    idoit read host.example.net
+    idoit %2$s server/host.example.net
+    idoit %2$s host.example.net
+
+Show common information about an object by its identifier:
+
+    idoit %2$s 42
 
 List assigned categories:
 
-    idoit read server/host.example.net/
-    idoit read server/host.example.net/*
-    idoit read host.example.net/
-    idoit read host.example.net/*
+    idoit %2$s server/host.example.net/
+    idoit %2$s server/host.example.net/*
+    idoit %2$s host.example.net/
+    idoit %2$s host.example.net/*
 
 List category attributes:
 
-    idoit read server/host.example.net/model/
-    idoit read server/host.example.net/model/*
-    idoit read host.example.net/model/
-    idoit read host.example.net/model/*
+    idoit %2$s server/host.example.net/model/
+    idoit %2$s server/host.example.net/model/*
+    idoit %2$s host.example.net/model/
+    idoit %2$s host.example.net/model/*
 
 Show category entries:
 
-    idoit read server/host.example.net/model
-    idoit read host.example.net/model
+    idoit %2$s server/host.example.net/model
+    idoit %2$s host.example.net/model
 
 Show atttribute value:
 
-    idoit read server/host.example.net/model/model
-    idoit read host.example.net/model/model
+    idoit %2$s server/host.example.net/model/model
+    idoit %2$s host.example.net/model/model
 
-Notice: These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.',
+These examples work great with unique names. That is why it is common practice
+to give objects unique titles that are not in conflict with object types and
+categories.',
             $this->config['basename'],
-            $this->config['commands'][$this->config['command']]
+            $command,
+            $this->config['commands'][$command]
         );
 
         return $this;

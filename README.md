@@ -121,6 +121,12 @@ Show common information about server "host.example.net":
 idoit read server/host.example.net
 ~~~
 
+Show common information about object identifier "42":
+
+~~~ {.bash}
+idoit read 42
+~~~
+
 List assigned categories:
 
 ~~~ {.bash}
