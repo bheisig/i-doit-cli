@@ -55,10 +55,18 @@ class Call extends Command {
         $query = $this->getQuery();
 
         if ($query === '') {
-            $query = IO::in('');
+            while (true) {
+                $line = IO::in('');
+
+                if ($line === '') {
+                    break;
+                }
+
+                $query .= $line;
+            }
         }
 
-        $request = json_decode($query, true);
+        $request = json_decode(trim($query), true);
 
         if (!is_array($request)) {
             throw new \Exception('No valid JSON input');
@@ -118,7 +126,8 @@ REQUEST is a JSON-formatted string. Leave empty to read from standard input.
 Examples:
 
 1) %1$s %2$s \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\'
-2) echo \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' | %1$s %2$s',
+2) echo \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' | %1$s %2$s
+3) cat request.txt | %1$s %2$s',
             $this->config['basename'],
             $command,
             $this->config['commands'][$command]

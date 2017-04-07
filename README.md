@@ -214,11 +214,28 @@ Just type `n` (no) if you want to keep your existing configuration settings.
 
 ##  Playground
 
-Perform self-defined API requests:
+Perform self-defined API requests – pass request as argument:
 
 ~~~ {.bash}
 idoit call '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}'
+~~~
+
+Pipe request:
+
+~~~ {.bash}
 echo '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}' | idoit call
+~~~
+
+Read request from file:
+
+~~~ {.bash}
+cat request.txt | idoit call
+~~~
+
+Read request from standard input (double-enter to execute):
+
+~~~ {.bash}
+idoit call
 ~~~
 
 
