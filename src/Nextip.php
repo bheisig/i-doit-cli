@@ -77,14 +77,22 @@ class Nextip extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Usage: %1$s nextip SUBNET
+        $command = strtolower((new \ReflectionClass($this))->getShortName());
+
+        IO::out('Usage: %1$s %2$s SUBNET
+
+%3$s
 
 SUBNET may be an object title or an object identifier. IPv4 only.
 
 Examples:
 
-1) idoit nextip "Global v4"
-2) %1$s nextip 20', $this->config['basename']);
+1) %1$s %2$s "Global v4"
+2) %1$s %2$s 20',
+            $this->config['basename'],
+            $command,
+            $this->config['commands'][$command]
+        );
 
         return $this;
     }

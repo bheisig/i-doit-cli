@@ -306,7 +306,15 @@ abstract class Command implements Executes {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('No specific help needed');
+        $command = strtolower((new \ReflectionClass($this))->getShortName());
+
+        IO::out('Usage: %1$s [OPTIONS] %2$s
+
+%3$s',
+            $this->config['basename'],
+            $command,
+            $this->config['commands'][$command]
+        );
 
         return $this;
     }

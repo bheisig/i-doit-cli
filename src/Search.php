@@ -84,16 +84,22 @@ class Search extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        IO::out('Usage: %1$s [OPTIONS] search [QUERY]
+        $command = strtolower((new \ReflectionClass($this))->getShortName());
 
-Find your needle in the haystack called CMDB
+        IO::out('Usage: %1$s [OPTIONS] %2$s [QUERY]
+
+%3$s
 
 QUERY could be any string.
 
 Examples:
 
-1) %1$s search myserver
-2) %1$s search "My Server"', $this->config['basename']);
+1) %1$s %2$s myserver
+2) %1$s %2$s "My Server"',
+            $this->config['basename'],
+            $command,
+            $this->config['commands'][$command]
+        );
 
         return $this;
     }

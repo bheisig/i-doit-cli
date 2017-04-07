@@ -172,17 +172,6 @@ class Random extends Command {
         return $this;
     }
 
-    /**
-     * Shows usage of this command
-     *
-     * @return self Returns itself
-     */
-    public function showUsage() {
-        IO::out('Roll the dice');
-
-        return $this;
-    }
-
     protected function createCountries() {
         IO::out('Create countries');
 
