@@ -792,7 +792,7 @@ class Read extends Command {
                     IO::err('This could take a while…');
                 }
             } else {
-                $result = $this->cmdbObjects->read($filter, $limit, $offset);
+                $result = $this->cmdbObjects->read($filter);
             }
 
             if (count($result) === 0) {
