@@ -43,7 +43,7 @@ try {
                     $class
                 );
 
-                require_once __DIR__ . '/../src/' . $file . '.php';
+                require_once sprintf('%s/../src/%s.php', __DIR__, $file);
             }
         },
         true
@@ -207,11 +207,11 @@ try {
             true
         );
 
-        if ($settings === false) {
+        if ($settings === false || is_null($settings) || !is_array($settings)) {
             throw new \Exception(sprintf(
                 'Configuration file "%s" contains invalid JSON data.',
-                500
-            ));
+                $additionalConfigFile
+            ), 500);
         }
 
         $config = array_merge_recursive_overwrite(
