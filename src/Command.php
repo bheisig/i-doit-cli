@@ -221,6 +221,25 @@ abstract class Command implements Executes {
     }
 
     /**
+     * Converts an object type title into a object type constant
+     *
+     * @param string $title Object type title
+     *
+     * @return string Object type constant, otherwise NULL on error
+     */
+    protected function getObjectTypeConstantByTitle($title) {
+        $objectTypes = $this->getObjectTypes();
+
+        foreach ($objectTypes as $objectType) {
+            if (strtolower($objectType['title']) === strtolower($title)) {
+                return $objectType['const'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Reads information about a category from cache
      *
      * @param string $categoryConst Category constant

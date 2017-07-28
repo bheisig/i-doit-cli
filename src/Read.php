@@ -530,6 +530,29 @@ class Read extends Command {
                 IO::err('');
             }
 
+            $objectTypeConstant = $this->getObjectTypeConstantByTitle($object['type_title']);
+            $assignedCategories = $this->getAssignedCategories($objectTypeConstant);
+
+            $isAssigned = false;
+
+            foreach ($assignedCategories as $type => $categories) {
+                foreach ($categories as $assignedCategory) {
+                    if ($assignedCategory['const'] === $identifiedCategory['const']) {
+                        $isAssigned = true;
+                    }
+                }
+            }
+
+            if ($isAssigned === false) {
+                IO::err(
+                    'Category "%s" [%s] is not assigned to object type "%s" [%s]',
+                    $identifiedCategory['title'],
+                    $identifiedCategory['const'],
+                    $object['type_title'],
+                    $objectTypeConstant
+                );
+            }
+
             switch(count($batchEntries[$counter])) {
                 case 0:
                     IO::err('No entries found');
@@ -750,7 +773,7 @@ class Read extends Command {
 
         if ($categoryConst === '') {
             throw new \Exception(sprintf(
-                'This object type [%s] has no category "%s". Maybe you cache is outdated. Please re-run "idoit init".',
+                'This object type [%s] has no category "%s". Maybe your cache is outdated. Please re-run "idoit init".',
                 $objectType,
                 $categoryTitle
             ));
