@@ -23,12 +23,13 @@ This client provides a simple, but powerful command line interface to access you
 You have several options to download (and kinda install) this script:
 
 *   Download any stable release (**recommended**)
+*   Use [PHIVE](https://phar.io/)
 *   Clone the Git repository to fetch the (maybe unstable) development branch
 
 
 ### Download Release
 
-Download the latest version of the binary `idoit` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
+Download the latest stable version of the binary `idoit` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
 ~~~ {.bash}
 curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.3/idoit
@@ -37,6 +38,23 @@ sudo mv idoit /usr/local/bin/
 ~~~
 
 To be up-to-date just repeat the steps above.
+
+
+### Use PHIVE
+
+With [PHIVE](https://phar.io/) you are able to download and install PHAR files on your system. Additionally, it will verify the SHA1 and GPG signatures which is highly recommended. If you have PHIVE already installed you can fetch the latest version of this script:
+
+~~~ {.bash}
+sudo phive install --global bheisig/i-doit-cli
+~~~
+
+This will install an executable binary to `/usr/bin/idoit`.
+
+If a new release is available you can perform an update:
+
+~~~ {.bash}
+sudo phive update --global
+~~~
 
 
 ### Fetch Source Code

@@ -40,6 +40,11 @@ dist : readme
 tag :
 	git tag -s -m "Release version $(VERSION)" $(VERSION)
 
+phive :
+	test -x idoit
+	cp idoit idoit.phar
+	gpg --detach-sign --output idoit.phar.asc idoit.phar
+
 
 ## Clean up
 
