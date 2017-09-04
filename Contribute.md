@@ -3,6 +3,11 @@
 Thank you very much for your interest in this project! There are plenty of ways you can support us. :-)
 
 
+##  Code of Conduct
+
+We like you to read and follow our [code of conduct](CODE_OF_CONDUCT.md) before contributing. Thank you.
+
+
 ##  Use it
 
 The best and (probably) easiest way is to use the script in your daily work. It would be very nice to share your thoughts with us. We love to hear from you.
