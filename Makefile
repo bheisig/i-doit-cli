@@ -1,7 +1,7 @@
 TITLE = $(shell make -s get-setting-title)
 VERSION = $(shell make -s get-setting-version)
 TAG = $(shell make -s get-setting-tag)
-DISTFILES = idoit COPYING README
+DISTFILES = idoit LICENSE README
 DISTDIR = $(TAG)
 DISTTARBALL = $(TAG)-$(VERSION).tar.gz
 BINDIR = $(DESTDIR)/usr/local/bin

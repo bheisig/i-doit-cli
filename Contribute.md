@@ -43,7 +43,7 @@ composer install
 
 Now it is the time to do your stuff. Do not forget to commit your changes. When you are done consider to make a pull requests.
 
-Notice, that your contribution merged into this repository will be [licensed under the AGPLv3](COPYING).
+Notice, that your contribution merged into this repository will be [licensed under the AGPLv3](LICENSE).
 
 
 ##  Requirements
@@ -80,4 +80,3 @@ The last call creates a file caleld `i-doit-cli-<VERSION>.tar.gz`.
 ##  Donate
 
 Last but not least, if you think this script is useful for your daily work, consider a donation. What about a beer?
-
