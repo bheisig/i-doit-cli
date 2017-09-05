@@ -16,12 +16,10 @@ install :
 	test -x idoit
 	install -m 775 idoit $(BINDIR)/idoit
 	install -m 644 idoit.bash-completion $(DESTDIR)/etc/bash_completion.d/idoit
-	source /etc/bash_completion
 
 make uninstall :
 	rm -f $(BINDIR)/idoit
 	rm -f $(DESTDIR)/etc/bash_completion.d/idoit
-	source /etc/bash_completion
 
 get-setting-% :
 	php -r '$$project = json_decode(trim(file_get_contents("project.json")), true); echo $$project["$*"];'

@@ -19,7 +19,6 @@ install:
 
 script:
   - make build
-  - make phive
   - make dist
   - make install
   - make uninstall
