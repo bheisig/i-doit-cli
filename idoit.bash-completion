@@ -19,8 +19,20 @@ _idoit_command() {
     local cur options commands
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
     options="-c -h --config --help --version"
-    commands="init status read search random nextip help"
+    commands="init status read show search random nextip ip2net help"
+
+    case "$prev" in
+            read)
+                local path=`idoit read $2 2> /dev/null | sed ':a;{N;s/\n/ /};ba'`
+                COMPREPLY=( $( compgen -W "$path" -- $cur ) )
+                #local files=( $(idoit read $2 2> /dev/null) )
+                #local files=("/tmp/$2"*)
+                #[[ -e ${files[0]} ]] && COMPREPLY=( "${files[@]##*/}" )
+                return 0
+                ;;
+        esac
 
     case "$cur" in
         -*) COMPREPLY=( $( compgen -W "${options}" -- $cur ) );;

@@ -458,7 +458,9 @@ class Read extends Command {
     public function tearDown () {
         $this->api->logout();
 
-        return parent::tearDown();
+        parent::tearDown();
+
+        return $this;
     }
 
     /**
@@ -499,31 +501,40 @@ class Read extends Command {
 
         $categories = $this->getCategories();
 
-        $identifiedCategory = [];
+        $candidates = [];
 
         foreach ($categories as $categoryInfo) {
             if (strtolower($categoryInfo['title']) === strtolower($category)) {
-                $identifiedCategory = $categoryInfo;
-                break;
+                $candidates[] = $categoryInfo;
             }
         }
 
-        if (count($identifiedCategory) === 0) {
-            IO::err('Unknown category');
-            return $this;
+        switch(count($candidates)) {
+            case 0:
+                IO::err('Unknown category "%s"', $category);
+                return $this;
+            case 1:
+                break;
+            default:
+                IO::err('');
+                IO::err('Unambigious category title:');
+                IO::err('');
+
+                foreach ($candidates as $candidate) {
+                    IO::err(
+                        '    "%s" [%s]',
+                        $candidate['title'],
+                        $candidate['const']
+                    );
+                }
+
+                IO::err('');
+                break;
         }
 
-        $objectIDs = [];
-
         foreach ($objects as $object) {
-            $objectIDs[] = $object['id'];
-        }
+            $identifiedCategory = [];
 
-        $batchEntries = $this->fetchCategoryEntries($objectIDs, $identifiedCategory['const']);
-
-        $counter = 0;
-
-        foreach ($objects as $object) {
             if (count($objects) > 1) {
                 IO::err('');
                 $this->formatObject($object);
@@ -533,39 +544,60 @@ class Read extends Command {
             $objectTypeConstant = $this->getObjectTypeConstantByTitle($object['type_title']);
             $assignedCategories = $this->getAssignedCategories($objectTypeConstant);
 
-            $isAssigned = false;
-
-            foreach ($assignedCategories as $type => $categories) {
-                foreach ($categories as $assignedCategory) {
-                    if ($assignedCategory['const'] === $identifiedCategory['const']) {
-                        $isAssigned = true;
+            foreach ($assignedCategories as $type => $assignedCategoriesByType) {
+                foreach ($assignedCategoriesByType as $assignedCategory) {
+                    foreach ($candidates as $categoryInfo) {
+                        if (strtolower($categoryInfo['title']) === strtolower($category) &&
+                            $assignedCategory['const'] === $categoryInfo['const']) {
+                            $identifiedCategory = $categoryInfo;
+                            break;
+                        }
                     }
                 }
             }
 
-            if ($isAssigned === false) {
+            if (count($identifiedCategory) === 0) {
                 IO::err(
-                    'Category "%s" [%s] is not assigned to object type "%s" [%s]',
-                    $identifiedCategory['title'],
-                    $identifiedCategory['const'],
+                    'Category "%s" is not assigned to object type "%s" [%s]',
+                    $category,
                     $object['type_title'],
                     $objectTypeConstant
                 );
+
+                continue;
             }
 
-            switch(count($batchEntries[$counter])) {
+            $batchEntries = $this->fetchCategoryEntries(
+                [$object['id']],
+                $identifiedCategory['const']
+            );
+
+            switch(count($batchEntries[0])) {
                 case 0:
-                    IO::err('No entries found');
+                    IO::err(
+                        'No entries found in category "%s" [%s]',
+                        $identifiedCategory['title'],
+                        $identifiedCategory['const']
+                    );
                     break;
                 case 1:
-                    IO::err('Found 1 entry');
+                    IO::err(
+                        'Found 1 entry in category "%s" [%s]',
+                        $identifiedCategory['title'],
+                        $identifiedCategory['const']
+                    );
                     break;
                 default:
-                    IO::err('Found %s entries', count($batchEntries[$counter]));
+                    IO::err(
+                        'Found %s entries in category "" [%s]',
+                        count($batchEntries[0]),
+                        $identifiedCategory['title'],
+                        $identifiedCategory['const']
+                    );
                     break;
             }
 
-            foreach ($batchEntries[$counter] as $entry) {
+            foreach ($batchEntries[0] as $entry) {
                 IO::err('');
 
                 foreach ($identifiedCategory['properties'] as $attribute => $attributeInfo) {
@@ -600,8 +632,6 @@ class Read extends Command {
                     );
                 }
             }
-
-            $counter++;
         }
 
         return $this;

@@ -16,5 +16,45 @@
         "racks": "C__OBJTYPE__ENCLOSURE",
         "subnets": "C__OBJTYPE__LAYER3_NET",
         "servers": "C__OBJTYPE__SERVER"
+    },
+    "ip2net": {
+        "blacklistedObjectTypes": [
+            "C__OBJTYPE__SERVICE",
+            "C__OBJTYPE__APPLICATION",
+            "C__OBJTYPE__LICENCE",
+            "C__OBJTYPE__OPERATING_SYSTEM",
+            "C__OBJTYPE__DBMS",
+            "C__OBJTYPE__DATABASE_SCHEMA",
+            "C__OBJTYPE__DATABASE_INSTANCE",
+            "C__OBJTYPE__BUILDING",
+            "C__OBJTYPE__ROOM",
+            "C__OBJTYPE__CABLE",
+            "C__OBJTYPE__WIRING_SYSTEM",
+            "C__OBJTYPE__COUNTRY",
+            "C__OBJECT_TYPE__FLOOR",
+            "C__CMDB__OBJTYPE__CABLE_TRAY",
+            "C__CMDB__OBJTYPE__CONDUIT",
+            "C__OBJECT_TYPE__GROUP",
+            "C__OBJTYPE__VEHICLE",
+            "C__OBJTYPE__AIRCRAFT",
+            "C__OBJTYPE__INFORMATION_DOMAIN",
+            "C__OBJTYPE__ORGANIZATION",
+            "C__OBJTYPE__PERSON",
+            "C__OBJTYPE__PERSON_GROUP",
+            "C__OBJTYPE__NAGIOS_SERVICE_TPL",
+            "C__OBJTYPE__SIM_CARD",
+            "C__OBJTYPE__EMERGENCY_PLAN",
+            "C__OBJTYPE__MAINTENANCE",
+            "C__OBJTYPE__FILE",
+            "C__OBJTYPE__IT_SERVICE",
+            "C__OBJTYPE__WAN",
+            "C__OBJTYPE__LAYER3_NET",
+            "C__OBJTYPE__LAYER2_NET",
+            "C__OBJTYPE__SUPERNET"
+        ],
+        "unproperSubnets": [
+            "Global v4",
+            "Global v6"
+        ]
     }
 }
