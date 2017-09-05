@@ -29,11 +29,5 @@
             "bheisig\\idoitcli\\": "src/"
         }
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/bheisig/i-doit-cli"
-        }
-    ],
     "bin": ["bin/idoit"]
 }
