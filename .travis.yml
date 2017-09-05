@@ -22,8 +22,8 @@ install:
 script:
   - make build
   - make dist
-  - make install
-  - make uninstall
+  - sudo make install
+  - sudo make uninstall
   - make clean
 
 matrix:
