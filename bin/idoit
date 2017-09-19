@@ -143,6 +143,7 @@ try {
         'read' => 'Fetch information from your CMDB',
         'show' => 'Show everything about an object',
         'search' => 'Find your needle in the haystack called CMDB',
+        'listcategories' => 'Print a list of available categories',
         'random' => 'Create randomized data',
         'nextip' => 'Fetch the next free IP address for a given subnet',
         'fixip' => 'Assign IPs to subnets',

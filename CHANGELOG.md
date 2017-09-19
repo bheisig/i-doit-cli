@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
--   Assign IPs to subnets with command "fixip"
+-   Print a list of available categories with command `listcategories`
+-   Assign IPs to subnets with command `fixip`
 -   Display error when user asks for specific category entries but category is not assigned to object type(s)
 
 
