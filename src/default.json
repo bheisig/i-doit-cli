@@ -17,7 +17,7 @@
         "subnets": "C__OBJTYPE__LAYER3_NET",
         "servers": "C__OBJTYPE__SERVER"
     },
-    "ip2net": {
+    "fixip": {
         "blacklistedObjectTypes": [
             "C__OBJTYPE__SERVICE",
             "C__OBJTYPE__APPLICATION",

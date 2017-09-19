@@ -21,7 +21,7 @@ _idoit_command() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     options="-c -h --config --help --version"
-    commands="init status read show search random nextip ip2net help"
+    commands="init status read show search random nextip fixip help"
 
     case "$prev" in
             read)
