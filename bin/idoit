@@ -138,17 +138,18 @@ try {
     );
 
     $config['commands'] = [
-        'init' => 'Create configuration settings and create cache',
-        'status' => 'Current status information',
-        'read' => 'Fetch information from your CMDB',
-        'show' => 'Show everything about an object',
-        'search' => 'Find your needle in the haystack called CMDB',
-        'listcategories' => 'Print a list of available categories',
-        'random' => 'Create randomized data',
-        'nextip' => 'Fetch the next free IP address for a given subnet',
-        'fixip' => 'Assign IPs to subnets',
         'call' => 'Perform self-defined API requests',
-        'help' => 'Show this help'
+        'fixip' => 'Assign IPs to subnets',
+        'help' => 'Show this help',
+        'init' => 'Create configuration settings and create cache',
+        'listcategories' => 'Print a list of available categories',
+        'listobjecttypes' => 'Print a list of available object types',
+        'nextip' => 'Fetch the next free IP address for a given subnet',
+        'random' => 'Create randomized data',
+        'read' => 'Fetch information from your CMDB',
+        'search' => 'Find your needle in the haystack called CMDB',
+        'show' => 'Show everything about an object',
+        'status' => 'Current status information',
     ];
 
     $config['args'] = $GLOBALS['argv'];
