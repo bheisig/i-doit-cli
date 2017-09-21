@@ -25,9 +25,9 @@
 namespace bheisig\idoitcli;
 
 /**
- * Command "listcategories"
+ * Command "types"
  */
-class ListObjectTypes extends Command {
+class Types extends Command {
 
     /**
      * Executes the command

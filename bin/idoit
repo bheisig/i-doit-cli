@@ -139,17 +139,17 @@ try {
 
     $config['commands'] = [
         'call' => 'Perform self-defined API requests',
+        'categories' => 'Print a list of available categories',
         'fixip' => 'Assign IPs to subnets',
         'help' => 'Show this help',
         'init' => 'Create configuration settings and create cache',
-        'listcategories' => 'Print a list of available categories',
-        'listobjecttypes' => 'Print a list of available object types',
         'nextip' => 'Fetch the next free IP address for a given subnet',
         'random' => 'Create randomized data',
         'read' => 'Fetch information from your CMDB',
         'search' => 'Find your needle in the haystack called CMDB',
         'show' => 'Show everything about an object',
         'status' => 'Current status information',
+        'types' => 'Print a list of available object types',
     ];
 
     $config['args'] = $GLOBALS['argv'];
