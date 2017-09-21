@@ -140,6 +140,7 @@ try {
     $config['commands'] = [
         'call' => 'Perform self-defined API requests',
         'categories' => 'Print a list of available categories',
+        'create' => 'Create new object or category entry',
         'fixip' => 'Assign IPs to subnets',
         'help' => 'Show this help',
         'init' => 'Create configuration settings and create cache',
@@ -149,7 +150,7 @@ try {
         'search' => 'Find your needle in the haystack called CMDB',
         'show' => 'Show everything about an object',
         'status' => 'Current status information',
-        'types' => 'Print a list of available object types and group them',
+        'types' => 'Print a list of available object types and group them'
     ];
 
     $config['args'] = $GLOBALS['argv'];

@@ -88,6 +88,16 @@ abstract class Command implements Executes {
     protected $executionTime = 0;
 
     /**
+     * @var \bheisig\idoitapi\CMDBObjects
+     */
+    protected $cmdbObjects;
+
+    /**
+     * @var \bheisig\idoitapi\CMDBCategory
+     */
+    protected $cmdbCategory;
+
+    /**
      * Constructor
      *
      * @param array $config Configuration settings
@@ -324,6 +334,75 @@ abstract class Command implements Executes {
         }
 
         return $query;
+    }
+
+    /**
+     * Fetches objects from i-doit
+     *
+     * @param array $filter Associative array, see CMDBObjects::read()
+     *
+     * @return array Indexed array of associative arrays
+     *
+     * @throws \Exception on error
+     */
+    protected function fetchObjects($filter) {
+        $limit = $this->config['limitBatchRequests'];
+
+        $objects = [];
+        $offset = 0;
+        $counter = 0;
+
+        if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
+            $readFilter = array_filter($filter, function ($key) {
+                return $key !== 'title';
+            }, \ARRAY_FILTER_USE_KEY);
+        } else {
+            $readFilter = $filter;
+        }
+
+        while (true) {
+            if ($limit > 0) {
+                $result = $this->cmdbObjects->read($readFilter, $limit, $offset);
+
+                $offset += $limit;
+                $counter++;
+
+                if ($counter === 3) {
+                    IO::err('This could take a while…');
+                }
+            } else {
+                $result = $this->cmdbObjects->read($readFilter);
+            }
+
+            if (count($result) === 0) {
+                break;
+            }
+
+            if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
+                $result = array_filter($result, function ($object) use ($filter) {
+                    return fnmatch($filter['title'], $object['title']);
+                });
+            }
+
+            foreach ($result as $object) {
+                $objects[] = [
+                    'id' => $object['id'],
+                    'title' => $object['title'],
+                    'type' => $object['type'],
+                    'type_title' => $object['type_title'],
+                ];
+            }
+
+            if (count($result) < $limit) {
+                break;
+            }
+
+            if ($limit === 0) {
+                break;
+            }
+        }
+
+        return $objects;
     }
 
     /**

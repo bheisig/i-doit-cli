@@ -34,16 +34,6 @@ use bheisig\idoitapi\CMDBCategory;
 class Read extends Command {
 
     /**
-     * @var \bheisig\idoitapi\CMDBObjects
-     */
-    protected $cmdbObjects;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBCategory
-     */
-    protected $cmdbCategory;
-
-    /**
      * Processes some routines before the execution
      *
      * @return self Returns itself
@@ -180,15 +170,7 @@ class Read extends Command {
                      * idoit read *.*.net
                      * idoit read host*
                      */
-                    if (strpos($parts[0], '*') === false) {
-                        $objects = $this->fetchObjects(['title' => $parts[0]]);
-                    } else {
-                        $objects = $this->fetchObjects([]);
-
-                        $objects = array_filter($objects, function ($object) use ($parts) {
-                            return fnmatch($parts[0], $object['title']);
-                        });
-                    }
+                    $objects = $this->fetchObjects(['title' => $parts[0]]);
 
                     switch (count($objects)) {
                         case 0:
@@ -354,17 +336,7 @@ class Read extends Command {
                          * idoit read server/host*\/model
                          * idoit read server/*\/model
                          */
-
-
-                        if (strpos($parts[1], '*') === false) {
-                            $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
-                        } else {
-                            $objects = $this->fetchObjects(['type' => $objectTypeConst]);
-
-                            $objects = array_filter($objects, function ($object) use ($parts) {
-                                return fnmatch($parts[1], $object['title']);
-                            });
-                        }
+                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
                         $this->formatCategory($objects, $parts[2]);
                     }
@@ -825,61 +797,6 @@ class Read extends Command {
         }
 
         return $this;
-    }
-
-    /**
-     * Fetches objects from i-doit
-     *
-     * @param array $filter Associative array, see CMDBObjects::read()
-     *
-     * @return array Indexed array of associative arrays
-     *
-     * @throws \Exception on error
-     */
-    protected function fetchObjects($filter) {
-        $limit = $this->config['limitBatchRequests'];
-
-        $objects = [];
-        $offset = 0;
-        $counter = 0;
-
-        while (true) {
-            if ($limit > 0) {
-                $result = $this->cmdbObjects->read($filter, $limit, $offset);
-
-                $offset += $limit;
-                $counter++;
-
-                if ($counter === 3) {
-                    IO::err('This could take a while…');
-                }
-            } else {
-                $result = $this->cmdbObjects->read($filter);
-            }
-
-            if (count($result) === 0) {
-                break;
-            }
-
-            foreach ($result as $object) {
-                $objects[] = [
-                    'id' => $object['id'],
-                    'title' => $object['title'],
-                    'type' => $object['type'],
-                    'type_title' => $object['type_title'],
-                ];
-            }
-
-            if (count($result) < $limit) {
-                break;
-            }
-
-            if ($limit === 0) {
-                break;
-            }
-        }
-
-        return $objects;
     }
 
     /**
