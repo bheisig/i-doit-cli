@@ -32,7 +32,7 @@ You have several options to download (and kinda install) this script:
 Download the latest stable version of the binary `idoit` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
 ~~~ {.bash}
-curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.3/idoit
+curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.4/idoit
 chmod 755 idoit
 sudo mv idoit /usr/local/bin/
 ~~~
