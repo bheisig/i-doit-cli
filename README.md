@@ -2,6 +2,8 @@
 
 Access your CMDB on the command line interface
 
+[![Build Status](https://travis-ci.org/bheisig/i-doit-cli.svg?branch=master)](https://travis-ci.org/bheisig/i-doit-cli)
+
 
 ##  About
 
