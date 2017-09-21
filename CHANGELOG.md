@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 -   Allow wildcards (`*`) in object titles (command `read`)
 -   Print a list of available categories (command `categories`)
--   Print a list of available object types (command `types`)
+-   Print a list of available object types and group them (command `types`)
 -   Assign IPs to subnets (command `fixip`)
 -   Display error when user asks for specific category entries but category is not assigned to object type(s)
 

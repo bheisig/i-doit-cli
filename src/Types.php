@@ -37,46 +37,86 @@ class Types extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        $objectTypes = $this->getObjectTypes();
+        $types = $this->getObjectTypes();
 
-        $objectTypes = array_filter($objectTypes, [$this, 'filterObjectTypes']);
+        $types = array_filter($types, [$this, 'filterObjectTypes']);
 
-        usort($objectTypes, [$this, 'sort']);
+        usort($types, [$this, 'sort']);
 
-        $this->formatList($objectTypes);
+        $groups = $this->group($types);
+
+        $this->formatGroups($groups);
 
         return $this;
     }
 
-    protected function filterObjectTypes($objectType) {
-        return $objectType['status'] === '2';
+    protected function filterObjectTypes($type) {
+        return $type['status'] === '2';
     }
 
-    protected function formatList($objectTypes) {
-        switch(count($objectTypes)) {
+    protected function group($types) {
+        $groups = [];
+
+        foreach ($types as $type) {
+            if (!array_key_exists($type['type_group_title'], $groups)) {
+                $groups[$type['type_group_title']] = [];
+            }
+
+            $groups[$type['type_group_title']][] = $type;
+        }
+
+        return $groups;
+    }
+
+    protected function formatGroups($groups) {
+        switch(count($groups)) {
             case 0:
-                IO::err('No object types found');
+                IO::out('No groups found');
                 break;
             case 1:
-                IO::err('1 object type found');
+                IO::out('1 group type found');
                 break;
             default:
-                IO::err('%s object types found', count($objectTypes));
+                IO::out('%s groups found', count($groups));
                 break;
         }
 
-        IO::err('');
+        IO::out('');
 
-        array_map(function ($objectType) {
-            IO::out($this->format($objectType));
-        }, $objectTypes);
+        foreach ($groups as $group => $types) {
+            IO::out('%s:', $group);
+            IO::out('');
+
+            $this->formatList($types);
+            IO::out('');
+        }
     }
 
-    protected function format($objectType) {
+    protected function formatList($types) {
+        switch(count($types)) {
+            case 0:
+                IO::out('No object types found');
+                break;
+            case 1:
+                IO::out('1 object type found');
+                break;
+            default:
+                IO::out('%s object types found', count($types));
+                break;
+        }
+
+        IO::out('');
+
+        array_map(function ($type) {
+            IO::out($this->format($type));
+        }, $types);
+    }
+
+    protected function format($type) {
         return sprintf(
             '%s [%s]',
-            $objectType['title'],
-            $objectType['const']
+            $type['title'],
+            $type['const']
         );
     }
 

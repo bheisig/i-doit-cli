@@ -149,7 +149,7 @@ try {
         'search' => 'Find your needle in the haystack called CMDB',
         'show' => 'Show everything about an object',
         'status' => 'Current status information',
-        'types' => 'Print a list of available object types',
+        'types' => 'Print a list of available object types and group them',
     ];
 
     $config['args'] = $GLOBALS['argv'];
