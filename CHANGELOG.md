@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+-   Allow wildcards (`*`) in object titles (command `read`)
 -   Print a list of available categories (command `listcategories`)
 -   Print a list of available object types (command `listobjecttypes`)
 -   Assign IPs to subnets (command `fixip`)

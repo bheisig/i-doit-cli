@@ -95,7 +95,7 @@ class Read extends Command {
 
         switch (count($parts)) {
             case 1:
-                if (in_array($parts[0], ['*', ''])) {
+                if (in_array($parts[0], ['~', '*', ''])) {
                     /**
                      * List object types
                      *
@@ -175,8 +175,20 @@ class Read extends Command {
                      * Examples:
                      *
                      * idoit read host.example.net
+                     * idoit read *.example.net
+                     * idoit read host.*.net
+                     * idoit read *.*.net
+                     * idoit read host*
                      */
-                    $objects = $this->fetchObjects(['title' => $parts[0]]);
+                    if (strpos($parts[0], '*') === false) {
+                        $objects = $this->fetchObjects(['title' => $parts[0]]);
+                    } else {
+                        $objects = $this->fetchObjects([]);
+
+                        $objects = array_filter($objects, function ($object) use ($parts) {
+                            return fnmatch($parts[0], $object['title']);
+                        });
+                    }
 
                     switch (count($objects)) {
                         case 0:
@@ -219,60 +231,42 @@ class Read extends Command {
 
                     $this->printTitle($objectTypes);
                 } else if (isset($objectTypeConst)) {
-                    if (in_array($parts[1], ['', '*'])) {
-                        /**
-                         * List objects
-                         *
-                         * Examples:
-                         *
-                         * idoit read server/
-                         * idoit read server/*
-                         */
-                        $objects = $this->fetchObjects(['type' => $objectTypeConst]);
+                    /**
+                     * List objects
+                     *
+                     * Examples:
+                     *
+                     * idoit read server/
+                     * idoit read server/host.example.net
+                     * idoit read server/*.example.net
+                     * idoit read server/host.*.net
+                     * idoit read server/*.*.net
+                     * idoit read server/host*
+                     * idoit read server/*
+                     */
+                    $objects = $this->fetchObjects(['type' => $objectTypeConst]);
 
-                        switch (count($objects)) {
-                            case 0:
-                                IO::err('Unknown object');
-                                break;
-                            case 1:
-                                IO::err('Found 1 object');
-                                break;
-                            default:
-                                IO::err('Found %s objects', count($objects));
-                                break;
-                        }
-
-                        IO::err('');
-
-                        $this->printTitle($objects);
-                    } else {
-                        /**
-                         * Show common information about an object
-                         *
-                         * Examples:
-                         *
-                         * idoit read server/host.example.net
-                         */
-                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
-
-
-                        switch (count($objects)) {
-                            case 0:
-                                IO::err('Unknown object');
-                                break 2;
-                            case 1:
-                                IO::err('Found 1 object');
-                                break;
-                            default:
-                                IO::err('Found %s objects', count($objects));
-                                break;
-                        }
-
-                        foreach ($objects as $object) {
-                            IO::err('');
-                            $this->formatObject($object);
-                        }
+                    if (!in_array($parts[1], [''])) {
+                        $objects = array_filter($objects, function ($object) use ($parts) {
+                            return fnmatch($parts[1], $object['title']);
+                        });
                     }
+
+                    switch (count($objects)) {
+                        case 0:
+                            IO::err('Unknown object');
+                            break 2;
+                        case 1:
+                            IO::err('Found 1 object');
+                            break;
+                        default:
+                            IO::err('Found %s objects', count($objects));
+                            break;
+                    }
+
+                    IO::err('');
+
+                    $this->printTitle($objects);
                 } else {
                     $objects = $this->fetchObjects(['title' => $parts[0]]);
 
@@ -354,8 +348,23 @@ class Read extends Command {
                          * Examples:
                          *
                          * idoit read server/host.example.net/model
+                         * idoit read server/*.example.net/model
+                         * idoit read server/host.*.net/model
+                         * idoit read server/*.*.net/model
+                         * idoit read server/host*\/model
+                         * idoit read server/*\/model
                          */
-                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+
+
+                        if (strpos($parts[1], '*') === false) {
+                            $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        } else {
+                            $objects = $this->fetchObjects(['type' => $objectTypeConst]);
+
+                            $objects = array_filter($objects, function ($object) use ($parts) {
+                                return fnmatch($parts[1], $object['title']);
+                            });
+                        }
 
                         $this->formatCategory($objects, $parts[2]);
                     }
@@ -785,7 +794,7 @@ class Read extends Command {
      * @return self Returns itself
      */
     protected function formatAttributes($objectType, $categoryTitle) {
-        IO::err('Category attributes');
+        IO::err('Attributes in category "%s"', $categoryTitle);
         IO::err('');
 
         $assignedCategories = $this->getAssignedCategories($objectType);
@@ -969,47 +978,61 @@ class Read extends Command {
 
 List object types:
 
-    idoit %2$s
-    idoit %2$s /
+    %1$s %2$s
+    %1$s %2$s /
 
 List objects:
 
-    idoit %2$s server
-    idoit %2$s server/
-    idoit %2$s server/*
+    %1$s %2$s server
+    %1$s %2$s server/
+    %1$s %2$s server/*
+    %1$s %2$s server/host.example.net
+    %1$s %2$s server/*.example.net
+    %1$s %2$s server/host.*.net
+    %1$s %2$s server/*
+    %1$s %2$s server/*.*.net
+    %1$s %2$s server/srv*
 
-Show common information about an object by its title:
+Show common information about one or more objects by their titles:
 
-    idoit %2$s server/host.example.net
-    idoit %2$s host.example.net
+    %1$s %2$s host.example.net
+    %1$s %2$s *.example.net
+    %1$s %2$s host.*.net
+    %1$s %2$s *.*.net
+    %1$s %2$s host*
 
 Show common information about an object by its identifier:
 
-    idoit %2$s 42
+    %1$s %2$s 42
 
 List assigned categories:
 
-    idoit %2$s server/host.example.net/
-    idoit %2$s server/host.example.net/*
-    idoit %2$s host.example.net/
-    idoit %2$s host.example.net/*
+    %1$s %2$s server/host.example.net/
+    %1$s %2$s server/host.example.net/*
+    %1$s %2$s host.example.net/
+    %1$s %2$s host.example.net/*
 
 List category attributes:
 
-    idoit %2$s server/host.example.net/model/
-    idoit %2$s server/host.example.net/model/*
-    idoit %2$s host.example.net/model/
-    idoit %2$s host.example.net/model/*
+    %1$s %2$s server/host.example.net/model/
+    %1$s %2$s server/host.example.net/model/*
+    %1$s %2$s host.example.net/model/
+    %1$s %2$s host.example.net/model/*
 
 Show category entries:
 
-    idoit %2$s server/host.example.net/model
-    idoit %2$s host.example.net/model
+    %1$s %2$s host.example.net/model
+    %1$s %2$s server/host.example.net/model
+    %1$s %2$s server/*.example.net/model
+    %1$s %2$s server/host.*.net/model
+    %1$s %2$s server/*.*.net/model
+    %1$s %2$s server/host*/model
+    %1$s %2$s server/*/model
 
 Show atttribute value:
 
-    idoit %2$s server/host.example.net/model/model
-    idoit %2$s host.example.net/model/model
+    %1$s %2$s server/host.example.net/model/model
+    %1$s %2$s host.example.net/model/model
 
 These examples work great with unique names. That is why it is common practice
 to give objects unique titles that are not in conflict with object types and

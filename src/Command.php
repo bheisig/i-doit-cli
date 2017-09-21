@@ -130,6 +130,13 @@ abstract class Command implements Executes {
      * @throws \Exception when configuration settings are missing
      */
     protected function initiateAPI() {
+        if (!array_key_exists('api', $this->config) || !is_array($this->config['api'])) {
+            throw new \Exception(
+                'No proper configuration: API settings missing.' . PHP_EOL .
+                'Run "idoit init" to create configuration settings'
+            );
+        }
+
         try {
             $this->api = new API($this->config['api']);
         } catch (\Exception $e) {

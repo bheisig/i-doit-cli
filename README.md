@@ -125,12 +125,19 @@ List all object types:
 
 ~~~ {.bash}
 idoit read
+idoit read /
 ~~~
 
-List all servers:
+List server objects:
 
 ~~~ {.bash}
-idoit read server
+idoit read server/
+idoit read server/host.example.net
+idoit read server/*.example.net
+idoit read server/host.*.net
+idoit read server/*.*.net
+idoit read server/host*
+idoit read server/*
 ~~~
 
 Show common information about server "host.example.net":
@@ -145,6 +152,15 @@ Show common information about object identifier "42":
 idoit read 42
 ~~~
 
+Show common information about one or more objects by their titles:
+
+~~~ {.bash}
+idoit read *.example.net
+idoit read host.*.net
+idoit read *.*.net
+idoit read host*
+~~~
+
 List assigned categories:
 
 ~~~ {.bash}
@@ -155,6 +171,16 @@ Show values from category "model" for this server:
 
 ~~~ {.bash}
 idoit read server/host.example.net/model
+~~~
+
+Show values from category "model" for one or more servers:
+
+~~~ {.bash}
+idoit read server/*.example.net/model
+idoit read server/host.*.net/model
+idoit read server/*.*.net/model
+idoit read server/host*/model
+idoit read server/*/model
 ~~~
 
 Or just show the name of the model:
