@@ -47,7 +47,7 @@ phive :
 ## Clean up
 
 clean :
-	rm -f *.tar.gz README
+	rm -f *.tar.gz README idoit idoit.phar idoit.phar.asc
 
 
 ## Development
