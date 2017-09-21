@@ -22,7 +22,10 @@ install:
 script:
   - make build
   - make dist
+  - ls -lha
   - sudo make install
+  - idoit --version
+  - idoit help
   - sudo make uninstall
   - make clean
 
