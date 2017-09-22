@@ -24,7 +24,6 @@
 
 namespace bheisig\idoitcli;
 
-use bheisig\idoitapi\API;
 use bheisig\idoitapi\CMDBObjectTypes;
 use bheisig\idoitapi\CMDBObjectTypeCategories;
 use bheisig\idoitapi\CMDBCategoryInfo;
@@ -33,6 +32,8 @@ use bheisig\idoitapi\CMDBCategoryInfo;
  * Command "init"
  */
 class Init extends Command {
+
+    use APICall, Cache;
 
     /**
      * Executes the command

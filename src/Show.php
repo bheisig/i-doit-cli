@@ -32,6 +32,8 @@ use bheisig\idoitapi\CMDBObjects;
  */
 class Show extends Command {
 
+    use APICall, Cache;
+
     /**
      * Processes some routines before the execution
      *

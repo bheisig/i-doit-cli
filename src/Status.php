@@ -31,6 +31,8 @@ use bheisig\idoitapi\Idoit;
  */
 class Status extends Command {
 
+    use APICall;
+
     /**
      * Executes the command
      *

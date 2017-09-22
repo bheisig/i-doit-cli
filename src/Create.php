@@ -33,6 +33,8 @@ use bheisig\idoitapi\CMDBObjects;
  */
 class Create extends Command {
 
+    use APICall, Cache;
+
     /**
      * @var \bheisig\idoitapi\CMDBObject
      */

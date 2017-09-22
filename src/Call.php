@@ -29,6 +29,8 @@ namespace bheisig\idoitcli;
  */
 class Call extends Command {
 
+    use APICall;
+
     /**
      * Processes some routines before the execution
      *

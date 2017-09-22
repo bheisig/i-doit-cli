@@ -32,6 +32,8 @@ use bheisig\idoitapi\Subnet;
  */
 class Nextip extends Command {
 
+    use APICall;
+
     protected $freeIPAddresses = [];
 
     /**

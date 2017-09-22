@@ -29,6 +29,8 @@ namespace bheisig\idoitcli;
  */
 class Categories extends Command {
 
+    use Cache;
+
     /**
      * Executes the command
      *

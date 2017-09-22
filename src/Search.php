@@ -31,6 +31,8 @@ use bheisig\idoitapi\Idoit;
  */
 class Search extends Command {
 
+    use APICall;
+
     /**
      * Executes the command
      *

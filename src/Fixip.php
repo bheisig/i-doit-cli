@@ -32,15 +32,7 @@ use bheisig\idoitapi\CMDBCategory;
  */
 class FixIP extends Command {
 
-    /**
-     * @var \bheisig\idoitapi\CMDBObjects
-     */
-    protected $cmdbObjects;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBCategory
-     */
-    protected $cmdbCategory;
+    use APICall, Cache;
 
     /**
      * Unproper subnets (object IDs)

@@ -33,6 +33,8 @@ use bheisig\idoitapi\CMDBCategory;
  */
 class Read extends Command {
 
+    use APICall, Cache;
+
     /**
      * Processes some routines before the execution
      *

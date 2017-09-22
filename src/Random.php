@@ -33,6 +33,8 @@ use bheisig\idoitapi\Subnet;
  */
 class Random extends Command {
 
+    use APICall;
+
     protected $statistics = [];
 
     /**

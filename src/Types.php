@@ -29,6 +29,8 @@ namespace bheisig\idoitcli;
  */
 class Types extends Command {
 
+    use Cache;
+
     /**
      * Executes the command
      *

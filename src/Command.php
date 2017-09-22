@@ -24,8 +24,6 @@
 
 namespace bheisig\idoitcli;
 
-use bheisig\idoitapi\API;
-
 /**
  * Base command
  */
@@ -37,34 +35,6 @@ abstract class Command implements Executes {
      * @var array Associative array
      */
     protected $config = [];
-
-    /**
-     * API
-     *
-     * @var \bheisig\idoitapi\API
-     */
-    protected $api;
-
-    /**
-     * Cached object types
-     *
-     * @var array Indexed array of associative arrays
-     */
-    protected $cacheObjectTypes = [];
-
-    /**
-     * Cached categories
-     *
-     * @var array Indexed array of associative arrays
-     */
-    protected $cacheCategories = [];
-
-    /**
-     * Cached assignments between categories and object types
-     *
-     * @var array Indexed array of associative arrays
-     */
-    protected $cacheAssignedCategories = [];
 
     /**
      * Cache directory for current i-doit host
@@ -86,16 +56,6 @@ abstract class Command implements Executes {
      * @var int
      */
     protected $executionTime = 0;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBObjects
-     */
-    protected $cmdbObjects;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBCategory
-     */
-    protected $cmdbCategory;
 
     /**
      * Constructor
@@ -133,190 +93,6 @@ abstract class Command implements Executes {
     }
 
     /**
-     * Initiates API
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception when configuration settings are missing
-     */
-    protected function initiateAPI() {
-        if (!array_key_exists('api', $this->config) || !is_array($this->config['api'])) {
-            throw new \Exception(
-                'No proper configuration: API settings missing.' . PHP_EOL .
-                'Run "idoit init" to create configuration settings'
-            );
-        }
-
-        try {
-            $this->api = new API($this->config['api']);
-        } catch (\Exception $e) {
-            throw new \Exception(
-                'No proper configuration: ' . $e->getMessage() . PHP_EOL .
-                'Run "idoit init" to create configuration settings'
-            );
-        }
-
-        return $this;
-    }
-
-    /**
-     * Gets cache directory for current i-doit host
-     *
-     * @return string
-     *
-     * @throws \Exception when configuration settings are missing
-     */
-    protected function getHostDir() {
-        if (!array_key_exists('api', $this->config) ||
-            !array_key_exists('url', $this->config['api'])) {
-            throw new \Exception(
-                'No proper configuration found' . PHP_EOL .
-                'Run "idoit init" to create configuration settings'
-            );
-        }
-
-        if (!isset($this->hostDir)) {
-            $this->hostDir = $this->config['dataDir'] . '/' .
-                sha1($this->config['api']['url']);
-        }
-
-        return $this->hostDir;
-    }
-
-    /**
-     * Is cache for current host available?
-     *
-     * @return bool
-     *
-     * @throws \Exception on error
-     */
-    protected function isCached() {
-        $hostDir = $this->getHostDir();
-
-        if (!is_dir($hostDir)) {
-            return false;
-        }
-
-        $dir = new \DirectoryIterator($hostDir);
-
-        foreach ($dir as $file) {
-            if ($file->isDot() || $file->isDir()) {
-                continue;
-            }
-
-            if ($file->isFile() === false) {
-                return false;
-            }
-
-            if ($this->config['cacheLifetime'] > 0 &&
-                (time() - $this->config['cacheLifetime'] > $file->getCTime())) {
-                IO::err(
-                    'Your cache is out-dated. Please re-run "%s init".',
-                    $this->config['basename']
-                );
-                IO::err('');
-            }
-
-            // First file is valid – this is all I need to know:
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Reads list of object types from cache
-     *
-     * @return array
-     *
-     * @throws \Exception on error
-     */
-    protected function getObjectTypes() {
-        $hostDir = $this->getHostDir();
-
-        return unserialize(file_get_contents($hostDir . '/object_types'));
-    }
-
-    /**
-     * Converts an object type title into a object type constant
-     *
-     * @param string $title Object type title
-     *
-     * @return string Object type constant, otherwise NULL on error
-     */
-    protected function getObjectTypeConstantByTitle($title) {
-        $objectTypes = $this->getObjectTypes();
-
-        foreach ($objectTypes as $objectType) {
-            if (strtolower($objectType['title']) === strtolower($title)) {
-                return $objectType['const'];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Reads information about a category from cache
-     *
-     * @param string $categoryConst Category constant
-     *
-     * @return array
-     *
-     * @throws \Exception on error
-     */
-    protected function getCategoryInfo($categoryConst) {
-        $hostDir = $this->getHostDir();
-
-        return unserialize(file_get_contents($hostDir . '/category__' . $categoryConst));
-    }
-
-    /**
-     * Reads list of categories from cache which are assigned to an object type
-     *
-     * @param string $type Object type constant
-     *
-     * @return array ['catg' => [['id' => 1, …], ['id' => 1, …]], 'cats' => …]
-     *
-     * @throws \Exception on error
-     */
-    protected function getAssignedCategories($type) {
-        $hostDir = $this->getHostDir();
-
-        return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
-    }
-
-    /**
-     * Reads a list of categories from cache
-     *
-     * @return array
-     *
-     * @throws \Exception on error
-     */
-    protected function getCategories() {
-        $categories = [];
-        $hostDir = $this->getHostDir();
-
-        $dir = new \DirectoryIterator($hostDir);
-
-        foreach ($dir as $file) {
-            if ($file->isFile() === false) {
-                continue;
-            }
-
-            if (strpos($file->getFilename(), 'category__') !== 0) {
-                continue;
-            }
-
-            $categories[] = unserialize(
-                file_get_contents($hostDir . '/' . $file->getFilename())
-            );
-        }
-
-        return $categories;
-    }
-
-    /**
      * Looks for a query from given arguments
      *
      * @return string
@@ -334,75 +110,6 @@ abstract class Command implements Executes {
         }
 
         return $query;
-    }
-
-    /**
-     * Fetches objects from i-doit
-     *
-     * @param array $filter Associative array, see CMDBObjects::read()
-     *
-     * @return array Indexed array of associative arrays
-     *
-     * @throws \Exception on error
-     */
-    protected function fetchObjects($filter) {
-        $limit = $this->config['limitBatchRequests'];
-
-        $objects = [];
-        $offset = 0;
-        $counter = 0;
-
-        if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
-            $readFilter = array_filter($filter, function ($key) {
-                return $key !== 'title';
-            }, \ARRAY_FILTER_USE_KEY);
-        } else {
-            $readFilter = $filter;
-        }
-
-        while (true) {
-            if ($limit > 0) {
-                $result = $this->cmdbObjects->read($readFilter, $limit, $offset);
-
-                $offset += $limit;
-                $counter++;
-
-                if ($counter === 3) {
-                    IO::err('This could take a while…');
-                }
-            } else {
-                $result = $this->cmdbObjects->read($readFilter);
-            }
-
-            if (count($result) === 0) {
-                break;
-            }
-
-            if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
-                $result = array_filter($result, function ($object) use ($filter) {
-                    return fnmatch($filter['title'], $object['title']);
-                });
-            }
-
-            foreach ($result as $object) {
-                $objects[] = [
-                    'id' => $object['id'],
-                    'title' => $object['title'],
-                    'type' => $object['type'],
-                    'type_title' => $object['type_title'],
-                ];
-            }
-
-            if (count($result) < $limit) {
-                break;
-            }
-
-            if ($limit === 0) {
-                break;
-            }
-        }
-
-        return $objects;
     }
 
     /**
