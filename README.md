@@ -20,6 +20,15 @@ This client provides a simple, but powerful command line interface to access you
 *   Stress your system: auto-generate thousands of objects
 
 
+##  Dependencies
+
+Before using this script your system must meet the following requirements:
+
+*   Any POSIX operating system (GNU/Linux, *BSD, MacOS)
+*   PHP >= 5.6 (7.x is recommended)
+*   PHP extensions `cURL`, `json` and `cli`
+
+
 ##  Install and Update
 
 You have several options to download (and kinda install) this script:
