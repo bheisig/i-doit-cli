@@ -16,13 +16,13 @@ This client provides a simple, but powerful command line interface to access you
 
 *   Read information about objects their types and even their attributes
 *   Find your needle in the haystack called CMDB
-*   Do you need a free IP address in a particular subnet? This script suggests one for you.
+*   Do you need a free IP address in a particular subnet? This app suggests one for you.
 *   Stress your system: auto-generate thousands of objects
 
 
 ##  Dependencies
 
-Before using this script your system must meet the following requirements:
+Before using this app your system must meet the following requirements:
 
 *   Any POSIX operating system (GNU/Linux, *BSD, MacOS)
 *   PHP >= 5.6 (7.x is recommended)
@@ -31,7 +31,7 @@ Before using this script your system must meet the following requirements:
 
 ##  Install and Update
 
-You have several options to download (and kinda install) this script:
+You have several options to download (and kinda install) this app:
 
 *   Download any stable release (**recommended**)
 *   Use [PHIVE](https://phar.io/)
@@ -53,7 +53,7 @@ To be up-to-date just repeat the steps above.
 
 ### Use PHIVE
 
-With [PHIVE](https://phar.io/) you are able to download and install PHAR files on your system. Additionally, it will verify the SHA1 and GPG signatures which is highly recommended. If you have PHIVE already installed you can fetch the latest version of this script:
+With [PHIVE](https://phar.io/) you are able to download and install PHAR files on your system. Additionally, it will verify the SHA1 and GPG signatures which is highly recommended. If you have PHIVE already installed you can fetch the latest version of this app:
 
 ~~~ {.bash}
 sudo phive install --global bheisig/i-doit-cli
@@ -100,7 +100,7 @@ sudo make install
 
 ##  Usage
 
-Just run the script to show the basic usage:
+Just run the app to show the basic usage:
 
 ~~~ {.bash}
 idoit
@@ -109,7 +109,7 @@ idoit
 
 ##  First Steps
 
-This script caches a lot locally to give you the best user experience. Run the `init` command:
+This app caches a lot locally to give you the best user experience. Run the `init` command:
 
 ~~~ {.bash}
 idoit init
@@ -247,7 +247,7 @@ idoit nextip SUBNET
 
 ##  Auto-generate Objects
 
-For testing purposes stress your i-doit installation and let the script create thousands of objects, attributes and relations between objects:
+For testing purposes stress your i-doit installation and let the app create thousands of objects, attributes and relations between objects:
 
 ~~~ {.bash}
 idoit -c FILE random
