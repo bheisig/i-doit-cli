@@ -22,23 +22,16 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\CMDBCategory;
-use bheisig\idoitapi\CMDBObject;
-use bheisig\idoitapi\CMDBObjects;
+use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "create"
  */
 class Create extends Command {
 
-    use APICall, Cache;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBObject
-     */
-    protected $cmdbObject;
+    use Cache;
 
     /**
      * Path
@@ -63,12 +56,6 @@ class Create extends Command {
      */
     public function setup() {
         parent::setup();
-
-        $this->initiateAPI();
-
-        $this->cmdbObject = new CMDBObject($this->api);
-        $this->cmdbObjects = new CMDBObjects($this->api);
-        $this->cmdbCategory = new CMDBCategory($this->api);
 
         $this->path = explode('/', $this->getQuery());
 
@@ -97,20 +84,23 @@ class Create extends Command {
                 throw new \Exception('Path has only 1 part');
             case 2:
                 if (isset($this->objectTypeConst)) {
-                    $objectID = $this->cmdbObject->create(
+                    $objectID = $this->useIdoitAPI()->getCMDBObject()->create(
                         $this->objectTypeConst,
                         $this->path[1]
                     );
 
-                    IO::out('Object with ID %s successfully created', $objectID);
+                    $this->log->info('Object with ID %s successfully created', $objectID);
                 } else {
-                    $objects = $this->fetchObjects(['title' => $this->path[0]]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['title' => $this->path[0]]);
 
                     $this->createCategoryEntries($objects, $this->getCategoryConst($this->path[1]));
                 }
                 break;
             case 3:
-                $objects = $this->fetchObjects(['type' => $this->objectTypeConst, 'title' => $this->path[1]]);
+                $objects = $this->useIdoitAPI()->fetchObjects([
+                    'type' => $this->objectTypeConst,
+                    'title' => $this->path[1]
+                ]);
 
                 $this->createCategoryEntries($objects, $this->getCategoryConst($this->path[2]));
                 break;
@@ -121,7 +111,14 @@ class Create extends Command {
         return $this;
     }
 
-    protected function createCategoryEntries($objects, $category) {
+    /**
+     *
+     * @param array $objects
+     * @param string $category
+     *
+     * @throws \Exception on error
+     */
+    protected function createCategoryEntries(array $objects, $category) {
         switch (count($objects)) {
             case 0:
                 throw new \Exception('No object found');
@@ -134,7 +131,7 @@ class Create extends Command {
             return (int) $object['id'];
         }, $objects);
 
-        $this->cmdbCategory->batchCreate(
+        $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
             $objectIDs,
             $category,
             [$attributes]
@@ -142,14 +139,23 @@ class Create extends Command {
 
         switch (count($objects)) {
             case 1:
-                IO::out('Created 1 entry');
+                $this->log->info('Created 1 entry');
                 break;
             default:
-                IO::out('Created %s entries', count($objects));
+                $this->log->info('Created %s entries', count($objects));
                 break;
         }
     }
 
+    /**
+     *
+     *
+     * @param string $category
+     *
+     * @return string
+     *
+     * @throws \Exception on error
+     */
     protected function getCategoryConst($category) {
         $categories = $this->getCategories();
 
@@ -174,10 +180,10 @@ class Create extends Command {
             case 1:
                 return $candidates[0]['const'];
             default:
-                IO::err('Unambigious category title:');
+                $this->log->warning('Unambigious category title:');
 
                 foreach ($candidates as $candidate) {
-                    IO::err(
+                    $this->log->warning(
                         '    "%s" [%s]',
                         $candidate['title'],
                         $candidate['const']
@@ -215,14 +221,13 @@ class Create extends Command {
     }
 
     /**
-     * Shows usage of this command
+     * Shows usage of command
      *
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s %2$s PATH
+        $this->log->info(
+            'Usage: %1$s %2$s PATH
 
 %3$s
 
@@ -238,9 +243,9 @@ Add model for server "host.example.net":
 Add model to all servers:
 
     %1$s %2$s server/*/model --manufacturer VendorXY --title Model123',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

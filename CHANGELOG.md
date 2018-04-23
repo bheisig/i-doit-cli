@@ -14,7 +14,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 -   Create new object or category entry (command `create`)
 
 
-##  [0.4] - 2017-09-21
+### Changed
+
+-   Separate CLI-related code from application code
+
+
+##  [0.4] – 2017-09-21
 
 
 ### Added

@@ -22,16 +22,14 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\Idoit;
+use bheisig\cli\IO;
 
 /**
  * Command "status"
  */
 class Status extends Command {
-
-    use APICall;
 
     /**
      * Executes the command
@@ -41,23 +39,20 @@ class Status extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        $this->initiateAPI();
-
-        $idoit = new Idoit($this->api);
-
-        $info = $idoit->readVersion();
+        $info = $this->useIdoitAPI()->getCMDB()->readVersion();
 
         IO::out('About i-doit:');
         IO::out('Version: i-doit %s %s', $info['type'], $info['version']);
         IO::out('Tenant: %s', $info['login']['mandator']);
+        IO::out('Link: %s', str_replace('src/jsonrpc.php', '', $this->config['api']['url']));
         IO::out('API entry point: %s', $this->config['api']['url']);
 
         IO::out('');
 
         IO::out('About this script:');
-        IO::out('Name: %s', $this->config['project']['title']);
-        IO::out('Description: %s', $this->config['project']['description']);
-        IO::out('Version: %s', $this->config['project']['version']);
+        IO::out('Name: %s', $this->config['composer']['extra']['name']);
+        IO::out('Description: %s', $this->config['composer']['description']);
+        IO::out('Version: %s', $this->config['composer']['extra']['version']);
         IO::out('Website: %s', $this->config['composer']['homepage']);
         IO::out('License: %s', $this->config['composer']['license']);
 

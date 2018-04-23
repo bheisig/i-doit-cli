@@ -22,16 +22,14 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\Idoit;
+use bheisig\cli\IO;
 
 /**
  * Command "search"
  */
 class Search extends Command {
-
-    use APICall;
 
     /**
      * Executes the command
@@ -50,11 +48,7 @@ class Search extends Command {
             );
         }
 
-        $this->initiateAPI();
-
-        $idoit = new Idoit($this->api);
-
-        $results = $idoit->search($query);
+        $results = $this->useIdoitAPI()->getCMDB()->search($query);
 
         switch (count($results)) {
             case 0;
@@ -81,14 +75,13 @@ class Search extends Command {
     }
 
     /**
-     * Shows usage of this command
+     * Shows usage of command
      *
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s [OPTIONS] %2$s [QUERY]
+        $this->log->info(
+            'Usage: %1$s [OPTIONS] %2$s [QUERY]
 
 %3$s
 
@@ -98,9 +91,9 @@ Examples:
 
 1) %1$s %2$s myserver
 2) %1$s %2$s "My Server"',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

@@ -56,5 +56,9 @@
             "Global v4",
             "Global v6"
         ]
+    },
+    "log": {
+        "colorize": true,
+        "verbosity": 31
     }
 }

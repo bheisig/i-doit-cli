@@ -22,7 +22,9 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Service;
+
+use bheisig\cli\IO;
 
 /**
  * Trait for API calls
@@ -58,6 +60,13 @@ trait Cache {
     protected $cacheAssignedCategories = [];
 
     /**
+     * Cache directory for current i-doit host
+     *
+     * @var string
+     */
+    protected $hostDir;
+
+    /**
      * Is cache for current host available?
      *
      * @return bool
@@ -86,7 +95,7 @@ trait Cache {
                 (time() - $this->config['cacheLifetime'] > $file->getCTime())) {
                 IO::err(
                     'Your cache is out-dated. Please re-run "%s init".',
-                    $this->config['basename']
+                    $this->config['args'][0]
                 );
                 IO::err('');
             }
@@ -117,6 +126,8 @@ trait Cache {
      * @param string $title Object type title
      *
      * @return string Object type constant, otherwise NULL on error
+     *
+     * @throws \Exception on error
      */
     protected function getObjectTypeConstantByTitle($title) {
         $objectTypes = $this->getObjectTypes();
@@ -200,10 +211,11 @@ trait Cache {
     protected function getHostDir() {
         if (!array_key_exists('api', $this->config) ||
             !array_key_exists('url', $this->config['api'])) {
-            throw new \Exception(
+            throw new \Exception(sprintf(
                 'No proper configuration found' . PHP_EOL .
-                'Run "idoit init" to create configuration settings'
-            );
+                'Run "%s init" to create configuration settings',
+                $this->config['args'][0]
+            ));
         }
 
         if (!isset($this->hostDir)) {

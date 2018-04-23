@@ -1,0 +1,35 @@
+[
+    {"key": "api", "type": "object", "required": true, "nodes": [
+        {"key": "url", "type": "string", "required": true},
+        {"key": "key", "type": "string", "required": true},
+        {"key": "username", "type": "string", "required": false, "minLength": 1},
+        {"key": "password", "type": "string", "required": false, "minLength": 1},
+        {"key": "language", "type": "string", "required": false, "values": ["en", "de"]},
+        {"key": "proxy", "type": "object", "required": false, "nodes": [
+            {"key": "type", "type": "string", "required": true, "values": ["HTTP", "SOCKS5"]},
+            {"key": "port", "type": "integer", "required": false, "ge": 1, "le": 65536},
+            {"key": "username", "type": "string", "required": false, "minLength": 1},
+            {"key": "password", "type": "string", "required": false, "minLength": 1}
+        ]}
+    ]},
+    {"key": "cacheLifetime", "type": "integer", "required": true, "ge": 0},
+    {"key": "limitBatchRequests", "type": "integer", "required": true, "ge": 0},
+    {"key": "types", "type": "object", "required": true, "nodes": [
+        {"key": "countries", "type": "string", "required": true, "minLength": 1},
+        {"key": "cities", "type": "string", "required": true, "minLength": 1},
+        {"key": "buildings", "type": "string", "required": true, "minLength": 1},
+        {"key": "rooms", "type": "string", "required": true, "minLength": 1},
+        {"key": "racks", "type": "string", "required": true, "minLength": 1},
+        {"key": "subnets", "type": "string", "required": true, "minLength": 1},
+        {"key": "servers", "type": "string", "required": true, "minLength": 1}
+    ]},
+    {"key": "fixip", "type": "object", "required": false, "nodes": [
+        {"key": "blacklistedObjectTypes", "type": "array", "required": true, "items": "string", "minCount": 0, "minLength": 1},
+        {"key": "unproperSubnets", "type": "array", "required": true, "items": "string", "minCount": 0, "minLength": 1}
+
+    ]},
+    {"key": "log", "type": "object", "required": false, "nodes": [
+        {"key": "colorize", "type": "boolean", "required": true},
+        {"key": "verbosity", "type": "integer", "required": true, "ge": 1, "le": 63}
+    ]}
+]

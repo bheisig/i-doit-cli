@@ -22,17 +22,12 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
-
-use bheisig\idoitapi\CMDBObjects;
-use bheisig\idoitapi\Subnet;
+namespace bheisig\idoitcli\Command;
 
 /**
  * Command "nextip"
  */
 class Nextip extends Command {
-
-    use APICall;
 
     protected $freeIPAddresses = [];
 
@@ -44,8 +39,6 @@ class Nextip extends Command {
      * @throws \Exception on error
      */
     public function execute() {
-        $this->initiateAPI();
-
         $value = $this->getQuery();;
 
         if ($value === '') {
@@ -55,20 +48,14 @@ class Nextip extends Command {
         if (is_numeric($value)) {
             $objectID = (int) $value;
         } else {
-            $cmdbObjects = new CMDBObjects($this->api);
-            $objectID = $cmdbObjects->getID(
+            $objectID = $this->useIdoitAPI()->getCMDBObjects()->getID(
                 $value, $this->config['types']['subnets']
             );
         }
 
-        $this->api->login();
+        $next = $this->useIdoitAPI()->getSubnet()->load($objectID)->next();
 
-        $subnet = new Subnet($this->api);
-        $next = $subnet->load($objectID)->next();
-
-        IO::out($next);
-
-        $this->api->logout();
+        $this->log->info($next);
 
         return $this;
     }
@@ -79,9 +66,8 @@ class Nextip extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s %2$s SUBNET
+        $this->log->info(
+            'Usage: %1$s %2$s SUBNET
 
 %3$s
 
@@ -91,9 +77,9 @@ Examples:
 
 1) %1$s %2$s "Global v4"
 2) %1$s %2$s 20',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

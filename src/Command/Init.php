@@ -22,18 +22,17 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\CMDBObjectTypes;
-use bheisig\idoitapi\CMDBObjectTypeCategories;
-use bheisig\idoitapi\CMDBCategoryInfo;
+use bheisig\idoitcli\Service\Cache;
+use bheisig\cli\Command\Init as BaseInit;
 
 /**
  * Command "init"
  */
 class Init extends Command {
 
-    use APICall, Cache;
+    use Cache;
 
     /**
      * Executes the command
@@ -44,13 +43,14 @@ class Init extends Command {
      */
     public function execute() {
         try {
+            $baseInit = new BaseInit($this->config, $this->log);
+            $baseInit->execute();
+
             $this
-                ->createBaseDir()
-                ->createUserConfig()
                 ->clearCache()
                 ->createCache();
 
-            IO::out('Done.');
+            $this->log->info('Done.');
         } catch (\Exception $e) {
             $code = $e->getCode();
 
@@ -69,8 +69,8 @@ class Init extends Command {
     }
 
     /**
-     * @param $file
-     * @param $value
+     * @param string $file
+     * @param mixed $value
      *
      * @return self Returns itself
      *
@@ -96,142 +96,11 @@ class Init extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createBaseDir() {
-        if (!is_dir($this->config['baseDir'])) {
-            IO::out('Create base directory');
-
-            $status = mkdir($this->config['baseDir'], 0775, true);
-
-            if ($status === false) {
-                throw new \Exception(sprintf(
-                    'Unable to create base directory "%s"',
-                    $this->config['baseDir']
-                ));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function createUserConfig() {
-        if (file_exists($this->config['userConfig'])) {
-            $answer = strtolower(IO::in(
-                'Do you like to re-configure your settings in file "%s"? [Y]es, [n]o:',
-                $this->config['userConfig']
-            ));
-
-            switch ($answer) {
-                case 'yes':
-                case 'y':
-                case '':
-                    break;
-                case 'no':
-                case 'n':
-                    return $this;
-                default:
-                    IO::err('Do not know what to do.');
-                    return $this->createUserConfig();
-            }
-        }
-
-        IO::out('Please answer some questions:');
-
-        $url = IO::in(
-            'What is the URL to your i-doit installation? (For example: https://cmdb.example.com/i-doit/)'
-        );
-
-        if (strpos($url, 'https://') === 0) {
-            $suggestedPort = 443;
-        } else if (strpos($url, 'http://') === 0) {
-            $suggestedPort = 80;
-        } else {
-            throw new \Exception('Your entered URL does not contain a valid protocol like "https://" or "http://"');
-        }
-
-        $url .= ((substr($url, -1) !== '/') ? '/' : '') . 'src/jsonrpc.php';
-
-        $answer = IO::in(
-            'Which port is the Web server behind i-doit using? [%s]',
-            $suggestedPort
-        );
-
-        $port = null;
-
-        if (empty($answer)) {
-            $port = $suggestedPort;
-        } else if (!is_numeric($answer) || (int) $answer <= 0 || (int) $answer > 65535) {
-            throw new \Exception('Invalid port number');
-        } else {
-            $port = (int) $answer;
-        }
-
-        $key = IO::in(
-            'What is the API key you configured in your i-doit installation?'
-        );
-
-        if (empty($key)) {
-            throw new \Exception('Without an API key no connection to i-doit could be established.');
-        }
-
-        $config = [
-            'api' => [
-                'url' => $url,
-                'port' => $port,
-                'key' => $key
-            ]
-        ];
-
-        $username = IO::in(
-            'What is your username? (optional)'
-        );
-
-        if (!empty($username)) {
-            $password = IO::in(
-                'What is your password?'
-            );
-
-            if (empty($password)) {
-                throw new \Exception('Your username needs a password');
-            }
-
-            $config['api']['username'] = $username;
-            $config['api']['password'] = $password;
-        }
-
-        IO::out('Write settings into configuration file "%s"', $this->config['userConfig']);
-
-        $status = file_put_contents(
-            $this->config['userConfig'],
-            json_encode($config, JSON_PRETTY_PRINT) . PHP_EOL
-        );
-
-        if ($status === false) {
-            throw new \Exception(sprintf(
-                'Unable to create configuration file "%s"',
-                $this->config['userConfig']
-            ));
-        }
-
-        $this->config = array_merge_recursive_overwrite($this->config, $config);
-
-        return $this;
-    }
-
-    /**
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
     protected function clearCache() {
         $hostDir = $this->getHostDir();
 
         if (!is_dir($hostDir)) {
-            IO::out(
+            $this->log->info(
                 'Create cache directory for i-doit instance "%s"',
                 $this->config['api']['url']
             );
@@ -245,7 +114,7 @@ class Init extends Command {
                 ));
             }
         } else {
-            IO::out('Clear cache files');
+            $this->log->info('Clear cache files');
 
             $files = new \DirectoryIterator($hostDir);
 
@@ -273,21 +142,16 @@ class Init extends Command {
      * @throws \Exception on error
      */
     protected function createCache() {
-        $this->initiateAPI();
+        $this->log->info('Fetch list of object types');
 
-        $this->api->login();
-
-        IO::out('Fetch list of object types');
-
-        $cmdbObjectTypes = new CMDBObjectTypes($this->api);
-        $objectTypes = $cmdbObjectTypes->read();
+        $objectTypes = $this->useIdoitAPI()->getCMDBObjectTypes()->read();
 
         $this->serialize(
             'object_types',
             $objectTypes
         );
 
-        IO::out('Fetch list of assigned categories');
+        $this->log->info('Fetch list of assigned categories');
 
         $objectTypeIDs = [];
 
@@ -295,8 +159,7 @@ class Init extends Command {
             $objectTypeIDs[] = (int) $objectType['id'];
         }
 
-        $cmdbAssignedCategories = new CMDBObjectTypeCategories($this->api);
-        $batchedAssignedCategories = $cmdbAssignedCategories->batchReadByID($objectTypeIDs);
+        $batchedAssignedCategories = $this->useIdoitAPI()->getCMDBObjectTypeCategories()->batchReadByID($objectTypeIDs);
 
         for ($i = 0; $i < count($objectTypes); $i++) {
             $this->serialize(
@@ -308,7 +171,7 @@ class Init extends Command {
             );
         }
 
-        IO::out('Fetch information about categories');
+        $this->log->info('Fetch information about categories');
 
         $consts = [];
 
@@ -321,7 +184,7 @@ class Init extends Command {
                 } else if ($type === 'cats') {
                     $isGlobal = false;
                 } else {
-                    IO::err('Ignore customized categories');
+                    $this->log->warning('Ignore customized categories');
                     continue;
                 }
 
@@ -333,9 +196,7 @@ class Init extends Command {
         }
 
         if (count($consts) > 0) {
-            $cmdbCategoryInfo = new CMDBCategoryInfo($this->api);
-
-            $batchCategoryInfo = $cmdbCategoryInfo->batchRead($consts);
+            $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($consts);
 
             $categoryConsts = array_keys($consts);
 
@@ -355,8 +216,6 @@ class Init extends Command {
                 $counter++;
             }
         }
-
-        $this->api->logout();
 
         return $this;
     }

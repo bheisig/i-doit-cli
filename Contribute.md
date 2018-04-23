@@ -58,6 +58,7 @@ This projects has some dependencies:
 *   [PHP](https://php.net/), version 5.6+
 *   [Composer](https://getcomposer.org/)
 *   Composer package [`bheisig\idoitapi`](https://github.com/bheisig/i-doit-api-client-php)
+*   Composer package [`smocean\cli`](https://github.com/bheisig/smocean-cli)
 *   One or more working copies of [i-doit](https://i-doit.com/) (otherwise this script is senseless)
 
 Developers must meet some more requirements:

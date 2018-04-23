@@ -22,18 +22,17 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\CMDBObject;
-use bheisig\idoitapi\CMDBObjects;
-use bheisig\idoitapi\CMDBCategory;
+use bheisig\cli\IO;
+use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "read"
  */
 class Read extends Command {
 
-    use APICall, Cache;
+    use Cache;
 
     /**
      * Processes some routines before the execution
@@ -48,16 +47,9 @@ class Read extends Command {
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s init" first.',
-                $this->config['basename']
+                $this->config['args'][0]
             ), 500);
         }
-
-        $this->initiateAPI();
-
-        $this->api->login();
-
-        $this->cmdbObjects = new CMDBObjects($this->api);
-        $this->cmdbCategory = new CMDBCategory($this->api);
 
         return $this;
     }
@@ -115,7 +107,7 @@ class Read extends Command {
                      *
                      * idoit read server
                      */
-                    $objects = $this->fetchObjects(['type' => $objectTypeConst]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst]);
 
                     switch (count($objects)) {
                         case 0:
@@ -149,9 +141,7 @@ class Read extends Command {
                         ));
                     }
 
-                    $cmdbObject = new CMDBObject($this->api);
-
-                    $result = $cmdbObject->read($objectID);
+                    $result = $this->useIdoitAPI()->getCMDBObject()->read($objectID);
 
                     if (count($result) === 0) {
                         IO::err('Unknown object');
@@ -172,7 +162,7 @@ class Read extends Command {
                      * idoit read *.*.net
                      * idoit read host*
                      */
-                    $objects = $this->fetchObjects(['title' => $parts[0]]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['title' => $parts[0]]);
 
                     switch (count($objects)) {
                         case 0:
@@ -228,7 +218,7 @@ class Read extends Command {
                      * idoit read server/host*
                      * idoit read server/*
                      */
-                    $objects = $this->fetchObjects(['type' => $objectTypeConst]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst]);
 
                     if (!in_array($parts[1], [''])) {
                         $objects = array_filter($objects, function ($object) use ($parts) {
@@ -252,7 +242,7 @@ class Read extends Command {
 
                     $this->printTitle($objects);
                 } else {
-                    $objects = $this->fetchObjects(['title' => $parts[0]]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['title' => $parts[0]]);
 
                     if (in_array($parts[1], ['', '*'])) {
                         /**
@@ -338,12 +328,12 @@ class Read extends Command {
                          * idoit read server/host*\/model
                          * idoit read server/*\/model
                          */
-                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
                         $this->formatCategory($objects, $parts[2]);
                     }
                 } else {
-                    $objects = $this->fetchObjects(['title' => $parts[0]]);
+                    $objects = $this->useIdoitAPI()->fetchObjects(['title' => $parts[0]]);
 
                     if (in_array($parts[2], ['', '*'])) {
                         /**
@@ -416,7 +406,7 @@ class Read extends Command {
                          *
                          * idoit read server/host.example.net/model/model
                          */
-                        $objects = $this->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
 
                         $this->formatAttribute($objects, $parts[2], $parts[3]);
                     }
@@ -427,21 +417,6 @@ class Read extends Command {
             default:
                 throw new \Exception('Bad request');
         }
-
-        return $this;
-    }
-
-    /**
-     * Processes some routines after the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function tearDown () {
-        $this->api->logout();
-
-        parent::tearDown();
 
         return $this;
     }
@@ -468,6 +443,8 @@ class Read extends Command {
      * @param string $category Category title
      *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
     protected function formatCategory(array $objects, $category) {
         switch (count($objects)) {
@@ -628,6 +605,8 @@ class Read extends Command {
      * @param string $attribute Attribute title
      *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
     protected function formatAttribute(array $objects, $category, $attribute) {
         switch (count($objects)) {
@@ -815,7 +794,7 @@ class Read extends Command {
         $limit = $this->config['limitBatchRequests'];
 
         if ($limit === 0) {
-            return $this->cmdbCategory->batchRead(
+            return $this->useIdoitAPI()->getCMDBCategory()->batchRead(
                 $objectIDs,
                 [$categoryConst]
             );
@@ -838,7 +817,7 @@ class Read extends Command {
                 $limit
             );
 
-            $result = $this->cmdbCategory->batchRead(
+            $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(
                 $slicedObjectIDs,
                 [$categoryConst]
             );
@@ -884,14 +863,13 @@ class Read extends Command {
 
 
     /**
-     * Shows usage of this command
+     * Shows usage of command
      *
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s [OPTIONS] %2$s [PATH]
+        $this->log->info(
+            'Usage: %1$s [OPTIONS] %2$s [PATH]
 
 %3$s
 
@@ -956,9 +934,9 @@ Show atttribute value:
 These examples work great with unique names. That is why it is common practice
 to give objects unique titles that are not in conflict with object types and
 categories.',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

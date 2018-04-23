@@ -22,7 +22,10 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
+
+use bheisig\cli\IO;
+use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "categories"
@@ -84,7 +87,15 @@ class Categories extends Command {
         return $this;
     }
 
-    protected function filterCategories($categories) {
+    /**
+     *
+     * @param array $categories
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
+    protected function filterCategories(array $categories) {
         $result = [];
 
         if (in_array('--enabled', $this->config['args'])) {
@@ -110,6 +121,13 @@ class Categories extends Command {
         return $result;
     }
 
+    /**
+     *
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
     protected function getEnabledCategories() {
         $result = [];
 
@@ -128,7 +146,14 @@ class Categories extends Command {
         return array_unique($result);
     }
 
-    protected function formatList($title, $type, $categories) {
+    /**
+     *
+     *
+     * @param string $title
+     * @param string $type
+     * @param array $categories
+     */
+    protected function formatList($title, $type, array $categories) {
         IO::err('%s [%s]:', $title, $type);
         IO::err('');
 
@@ -181,14 +206,13 @@ class Categories extends Command {
     }
 
     /**
-     * Shows usage of this command
+     * Shows usage of command
      *
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s %2$s
+        $this->log->info(
+            'Usage: %1$s %2$s
 
 %3$s
 
@@ -206,9 +230,9 @@ Examples:
 
     %1$s %2$s --global --enabled    Only list global categories which are assigned to object types
     %1$s %2$s --specific            List all specific categories',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

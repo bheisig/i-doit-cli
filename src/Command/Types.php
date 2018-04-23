@@ -22,7 +22,10 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
+
+use bheisig\cli\IO;
+use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "types"
@@ -132,14 +135,13 @@ class Types extends Command {
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s %2$s
+        $this->log->info(
+            'Usage: %1$s %2$s
 
 %3$s',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

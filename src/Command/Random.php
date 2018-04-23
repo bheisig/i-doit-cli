@@ -22,30 +22,17 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\CMDBObjects;
-use bheisig\idoitapi\CMDBCategory;
 use bheisig\idoitapi\Subnet;
+use bheisig\cli\IO;
 
 /**
  * Command "random"
  */
 class Random extends Command {
 
-    use APICall;
-
     protected $statistics = [];
-
-    /**
-     * @var \bheisig\idoitapi\CMDBObjects
-     */
-    protected $cmdbObjects;
-
-    /**
-     * @var \bheisig\idoitapi\CMDBCategory
-     */
-    protected $cmdbCategory;
 
     protected $subnetIDs = [];
     protected $subnet;
@@ -55,26 +42,6 @@ class Random extends Command {
     protected $rackID;
     protected $rackRUs;
     protected $rackPos;
-
-    /**
-     * Processes some routines before the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup () {
-        parent::setup();
-
-        $this->initiateAPI();
-
-        $this->cmdbObjects = new CMDBObjects($this->api);
-        $this->cmdbCategory = new CMDBCategory($this->api);
-
-        $this->api->login();
-
-        return $this;
-    }
 
     /**
      * Executes the command
@@ -119,13 +86,9 @@ class Random extends Command {
      * @throws \Exception on error
      */
     public function tearDown () {
-        parent::tearDown();
-
-        $this->api->logout();
-
         IO::out('Some statistics:');
 
-        $this->statistics['API calls'] = $this->api->countRequests();
+        $this->statistics['API calls'] = $this->useIdoitAPI()->getAPI()->countRequests();
         $this->statistics['Memory peak usage (megabytes)'] = round(
             (memory_get_peak_usage(true) / 1014 / 1024),
             2
@@ -167,13 +130,18 @@ class Random extends Command {
             IO::out($line);
         }
 
-        IO::out('This took %s seconds.', $this->executionTime);
-
-        IO::out('Done. Have fun :)');
+        parent::tearDown();
 
         return $this;
     }
 
+    /**
+     *
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function createCountries() {
         IO::out('Create countries');
 
@@ -293,6 +261,13 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     *
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function createSubnets() {
         IO::out('Create subnets');
 
@@ -330,8 +305,7 @@ class Random extends Command {
                     'type' => $type,
                     'address' => $attributes['address'],
                     'netmask' => $attributes['mask']
-                ],
-                false
+                ]
             );
 
             $index++;
@@ -342,6 +316,13 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     *
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function createRacks() {
         IO::out('Create racks');
 
@@ -441,8 +422,7 @@ class Random extends Command {
                 'C__CATS__ENCLOSURE',
                 [
                     'vertical_slots_rear' => $amount
-                ],
-                false
+                ]
             );
         }
 
@@ -475,7 +455,7 @@ class Random extends Command {
 
             $availableRackIDs = $rackIDs;
 
-            $roomObjects = $this->cmdbObjects->readByType(
+            $roomObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
                 $this->config['types']['rooms']
             );
 
@@ -522,6 +502,13 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     *
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function createServers() {
         IO::out('Create servers');
 
@@ -563,7 +550,7 @@ class Random extends Command {
                 'Do not how many IP addresses to create per server'
             );
 
-            $subnetObjects = $this->cmdbObjects->readByType(
+            $subnetObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
                 $this->config['types']['subnets']
             );
 
@@ -642,7 +629,7 @@ class Random extends Command {
                 );
             }
 
-            $rackObjects = $this->cmdbObjects->readByType(
+            $rackObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
                 $this->config['types']['racks']
             );
 
@@ -817,13 +804,20 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     *
+     *
+     * @return string
+     *
+     * @throws \Exception on error
+     */
     protected function nextIP() {
         if (!isset($this->subnet)) {
             if (count($this->subnetIDs) === 0) {
                 throw new \Exception('No IP addresses left', 400);
             }
             $this->subnetID = array_shift($this->subnetIDs);
-            $this->subnet = new Subnet($this->api);
+            $this->subnet = new Subnet($this->useIdoitAPI()->getAPI());
             $this->subnet->load($this->subnetID);
         }
 
@@ -862,6 +856,17 @@ class Random extends Command {
         return $next;
     }
 
+    /**
+     *
+     *
+     * @param int $objectID
+     * @param int $neededRUs
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     * @todo Parameter $neededRUs currently unused!?!
+     */
     protected function assignHostToRack($objectID, $neededRUs) {
         if (!isset($this->rackID)) {
             if (count($this->rackIDs) === 0) {
@@ -872,7 +877,7 @@ class Random extends Command {
 
             $this->rackID = array_shift($this->rackIDs);
 
-            $rack = $this->cmdbCategory->readFirst(
+            $rack = $this->useIdoitAPI()->getCMDBCategory()->readFirst(
                 $this->rackID,
                 'C__CATG__FORMFACTOR'
             );
@@ -882,7 +887,7 @@ class Random extends Command {
             $this->rackPos = 0;
 
             // We need an empty rack:
-            $locallyAssignedObjects = $this->cmdbCategory->read(
+            $locallyAssignedObjects = $this->useIdoitAPI()->getCMDBCategory()->read(
                 $this->rackID,
                 'C__CATG__OBJECT'
             );
@@ -975,7 +980,16 @@ class Random extends Command {
         return $this;
     }
 
-    protected function createObjects($objects) {
+    /**
+     *
+     *
+     * @param array $objects
+     *
+     * @return array
+     *
+     * @throws \Exception on error
+     */
+    protected function createObjects(array $objects) {
         $count = count($objects);
 
         if ($this->config['limitBatchRequests'] > 0 &&
@@ -1012,7 +1026,7 @@ class Random extends Command {
 
             $objectIDs = array_merge(
                 $objectIDs,
-                $this->cmdbObjects->create($chunk)
+                $this->useIdoitAPI()->getCMDBObjects()->create($chunk)
             );
 
             if ($this->config['limitBatchRequests'] <= 0) {
@@ -1025,7 +1039,17 @@ class Random extends Command {
         return $objectIDs;
     }
 
-    protected function assignObjectsToLocation($objectIDs, $locationID) {
+    /**
+     *
+     *
+     * @param int[] $objectIDs
+     * @param int $locationID
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function assignObjectsToLocation(array $objectIDs, $locationID) {
         return $this->createCategoryEntries(
             $objectIDs,
             'C__CATG__LOCATION',
@@ -1035,21 +1059,43 @@ class Random extends Command {
         );
     }
 
-    protected function createCategoryEntry($objectID, $categoryConst, $attributes, $isGlobal = true) {
+    /**
+     *
+     *
+     * @param int $objectID
+     * @param string $categoryConst
+     * @param array $attributes
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createCategoryEntry($objectID, $categoryConst, array $attributes) {
         IO::out(
             'Create one entry into category "%s" for object #%s',
             $categoryConst,
             $objectID
         );
 
-        $this->cmdbCategory->create($objectID, $categoryConst, $attributes, $isGlobal);
+        $this->useIdoitAPI()->getCMDBCategory()->create($objectID, $categoryConst, $attributes);
 
         $this->logStat('Created category entries', 1);
 
         return $this;
     }
 
-    protected function createCategoryEntries($objectIDs, $categoryConst, $attributes, $isGlobal = true) {
+    /**
+     *
+     *
+     * @param int[] $objectIDs
+     * @param string $categoryConst
+     * @param array $attributes
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createCategoryEntries(array $objectIDs, $categoryConst, array $attributes) {
         $count = count($objectIDs);
 
         IO::out(
@@ -1088,11 +1134,10 @@ class Random extends Command {
                 }
             }
 
-            $this->cmdbCategory->batchCreate(
+            $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
                 $chunk,
                 $categoryConst,
-                [$attributes],
-                $isGlobal
+                [$attributes]
             );
 
             if ($this->config['limitBatchRequests'] <= 0) {
@@ -1107,7 +1152,18 @@ class Random extends Command {
         return $this;
     }
 
-    protected function createMultipleCategoryEntriesPerObject($objectID, $categoryConst, $attributes, $isGlobal = true) {
+    /**
+     *
+     *
+     * @param int $objectID
+     * @param string $categoryConst
+     * @param array $attributes
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createMultipleCategoryEntriesPerObject($objectID, $categoryConst, array $attributes) {
         $count = count($attributes);
 
         IO::out(
@@ -1147,11 +1203,10 @@ class Random extends Command {
                 }
             }
 
-            $this->cmdbCategory->batchCreate(
+            $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
                 [$objectID],
                 $categoryConst,
-                $chunk,
-                $isGlobal
+                $chunk
             );
 
             if ($this->config['limitBatchRequests'] <= 0) {
@@ -1166,7 +1221,16 @@ class Random extends Command {
         return $this;
     }
 
-    protected function sendBatchRequest($requests) {
+    /**
+     *
+     *
+     * @param array $requests
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function sendBatchRequest(array $requests) {
         $count = count($requests);
 
         switch ($count) {
@@ -1211,7 +1275,7 @@ class Random extends Command {
                 }
             }
 
-            $this->api->batchRequest($chunk);
+            $this->useIdoitAPI()->getAPI()->batchRequest($chunk);
 
             if ($this->config['limitBatchRequests'] <= 0) {
                 break;
@@ -1247,7 +1311,17 @@ class Random extends Command {
         return $title;
     }
 
-    protected function assertArray($needle, $haystack, $error, $min = 1) {
+    /**
+     *
+     *
+     * @param string $needle
+     * @param array $haystack
+     * @param string $error
+     * @param int $min
+     *
+     * @throws \Exception on error
+     */
+    protected function assertArray($needle, array $haystack, $error, $min = 1) {
         if (!array_key_exists($needle, $haystack) ||
             !is_array($haystack[$needle]) ||
             count($haystack[$needle]) < $min) {
@@ -1258,7 +1332,16 @@ class Random extends Command {
         }
     }
 
-    protected function assertString($needle, $haystack, $error) {
+    /**
+     *
+     *
+     * @param string $needle
+     * @param array $haystack
+     * @param string $error
+     *
+     * @throws \Exception on error
+     */
+    protected function assertString($needle, array $haystack, $error) {
         if (!array_key_exists($needle, $haystack) ||
             !is_string($haystack[$needle]) ||
             $haystack[$needle] === '') {
@@ -1269,7 +1352,17 @@ class Random extends Command {
         }
     }
 
-    protected function assertInteger($needle, $haystack, $error, $isPositive = true) {
+    /**
+     *
+     *
+     * @param string $needle
+     * @param array $haystack
+     * @param string $error
+     * @param bool $isPositive
+     *
+     * @throws \Exception on error
+     */
+    protected function assertInteger($needle, array $haystack, $error, $isPositive = true) {
         if (!array_key_exists($needle, $haystack) ||
             !is_int($haystack[$needle])) {
             throw new \Exception(

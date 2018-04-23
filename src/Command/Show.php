@@ -22,17 +22,17 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitapi\CMDBObject;
-use bheisig\idoitapi\CMDBObjects;
+use bheisig\cli\IO;
+use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "show"
  */
 class Show extends Command {
 
-    use APICall, Cache;
+    use Cache;
 
     /**
      * Processes some routines before the execution
@@ -47,13 +47,9 @@ class Show extends Command {
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s init" first.',
-                $this->config['basename']
+                $this->config['args'][0]
             ), 500);
         }
-
-        $this->initiateAPI();
-
-        $this->api->login();
 
         return $this;
     }
@@ -79,9 +75,7 @@ class Show extends Command {
                 throw new \Exception('Invalid query. Please specify an object identifier');
             }
         } else {
-            $cmdbObjects = new CMDBObjects($this->api);
-
-            $objects = $cmdbObjects->read(['title' => $query]);
+            $objects = $this->useIdoitAPI()->getCMDBObjects()->read(['title' => $query]);
 
             switch (count($objects)) {
                 case 0:
@@ -117,9 +111,7 @@ class Show extends Command {
             }
         }
 
-        $cmdbObject = new CMDBObject($this->api);
-
-        $object = $cmdbObject->load($objectID);
+        $object = $this->useIdoitAPI()->getCMDBObject()->load($objectID);
 
         IO::out('Title: %s', $object['title']);
         IO::out('ID: %s', $object['id']);
@@ -234,27 +226,12 @@ class Show extends Command {
     }
 
     /**
-     * Processes some routines after the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function tearDown () {
-        $this->api->logout();
-
-        return parent::tearDown();
-    }
-
-    /**
      * Shows usage of this command
      *
      * @return self Returns itself
      */
     public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s [OPTIONS] %2$s [QUERY]
+        $this->log->info('Usage: %1$s [OPTIONS] %2$s [QUERY]
 
 %3$s
 
@@ -265,9 +242,9 @@ Examples:
 1) %1$s %2$s myserver
 2) %1$s %2$s "My Server"
 3) %1$s %2$s 42',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;

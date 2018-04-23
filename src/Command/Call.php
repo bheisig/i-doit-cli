@@ -22,29 +22,14 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
-namespace bheisig\idoitcli;
+namespace bheisig\idoitcli\Command;
+
+use \bheisig\cli\IO;
 
 /**
  * Command "call"
  */
 class Call extends Command {
-
-    use APICall;
-
-    /**
-     * Processes some routines before the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup() {
-        parent::setup();
-
-        $this->initiateAPI();
-
-        return $this;
-    }
 
     /**
      * Executes the command
@@ -84,42 +69,30 @@ class Call extends Command {
             $params = $request['params'];
         }
 
-        $this->api->request($request['method'], $params);
+        $this->useIdoitAPI()->getAPI()->request($request['method'], $params);
 
         IO::out('');
         IO::out('Request:');
         IO::out('========');
-        IO::out($this->api->getLastRequestHeaders());
-        IO::out(json_encode($this->api->getLastRequestContent(), JSON_PRETTY_PRINT));
+        IO::out($this->useIdoitAPI()->getAPI()->getLastRequestHeaders());
+        IO::out(json_encode($this->useIdoitAPI()->getAPI()->getLastRequestContent(), JSON_PRETTY_PRINT));
         IO::out('');
         IO::out('Response:');
         IO::out('=========');
-        IO::out($this->api->getLastResponseHeaders());
-        IO::out(json_encode($this->api->getLastResponse(), JSON_PRETTY_PRINT));
+        IO::out($this->useIdoitAPI()->getAPI()->getLastResponseHeaders());
+        IO::out(json_encode($this->useIdoitAPI()->getAPI()->getLastResponse(), JSON_PRETTY_PRINT));
 
         return $this;
     }
 
     /**
-     * Processes some routines after the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function tearDown () {
-        return parent::tearDown();
-    }
-
-    /**
-     * Shows usage of this command
+     * Print usage of command
      *
      * @return self Returns itself
      */
-    public function showUsage() {
-        $command = strtolower((new \ReflectionClass($this))->getShortName());
-
-        IO::out('Usage: %1$s [OPTIONS] %2$s [REQUEST]
+    public function printUsage() {
+        $this->log->info(
+            'Usage: %1$s [OPTIONS] %2$s [REQUEST]
 
 %3$s
 
@@ -130,9 +103,9 @@ Examples:
 1) %1$s %2$s \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\'
 2) echo \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' | %1$s %2$s
 3) cat request.txt | %1$s %2$s',
-            $this->config['basename'],
-            $command,
-            $this->config['commands'][$command]
+            $this->config['args'][0],
+            $this->getName(),
+            $this->getDescription()
         );
 
         return $this;
