@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2017 Benjamin Heisig
+ * Copyright (C) 2016-18 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -179,17 +179,13 @@ class Init extends Command {
 
         foreach ($batchedAssignedCategories as $assignedCategories) {
             foreach ($assignedCategories as $type => $categoryList) {
-                if ($type === 'catg') {
-                    $isGlobal = true;
-                } else if ($type === 'cats') {
-                    $isGlobal = false;
-                } else {
+                if ($type !== 'catg' && $type !== 'cats') {
                     $this->log->warning('Ignore customized categories');
                     continue;
                 }
 
                 foreach ($categoryList as $category) {
-                    $consts[$category['const']] = $isGlobal;
+                    $consts[] = $category['const'];
                     $categories[$category['const']] = $category;
                 }
             }
