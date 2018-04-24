@@ -123,8 +123,6 @@ class Show extends Command {
         IO::out('Created: %s', $object['created']);
         IO::out('Updated: %s', $object['updated']);
 
-        $categories = $this->getCategories();
-
         $categoryTypes = ['catg', 'cats'];
 
         foreach ($categoryTypes as $categoryType) {
@@ -137,21 +135,14 @@ class Show extends Command {
                     continue;
                 }
 
-                $identifiedCategory = [];
-
-                foreach ($categories as $categoryInfo) {
-                    if (strtolower($categoryInfo['const']) === strtolower($category['const'])) {
-                        $identifiedCategory = $categoryInfo;
-                        break;
-                    }
+                try {
+                    $categoryInfo = $this->getCategoryInfo($category['const']);
+                } catch (\Exception $e) {
+                    IO::err($e->getMessage());
+                    continue;
                 }
 
                 IO::err('');
-
-                if (!isset($identifiedCategory)) {
-                    IO::err('Unknown category');
-                    continue;
-                }
 
                 switch (count($category['entries'])) {
                     case 0;
@@ -159,7 +150,7 @@ class Show extends Command {
                             'No entries in category "%s"',
                             $category['title']
                         );
-                        break 2;
+                        continue 2;
                     case 1:
                         IO::out(
                             '1 entry in category "%s":',
@@ -187,19 +178,24 @@ class Show extends Command {
                             case 'array':
                                 if (array_key_exists('ref_title', $value)) {
                                     $value = $value['ref_title'];
-                                } else if (array_key_exists('title', $value)) {
+                                } elseif (array_key_exists('title', $value)) {
                                     $value = $value['title'];
                                 } else {
                                     $values = [];
 
                                     foreach ($value as $subObject) {
-                                        if (array_key_exists('title', $subObject)) {
+                                        if (is_array($subObject) &&
+                                            array_key_exists('title', $subObject)) {
                                             $values[] = $subObject['title'];
                                         }
                                     }
 
                                     $value = implode(', ', $values);
                                 }
+                                break;
+                            case 'string':
+                                // Rich text editor uses HTML:
+                                $value = strip_tags($value);
                                 break;
                             default:
                                 break;
@@ -209,20 +205,15 @@ class Show extends Command {
                             $value = '-';
                         }
 
-                        // Rich text editor uses HTML:
-                        $value = strip_tags($value);
-
                         IO::out(
                             '%s: %s',
-                            $identifiedCategory['properties'][$attribute]['title'],
+                            $categoryInfo['properties'][$attribute]['title'],
                             $value
                         );
                     }
                 }
             }
         }
-
-
 
         return $this;
     }
@@ -233,7 +224,8 @@ class Show extends Command {
      * @return self Returns itself
      */
     public function showUsage(): self {
-        $this->log->info('Usage: %1$s [OPTIONS] %2$s [QUERY]
+        $this->log->info(
+            'Usage: %1$s [OPTIONS] %2$s [QUERY]
 
 %3$s
 

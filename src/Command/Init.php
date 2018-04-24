@@ -175,7 +175,7 @@ class Init extends Command {
 
         $this->log->info('Fetch information about categories');
 
-        $consts = [];
+        $categoryConsts = [];
 
         $categories = [];
 
@@ -187,16 +187,14 @@ class Init extends Command {
                 }
 
                 foreach ($categoryList as $category) {
-                    $consts[] = $category['const'];
+                    $categoryConsts[] = $category['const'];
                     $categories[$category['const']] = $category;
                 }
             }
         }
 
-        if (count($consts) > 0) {
-            $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($consts);
-
-            $categoryConsts = array_keys($consts);
+        if (count($categoryConsts) > 0) {
+            $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($categoryConsts);
 
             $counter = 0;
 

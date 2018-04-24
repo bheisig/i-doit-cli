@@ -3,8 +3,6 @@ os:
 
 language: php
 
-sudo: required
-
 php:
   - 7.0
   - 7.1
@@ -17,8 +15,6 @@ install:
 
 script:
   - composer ci
-  - sudo composer deploy
-  - sudo composer uninstall
 
 matrix:
   allow_failures:

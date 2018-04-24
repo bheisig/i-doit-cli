@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
--   Create new object or category entry (command `create`)
+-   `create`: Create new object or category entry
 
 
 ### Changed
@@ -22,15 +22,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 -   Drop PHP 5.6 support and require PHP 7.0 or higher
 
 
+### Fixed
+
+-   `show`: Not all category entries are printed
+-   `init`: Misleading cache file names for categories
+
+
 ##  [0.4] – 2017-09-21
 
 
 ### Added
 
--   Allow wildcards (`*`) in object titles (command `read`)
--   Print a list of available categories (command `categories`)
--   Print a list of available object types and group them (command `types`)
--   Assign IPs to subnets (command `fixip`)
+-   `read`: Allow wildcards (`*`) in object titles
+-   `categories`: Print a list of available categories
+-   `types`: Print a list of available object types and group them
+-   `fixip`: Assign IPs to subnets
 -   Display error when user asks for specific category entries but category is not assigned to object type(s)
 
 
@@ -39,9 +45,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
--   Show everything about an object (command `idoit show`)
--   Read object by its identifier (command `idoit read`)
--   Perform self-defined API requests (command `idoit call`)
+-   `show`: Show everything about an object
+-   `read`: Read object by its identifier
+-   `call`: Perform self-defined API requests
 -   Find errors in additional configuration files
 
 

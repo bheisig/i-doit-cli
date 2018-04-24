@@ -155,7 +155,17 @@ trait Cache {
     protected function getCategoryInfo(string $categoryConst): array {
         $hostDir = $this->getHostDir();
 
-        return unserialize(file_get_contents($hostDir . '/category__' . $categoryConst));
+        $file = $hostDir . '/category__' . $categoryConst;
+
+        if (!is_readable($file)) {
+            throw new \Exception(sprintf(
+               'Category "%s" has no cache file at "%s"',
+               $categoryConst,
+               $file
+            ));
+        }
+
+        return unserialize(file_get_contents($file));
     }
 
     /**
@@ -169,6 +179,16 @@ trait Cache {
      */
     protected function getAssignedCategories(string $type): array {
         $hostDir = $this->getHostDir();
+
+        $file = $hostDir . '/object_type__' . $type;
+
+        if (!is_readable($file)) {
+            throw new \Exception(sprintf(
+                'Object type "%s" has no cache file at "%s"',
+                $type,
+                $file
+            ));
+        }
 
         return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
     }
