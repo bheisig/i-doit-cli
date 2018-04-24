@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 /**
@@ -38,7 +40,7 @@ class Nextip extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $value = $this->getQuery();;
 
         if ($value === '') {
@@ -65,7 +67,7 @@ class Nextip extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s SUBNET
 

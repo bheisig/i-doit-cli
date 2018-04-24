@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
@@ -41,7 +43,7 @@ class Read extends Command {
      *
      * @throws \Exception on error
      */
-    public function setup() {
+    public function setup(): Command {
         parent::setup();
 
         if ($this->isCached() === false) {
@@ -61,14 +63,14 @@ class Read extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $path = $this->getQuery();
 
         $parts = explode('/', $path);
 
         $objectTypes = $this->getObjectTypes();
 
-        $objectTypeConst = null;
+        $objectTypeConst = '';
 
         foreach ($objectTypes as $objectType) {
             if (strtolower($objectType['title']) === strtolower($parts[0])) {
@@ -99,7 +101,7 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objectTypes);
-                } else if (isset($objectTypeConst)) {
+                } else if (strlen($objectTypeConst) > 0) {
                     /**
                      * List objects
                      *
@@ -204,7 +206,7 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objectTypes);
-                } else if (isset($objectTypeConst)) {
+                } else if (strlen($objectTypeConst) > 0) {
                     /**
                      * List objects
                      *
@@ -301,7 +303,7 @@ class Read extends Command {
 
                 break;
             case 3:
-                if (isset($objectTypeConst)) {
+                if (strlen($objectTypeConst) > 0) {
                     if (in_array($parts[2], ['', '*'])) {
                         /**
                          * List  assigned categories
@@ -387,7 +389,7 @@ class Read extends Command {
                 }
                 break;
             case 4:
-                if (isset($objectTypeConst)) {
+                if (strlen($objectTypeConst) > 0) {
                     if (in_array($parts[3], ['', '*'])) {
                         /**
                          * List attributes
@@ -428,7 +430,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      */
-    protected function formatObject($object) {
+    protected function formatObject(array $object): self {
         IO::out('Title: %s', $object['title']);
         IO::out('ID: %s', $object['id']);
         IO::out('Type: %s', $object['type_title']);
@@ -446,7 +448,7 @@ class Read extends Command {
      *
      * @throws \Exception on error
      */
-    protected function formatCategory(array $objects, $category) {
+    protected function formatCategory(array $objects, string $category): self {
         switch (count($objects)) {
             case 0:
                 IO::err('Unknown object');
@@ -608,7 +610,7 @@ class Read extends Command {
      *
      * @throws \Exception on error
      */
-    protected function formatAttribute(array $objects, $category, $attribute) {
+    protected function formatAttribute(array $objects, string $category, string $attribute): self {
         switch (count($objects)) {
             case 0:
                 IO::err('Unknown object');
@@ -718,7 +720,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      */
-    protected function formatAssignedCategories(array $assignedCategories) {
+    protected function formatAssignedCategories(array $assignedCategories): self {
         $list = [];
 
         foreach ($assignedCategories as $types => $categories) {
@@ -742,11 +744,11 @@ class Read extends Command {
      * @param string $objectType Object type constant
      * @param string $categoryTitle Category title
      *
-     * @throws \Exception on error
-     *
      * @return self Returns itself
+     *
+     * @throws \Exception on error
      */
-    protected function formatAttributes($objectType, $categoryTitle) {
+    protected function formatAttributes(string $objectType, string $categoryTitle): self {
         IO::err('Attributes in category "%s"', $categoryTitle);
         IO::err('');
 
@@ -790,7 +792,7 @@ class Read extends Command {
      *
      * @throws \Exception on error
      */
-    protected function fetchCategoryEntries(array $objectIDs, $categoryConst) {
+    protected function fetchCategoryEntries(array $objectIDs, string $categoryConst): array {
         $limit = $this->config['limitBatchRequests'];
 
         if ($limit === 0) {
@@ -845,7 +847,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      */
-    protected function printTitle(array $items) {
+    protected function printTitle(array $items): self {
         $sorted = [];
 
         foreach ($items as $item) {
@@ -867,7 +869,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info(
             'Usage: %1$s [OPTIONS] %2$s [PATH]
 

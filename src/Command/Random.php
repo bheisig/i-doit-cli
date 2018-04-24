@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitapi\Subnet;
@@ -50,7 +52,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         IO::err('Current date and time: %s', date('c', $this->start));
 
         $worked = false;
@@ -85,7 +87,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    public function tearDown () {
+    public function tearDown(): self {
         IO::out('Some statistics:');
 
         $this->statistics['API calls'] = $this->useIdoitAPI()->getAPI()->countRequests();
@@ -142,7 +144,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createCountries() {
+    protected function createCountries(): self {
         IO::out('Create countries');
 
         $countryObjects = [];
@@ -268,7 +270,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createSubnets() {
+    protected function createSubnets(): self {
         IO::out('Create subnets');
 
         $subnetObjects = [];
@@ -323,7 +325,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createRacks() {
+    protected function createRacks(): self {
         IO::out('Create racks');
 
         if (!array_key_exists('amount', $this->config['racks']) ||
@@ -509,7 +511,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createServers() {
+    protected function createServers(): self {
         IO::out('Create servers');
 
         $this->assertInteger(
@@ -811,7 +813,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function nextIP() {
+    protected function nextIP(): string {
         if (!isset($this->subnet)) {
             if (count($this->subnetIDs) === 0) {
                 throw new \Exception('No IP addresses left', 400);
@@ -867,7 +869,7 @@ class Random extends Command {
      * @throws \Exception on error
      * @todo Parameter $neededRUs currently unused!?!
      */
-    protected function assignHostToRack($objectID, $neededRUs) {
+    protected function assignHostToRack(int $objectID, int $neededRUs): self {
         if (!isset($this->rackID)) {
             if (count($this->rackIDs) === 0) {
                 throw new \Exception(
@@ -989,7 +991,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createObjects(array $objects) {
+    protected function createObjects(array $objects): array {
         $count = count($objects);
 
         if ($this->config['limitBatchRequests'] > 0 &&
@@ -1049,7 +1051,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function assignObjectsToLocation(array $objectIDs, $locationID) {
+    protected function assignObjectsToLocation(array $objectIDs, int $locationID): self {
         return $this->createCategoryEntries(
             $objectIDs,
             'C__CATG__LOCATION',
@@ -1070,7 +1072,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createCategoryEntry($objectID, $categoryConst, array $attributes) {
+    protected function createCategoryEntry(int $objectID, string $categoryConst, array $attributes): self {
         IO::out(
             'Create one entry into category "%s" for object #%s',
             $categoryConst,
@@ -1095,7 +1097,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createCategoryEntries(array $objectIDs, $categoryConst, array $attributes) {
+    protected function createCategoryEntries(array $objectIDs, string $categoryConst, array $attributes): self {
         $count = count($objectIDs);
 
         IO::out(
@@ -1163,7 +1165,11 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createMultipleCategoryEntriesPerObject($objectID, $categoryConst, array $attributes) {
+    protected function createMultipleCategoryEntriesPerObject(
+        int $objectID,
+        string $categoryConst,
+        array $attributes
+    ): self {
         $count = count($attributes);
 
         IO::out(
@@ -1230,7 +1236,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function sendBatchRequest(array $requests) {
+    protected function sendBatchRequest(array $requests): self {
         $count = count($requests);
 
         switch ($count) {
@@ -1287,7 +1293,7 @@ class Random extends Command {
         return $this;
     }
 
-    protected function logStat($key, $value) {
+    protected function logStat(string $key, int $value) {
         if (!array_key_exists($key, $this->statistics)) {
             $this->statistics[$key] = $value;
         } else {
@@ -1295,7 +1301,7 @@ class Random extends Command {
         }
     }
 
-    protected function genTitle($prefix = null, $suffix = null) {
+    protected function genTitle(string $prefix = null, string $suffix = null): string {
         $title = '';
 
         if (isset($prefix)) {
@@ -1321,7 +1327,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function assertArray($needle, array $haystack, $error, $min = 1) {
+    protected function assertArray(string $needle, array $haystack, string $error, int $min = 1) {
         if (!array_key_exists($needle, $haystack) ||
             !is_array($haystack[$needle]) ||
             count($haystack[$needle]) < $min) {
@@ -1341,7 +1347,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function assertString($needle, array $haystack, $error) {
+    protected function assertString(string $needle, array $haystack, string $error) {
         if (!array_key_exists($needle, $haystack) ||
             !is_string($haystack[$needle]) ||
             $haystack[$needle] === '') {
@@ -1362,7 +1368,7 @@ class Random extends Command {
      *
      * @throws \Exception on error
      */
-    protected function assertInteger($needle, array $haystack, $error, $isPositive = true) {
+    protected function assertInteger(string $needle, array $haystack, string $error, bool $isPositive = true) {
         if (!array_key_exists($needle, $haystack) ||
             !is_int($haystack[$needle])) {
             throw new \Exception(

@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitcli\Service\Cache;
@@ -41,7 +43,7 @@ class Init extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         try {
             $baseInit = new BaseInit($this->config, $this->log);
             $baseInit->execute();
@@ -76,7 +78,7 @@ class Init extends Command {
      *
      * @throws \Exception on error
      */
-    protected function serialize($file, $value) {
+    protected function serialize(string $file, $value): self {
         $filePath = $this->getHostDir() . '/' . $file;
 
         $status = file_put_contents($filePath, serialize($value));
@@ -96,7 +98,7 @@ class Init extends Command {
      *
      * @throws \Exception on error
      */
-    protected function clearCache() {
+    protected function clearCache(): self {
         $hostDir = $this->getHostDir();
 
         if (!is_dir($hostDir)) {
@@ -141,7 +143,7 @@ class Init extends Command {
      *
      * @throws \Exception on error
      */
-    protected function createCache() {
+    protected function createCache(): self {
         $this->log->info('Fetch list of object types');
 
         $objectTypes = $this->useIdoitAPI()->getCMDBObjectTypes()->read();

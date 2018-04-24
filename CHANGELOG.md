@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##  [Unreleased]
 
+**Important note:** PHP 5.6 support is dropped. You need PHP 7.0 or higher.
+
 
 ### Added
 
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 -   Separate CLI-related code from application code
+-   Drop PHP 5.6 support and require PHP 7.0 or higher
 
 
 ##  [0.4] – 2017-09-21

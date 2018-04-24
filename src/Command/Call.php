@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use \bheisig\cli\IO;
@@ -38,7 +40,7 @@ class Call extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $query = $this->getQuery();
 
         if ($query === '') {
@@ -90,7 +92,7 @@ class Call extends Command {
      *
      * @return self Returns itself
      */
-    public function printUsage() {
+    public function printUsage(): self {
         $this->log->info(
             'Usage: %1$s [OPTIONS] %2$s [REQUEST]
 

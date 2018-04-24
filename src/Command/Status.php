@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
@@ -38,7 +40,7 @@ class Status extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $info = $this->useIdoitAPI()->getCMDB()->readVersion();
 
         IO::out('About i-doit:');

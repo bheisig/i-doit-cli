@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Service;
 
 use bheisig\cli\IO;
@@ -73,7 +75,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function isCached() {
+    protected function isCached(): bool {
         $hostDir = $this->getHostDir();
 
         if (!is_dir($hostDir)) {
@@ -114,7 +116,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getObjectTypes() {
+    protected function getObjectTypes(): array {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/object_types'));
@@ -129,7 +131,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getObjectTypeConstantByTitle($title) {
+    protected function getObjectTypeConstantByTitle(string $title) {
         $objectTypes = $this->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
@@ -150,7 +152,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getCategoryInfo($categoryConst) {
+    protected function getCategoryInfo(string $categoryConst): array {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/category__' . $categoryConst));
@@ -165,7 +167,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getAssignedCategories($type) {
+    protected function getAssignedCategories(string $type): array {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
@@ -178,7 +180,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getCategories() {
+    protected function getCategories(): array {
         $categories = [];
         $hostDir = $this->getHostDir();
 
@@ -208,7 +210,7 @@ trait Cache {
      *
      * @throws \Exception when configuration settings are missing
      */
-    protected function getHostDir() {
+    protected function getHostDir(): string {
         if (!array_key_exists('api', $this->config) ||
             !array_key_exists('url', $this->config['api'])) {
             throw new \Exception(sprintf(

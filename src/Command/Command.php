@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\Command\Command as BaseCommand;
@@ -48,7 +50,7 @@ abstract class Command extends BaseCommand {
      *
      * @throws \Exception on error
      */
-    protected function useIdoitAPI() {
+    protected function useIdoitAPI(): Idoit {
         if (!isset($this->idoit)) {
             $this->idoit = new Idoit($this->config, $this->log);
         }
@@ -56,7 +58,12 @@ abstract class Command extends BaseCommand {
         return $this->idoit;
     }
 
-    protected function isInteractive()  {
+    /**
+     *
+     *
+     * @return bool
+     */
+    protected function isInteractive(): bool  {
         if (array_key_exists('yes', $this->config['options']) ||
             array_key_exists('y', $this->config['options'])) {
             return false;
@@ -72,7 +79,7 @@ abstract class Command extends BaseCommand {
      *
      * @param int $nested
      */
-    protected function printDebug(array $arr, $nested = 0) {
+    protected function printDebug(array $arr, int $nested = 0) {
         if (count($arr) === 0) {
             $this->log->debug(
                 '%s–',
@@ -112,7 +119,7 @@ abstract class Command extends BaseCommand {
      *
      * @throws \Exception on error
      */
-    public function setup() {
+    public function setup(): self {
         parent::setup();
 
         $this->validateConfig();
@@ -127,7 +134,7 @@ abstract class Command extends BaseCommand {
      *
      * @throws \Exception on error
      */
-    protected function validateConfig() {
+    protected function validateConfig(): self {
         $file = $this->config['appDir'] . '/config/schema.json';
         $rules = JSONFile::read($file);
         $config = new Config();

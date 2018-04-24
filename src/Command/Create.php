@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitcli\Service\Cache;
@@ -54,7 +56,7 @@ class Create extends Command {
      *
      * @throws \Exception on error
      */
-    public function setup() {
+    public function setup(): Command {
         parent::setup();
 
         $this->path = explode('/', $this->getQuery());
@@ -78,7 +80,7 @@ class Create extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         switch (count($this->path)) {
             case 1:
                 throw new \Exception('Path has only 1 part');
@@ -113,16 +115,16 @@ class Create extends Command {
 
     /**
      *
+     *
      * @param array $objects
      * @param string $category
      *
      * @throws \Exception on error
      */
-    protected function createCategoryEntries(array $objects, $category) {
+    protected function createCategoryEntries(array $objects, string $category) {
         switch (count($objects)) {
             case 0:
                 throw new \Exception('No object found');
-                break;
         }
 
         $attributes = $this->getAttributes();
@@ -156,7 +158,7 @@ class Create extends Command {
      *
      * @throws \Exception on error
      */
-    protected function getCategoryConst($category) {
+    protected function getCategoryConst(string $category): string {
         $categories = $this->getCategories();
 
         $candidates = [];
@@ -199,7 +201,7 @@ class Create extends Command {
      *
      * @return array
      */
-    protected function getAttributes() {
+    protected function getAttributes(): array {
         $attributes = [];
 
         $pathKey = array_search($this->getQuery(), $this->config['args']);
@@ -225,7 +227,7 @@ class Create extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s PATH
 

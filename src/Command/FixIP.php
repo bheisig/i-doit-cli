@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitcli\Service\Cache;
@@ -54,7 +56,7 @@ class FixIP extends Command {
      *
      * @throws \Exception on error
      */
-    public function setup() {
+    public function setup(): Command {
         parent::setup();
 
         if ($this->isCached() === false) {
@@ -74,7 +76,7 @@ class FixIP extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $dryRun = false;
 
         if (in_array('--dry-run', $this->config['args'])) {
@@ -473,7 +475,7 @@ class FixIP extends Command {
      *
      * @throws \Exception on error
      */
-    protected function qualifyObjects(array $objects) {
+    protected function qualifyObjects(array $objects): array {
         $candidates = [];
 
         $countedObjects = count($objects);
@@ -597,7 +599,7 @@ class FixIP extends Command {
      *
      * @throws \Exception on error
      */
-    protected function fetchNets() {
+    protected function fetchNets(): array {
         $objects = $this->useIdoitAPI()->getCMDBObjects()->readByType('C__OBJTYPE__LAYER3_NET');
 
         $objectCollection = [];
@@ -729,7 +731,7 @@ class FixIP extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info('Usage: %1$s [OPTIONS] %2$s [--dry-run]
 
 %3$s

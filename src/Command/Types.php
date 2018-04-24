@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
@@ -41,7 +43,7 @@ class Types extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $types = $this->getObjectTypes();
 
         $types = array_filter($types, [$this, 'filterObjectTypes']);
@@ -55,11 +57,21 @@ class Types extends Command {
         return $this;
     }
 
-    protected function filterObjectTypes($type) {
+    /**
+     * @param array $type
+     *
+     * @return bool
+     */
+    protected function filterObjectTypes(array $type): bool {
         return $type['status'] === '2';
     }
 
-    protected function group($types) {
+    /**
+     * @param array $types
+     *
+     * @return array
+     */
+    protected function group(array $types): array {
         $groups = [];
 
         foreach ($types as $type) {
@@ -73,7 +85,10 @@ class Types extends Command {
         return $groups;
     }
 
-    protected function formatGroups($groups) {
+    /**
+     * @param array $groups
+     */
+    protected function formatGroups(array $groups) {
         switch(count($groups)) {
             case 0:
                 IO::out('No groups found');
@@ -97,7 +112,10 @@ class Types extends Command {
         }
     }
 
-    protected function formatList($types) {
+    /**
+     * @param array $types
+     */
+    protected function formatList(array $types) {
         switch(count($types)) {
             case 0:
                 IO::out('No object types found');
@@ -117,7 +135,12 @@ class Types extends Command {
         }, $types);
     }
 
-    protected function format($type) {
+    /**
+     * @param array $type
+     *
+     * @return string
+     */
+    protected function format(array $type): string {
         return sprintf(
             '%s [%s]',
             $type['title'],
@@ -125,7 +148,13 @@ class Types extends Command {
         );
     }
 
-    protected function sort($a, $b) {
+    /**
+     * @param array $a
+     * @param array $b
+     *
+     * @return int
+     */
+    protected function sort(array $a, array $b): int {
         return strcmp($a['title'], $b['title']);
     }
 
@@ -134,7 +163,7 @@ class Types extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s
 

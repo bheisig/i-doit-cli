@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
@@ -41,7 +43,7 @@ class Categories extends Command {
      *
      * @throws \Exception on error
      */
-    public function execute() {
+    public function execute(): self {
         $categories = $this->getCategories();
 
         $categories = $this->filterCategories($categories);
@@ -77,9 +79,10 @@ class Categories extends Command {
             }
         }
 
-        foreach ($types as $type) {
-            if ($type['active'] === true) {
-                $this->formatList($type['title'], $type['type'], $categories);
+        foreach ($types as $typeDetails) {
+            if ($typeDetails['active'] === true) {
+                // Type casting is necessary because phpstan unfortunately throws an error:
+                $this->formatList((string) $typeDetails['title'], (string) $typeDetails['type'], $categories);
                 IO::err('');
             }
         }
@@ -95,7 +98,7 @@ class Categories extends Command {
      *
      * @throws \Exception on error
      */
-    protected function filterCategories(array $categories) {
+    protected function filterCategories(array $categories): array {
         $result = [];
 
         if (in_array('--enabled', $this->config['args'])) {
@@ -128,7 +131,7 @@ class Categories extends Command {
      *
      * @throws \Exception on error
      */
-    protected function getEnabledCategories() {
+    protected function getEnabledCategories(): array {
         $result = [];
 
         $objectTypes = $this->getObjectTypes();
@@ -153,7 +156,7 @@ class Categories extends Command {
      * @param string $type
      * @param array $categories
      */
-    protected function formatList($title, $type, array $categories) {
+    protected function formatList(string $title, string $type, array $categories) {
         IO::err('%s [%s]:', $title, $type);
         IO::err('');
 
@@ -180,7 +183,15 @@ class Categories extends Command {
         }
     }
 
-    protected function filterByType($categories, $type) {
+    /**
+     *
+     *
+     * @param array $categories
+     * @param string $type
+     *
+     * @return array
+     */
+    protected function filterByType(array $categories, string $type): array {
         $result = [];
 
         foreach ($categories as $category) {
@@ -193,7 +204,14 @@ class Categories extends Command {
         return $result;
     }
 
-    protected function formatCategory($category) {
+    /**
+     *
+     *
+     * @param array $category
+     *
+     * @return string
+     */
+    protected function formatCategory(array $category): string {
         return sprintf(
             '%s [%s]',
             $category['title'],
@@ -201,7 +219,15 @@ class Categories extends Command {
         );
     }
 
-    protected function sortCategories($a, $b) {
+    /**
+     *
+     *
+     * @param array $a
+     * @param array $b
+     *
+     * @return int
+     */
+    protected function sortCategories(array $a, array $b): int {
         return strcmp($a['title'], $b['title']);
     }
 
@@ -210,7 +236,7 @@ class Categories extends Command {
      *
      * @return self Returns itself
      */
-    public function showUsage() {
+    public function showUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s
 

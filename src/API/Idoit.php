@@ -22,6 +22,8 @@
  * @link https://github.com/bheisig/i-doit-cli
  */
 
+declare(strict_types=1);
+
 namespace bheisig\idoitcli\API;
 
 use bheisig\cli\Log;
@@ -96,7 +98,7 @@ class Idoit {
      *
      * @return API
      */
-    public function getAPI() {
+    public function getAPI(): API {
         return $this->api;
     }
 
@@ -121,7 +123,7 @@ class Idoit {
      *
      * @return CMDB
      */
-    public function getCMDB() {
+    public function getCMDB(): CMDB {
         return $this->getInstanceOf('Idoit');
     }
 
@@ -130,7 +132,7 @@ class Idoit {
      *
      * @return CMDBObject
      */
-    public function getCMDBObject() {
+    public function getCMDBObject(): CMDBObject {
         return $this->getInstanceOf('CMDBObject');
     }
 
@@ -139,7 +141,7 @@ class Idoit {
      *
      * @return CMDBObjects
      */
-    public function getCMDBObjects() {
+    public function getCMDBObjects(): CMDBObjects {
         return $this->getInstanceOf('CMDBObjects');
     }
 
@@ -148,7 +150,7 @@ class Idoit {
      *
      * @return CMDBObjectTypeCategories
      */
-    public function getCMDBObjectTypeCategories() {
+    public function getCMDBObjectTypeCategories(): CMDBObjectTypeCategories {
         return $this->getInstanceOf('CMDBObjectTypeCategories');
     }
 
@@ -157,7 +159,7 @@ class Idoit {
      *
      * @return CMDBObjectTypes
      */
-    public function getCMDBObjectTypes() {
+    public function getCMDBObjectTypes(): CMDBObjectTypes {
         return $this->getInstanceOf('CMDBObjectTypes');
     }
 
@@ -166,7 +168,7 @@ class Idoit {
      *
      * @return CMDBCategory
      */
-    public function getCMDBCategory() {
+    public function getCMDBCategory(): CMDBCategory {
         return $this->getInstanceOf('CMDBCategory');
     }
 
@@ -175,7 +177,7 @@ class Idoit {
      *
      * @return CMDBCategoryInfo
      */
-    public function getCMDBCategoryInfo() {
+    public function getCMDBCategoryInfo(): CMDBCategoryInfo {
         return $this->getInstanceOf('CMDBCategoryInfo');
     }
 
@@ -184,7 +186,7 @@ class Idoit {
      *
      * @return CMDBDialog
      */
-    public function getCMDBDialog() {
+    public function getCMDBDialog(): CMDBDialog {
         return $this->getInstanceOf('CMDBDialog');
     }
 
@@ -193,7 +195,7 @@ class Idoit {
      *
      * @return Subnet
      */
-    public function getSubnet() {
+    public function getSubnet(): Subnet {
         return $this->getInstanceOf('Subnet');
     }
 
@@ -208,7 +210,7 @@ class Idoit {
      *
      * @throws \Exception on error
      */
-    public function fetchObjects($filter, array $categories = [], $objectCount = 0) {
+    public function fetchObjects(array $filter, array $categories = [], int $objectCount = 0): array {
         $limit = $this->config['limitBatchRequests'];
 
         $objects = [];
