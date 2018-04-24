@@ -65,10 +65,6 @@
             "chmod +x `composer config extra.name`",
             "@composer dump-autoload"
         ],
-        "deploy": [
-            "@composer is-built",
-            "install -m 775 `composer config extra.name` /usr/local/bin/"
-        ],
         "dist": [
             "@composer is-built",
             "rm -rf ./`composer config extra.name`-`composer config extra.version`/",
@@ -103,17 +99,12 @@
             "./`composer config extra.name` --help",
             "./`composer config extra.name` --version",
             "for command in $(./`composer config extra.name` list --no-colors | awk '{print $1}'); do echo \"Run command $command\" ; ./`composer config extra.name` \"$command\" --help > /dev/null || echo \"Command $command failed with non-zero exit code\"; done"
-        ],
-        "uninstall": [
-            "test -x /usr/local/bin/`composer config extra.name` || ( echo 'Not installed' && exit 1 )",
-            "rm /usr/local/bin/`composer config extra.name`"
         ]
     },
     "scripts-descriptions": {
         "ci": "Perform continuous integration tasks",
         "clean": "Cleanup project directory",
         "build": "Create a binary",
-        "deploy": "Install binary to /usr/local/bin",
         "dist": "Create a distribution tarball",
         "gitstats": "Create Git statistics",
         "gource": "Visualize Git history",
@@ -127,8 +118,7 @@
         "phpstan": "Analyze source code",
         "security-checker": "Look for dependencies with known security vulnerabilities",
         "syntax-check": "Check syntax of source code",
-        "test": "Perform some tests with the built binary",
-        "uninstall": "Remove binary from /usr/local/bin/"
+        "test": "Perform some tests with the built binary"
     },
     "extra": {
         "name": "idoitcli",

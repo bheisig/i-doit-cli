@@ -87,7 +87,6 @@ This project comes with some useful composer scripts:
 | `composer ci`                 | Perform continuous integration tasks                      |
 | `composer clean`              | Cleanup project directory                                 |
 | `composer build`              | Create a binary                                           |
-| `composer deploy`             | Install binary to /usr/local/bin                          |
 | `composer dist`               | Create a distribution tarball                             |
 | `composer gitstats`           | Create Git statistics                                     |
 | `composer gource`             | Visualize Git history                                     |
@@ -102,7 +101,6 @@ This project comes with some useful composer scripts:
 | `composer security-checker`   | Look for dependencies with known security vulnerabilities |
 | `composer syntax-check`       | Check syntax of source code                               |
 | `composer test`               | Perform some tests with the built binary                  |
-| `composer uninstall`          | Remove binary from /usr/local/bin/                        |
 
 For example, execute `composer phpstan`.
 
