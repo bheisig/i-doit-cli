@@ -8,7 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##  [Unreleased]
 
-**Important note:** PHP 5.6 support is dropped. You need PHP 7.0 or higher.
+_tbd_
+
+
+##  [0.5] – 2018-04-24
+
+**Important notes:**
+
+1.  PHP 5.6 support is dropped. You need PHP 7.0 or higher.
+2.  Re-load cache with `idoitcli init`
 
 
 ### Added
@@ -18,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+-   Renamed binary file to `idoitcli`
 -   Separate CLI-related code from application code
 -   Drop PHP 5.6 support and require PHP 7.0 or higher
 
@@ -87,7 +96,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Initial release
 
 
-[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.4...HEAD
+[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.5...HEAD
+[0.5]: https://github.com/bheisig/i-doit-cli/compare/0.4...0.5
 [0.4]: https://github.com/bheisig/i-doit-cli/compare/0.3...0.4
 [0.3]: https://github.com/bheisig/i-doit-cli/compare/0.2...0.3
 [0.2]: https://github.com/bheisig/i-doit-cli/compare/0.1...0.2

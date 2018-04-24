@@ -21,7 +21,7 @@
         "php": ">=7.0.0",
         "ext-bz2": "*",
         "ext-Phar": "*",
-        "bheisig/cli": "@DEV",
+        "bheisig/cli": "^0.1",
         "bheisig/idoitapi": "^0.4"
     },
     "require-dev": {
@@ -122,7 +122,7 @@
     },
     "extra": {
         "name": "idoitcli",
-        "version": "0.5-dev",
+        "version": "0.5",
         "phar-builder": {
             "skip-shebang": false,
             "include-dev": false,

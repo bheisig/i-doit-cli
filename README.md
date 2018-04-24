@@ -33,21 +33,20 @@ Before using this app your system must meet the following requirements:
 
 ##  Install and update
 
-You have several options to download (and kinda install) this application:
+You have two good options to download and install this application:
 
 *   Download any stable release (**recommended**)
 *   Use [PHIVE](https://phar.io/)
-*   Clone the Git repository to fetch the (maybe unstable) development branch
 
 
 ### Download release
 
-Download the latest stable version of the binary `idoit` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
+Download the latest stable version of the binary `idoitcli` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
 ~~~ {.bash}
-curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.4/idoit
-chmod 755 idoit
-sudo mv idoit /usr/local/bin/
+curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.5/idoitcli
+chmod 755 idoitcli
+sudo mv idoitcli /usr/local/bin/
 ~~~
 
 To be up-to-date just repeat the steps above.
@@ -61,7 +60,7 @@ With [PHIVE](https://phar.io/) you are able to download and install PHAR files o
 sudo phive install --global bheisig/i-doit-cli
 ~~~
 
-This will install an executable binary to `/usr/bin/idoit`.
+This will install an executable binary to `/usr/bin/idoitcli`.
 
 If a new release is available you can perform an update:
 
@@ -70,42 +69,12 @@ sudo phive update --global
 ~~~
 
 
-### Fetch source code
-
-Fetch the current development branch (maybe unstable) from the Git repository.
-
-~~~ {.bash}
-git clone https://github.com/bheisig/i-doit-cli.git
-cd i-doit-cli/
-~~~
-
-The executable is located under `bin/idoit`. If you want to use it system-wide you will need [Composer](https://getcomposer.org/):
-
-~~~ {.bash}
-composer install
-make
-sudo make install
-~~~
-
-After that the executable is located under `/usr/local/bin/idoit`.
-
-Fetching updates is similar:
-
-~~~ {.bash}
-cd i-doit-cli/
-git pull
-composer update
-make
-sudo make install
-~~~
-
-
 ##  Usage
 
 Just run the application to show the basic usage:
 
 ~~~ {.bash}
-idoit
+idoitcli
 ~~~
 
 
@@ -114,7 +83,7 @@ idoit
 This application caches a lot locally to give you the best user experience. Run the `init` command:
 
 ~~~ {.bash}
-idoit init
+idoitcli init
 ~~~
 
 Some simple questions will be asked how to access your i-doit installation.
@@ -124,7 +93,7 @@ After that some files will be created in your home directory under `~/.idoitcli/
 You may check your current status by running:
 
 ~~~ {.bash}
-idoit status
+idoitcli status
 ~~~
 
 This gives you some basic information about your i-doit installation, your settings and your user.
@@ -137,81 +106,81 @@ This is probably the best part: Read information about objects, their types and 
 List all object types:
 
 ~~~ {.bash}
-idoit read
-idoit read /
+idoitcli read
+idoitcli read /
 ~~~
 
 List server objects:
 
 ~~~ {.bash}
-idoit read server/
-idoit read server/host.example.net
-idoit read server/*.example.net
-idoit read server/host.*.net
-idoit read server/*.*.net
-idoit read server/host*
-idoit read server/*
+idoitcli read server/
+idoitcli read server/host.example.net
+idoitcli read server/*.example.net
+idoitcli read server/host.*.net
+idoitcli read server/*.*.net
+idoitcli read server/host*
+idoitcli read server/*
 ~~~
 
 Show common information about server "host.example.net":
 
 ~~~ {.bash}
-idoit read server/host.example.net
+idoitcli read server/host.example.net
 ~~~
 
 Show common information about object identifier "42":
 
 ~~~ {.bash}
-idoit read 42
+idoitcli read 42
 ~~~
 
 Show common information about one or more objects by their titles:
 
 ~~~ {.bash}
-idoit read *.example.net
-idoit read host.*.net
-idoit read *.*.net
-idoit read host*
+idoitcli read *.example.net
+idoitcli read host.*.net
+idoitcli read *.*.net
+idoitcli read host*
 ~~~
 
 List assigned categories:
 
 ~~~ {.bash}
-idoit read server/host.example.net/
+idoitcli read server/host.example.net/
 ~~~
 
 Show values from category "model" for this server:
 
 ~~~ {.bash}
-idoit read server/host.example.net/model
+idoitcli read server/host.example.net/model
 ~~~
 
 Show values from category "model" for one or more servers:
 
 ~~~ {.bash}
-idoit read server/*.example.net/model
-idoit read server/host.*.net/model
-idoit read server/*.*.net/model
-idoit read server/host*/model
-idoit read server/*/model
+idoitcli read server/*.example.net/model
+idoitcli read server/host.*.net/model
+idoitcli read server/*.*.net/model
+idoitcli read server/host*/model
+idoitcli read server/*/model
 ~~~
 
 Or just show the name of the model:
 
 ~~~ {.bash}
-idoit read server/host.example.net/model/model
+idoitcli read server/host.example.net/model/model
 ~~~
 
 List available attributes for category "model":
 
 ~~~ {.bash}
-idoit read server/host.example.net/model/
+idoitcli read server/host.example.net/model/
 ~~~
 
 You may leave the object type empty for specific objects, for example:
 
 ~~~ {.bash}
-idoit read host.example.net/model
+idoitcli read host.example.net/model
 ~~~
 
 **Notice:** These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.
@@ -220,9 +189,9 @@ idoit read host.example.net/model
 ##  Show everything about an object
 
 ~~~ {.bash}
-idoit show myserver
-idoit show "My Server"
-idoit show 42
+idoitcli show myserver
+idoitcli show "My Server"
+idoitcli show 42
 ~~~
 
 
@@ -231,8 +200,8 @@ idoit show 42
 Find your needle in the haystack called CMDB:
 
 ~~~ {.bash}
-idoit search myserver
-idoit search "My Server"
+idoitcli search myserver
+idoitcli search "My Server"
 ~~~
 
 
@@ -241,7 +210,7 @@ idoit search "My Server"
 Get the next free IPv4 address for a particular subnet:
 
 ~~~ {.bash}
-idoit nextip SUBNET
+idoitcli nextip SUBNET
 ~~~
 
 `SUBNET` may be the object title or its identifier.
@@ -252,7 +221,7 @@ idoit nextip SUBNET
 For testing purposes stress your i-doit installation and let the app create thousands of objects, attributes and relations between objects:
 
 ~~~ {.bash}
-idoit -c FILE random
+idoitcli -c FILE random
 ~~~
 
 There are some examples located under `docs/`.
@@ -263,7 +232,7 @@ There are some examples located under `docs/`.
 If your CMDB configuration has changed you need to re-create the cache files by running the `init` command:
 
 ~~~ {.bash}
-idoit init
+idoitcli init
 ~~~
 
 Just type `n` (no) if you want to keep your existing configuration settings.
@@ -274,25 +243,25 @@ Just type `n` (no) if you want to keep your existing configuration settings.
 Perform self-defined API requests – pass request as argument:
 
 ~~~ {.bash}
-idoit call '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}'
+idoitcli call '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}'
 ~~~
 
 Pipe request:
 
 ~~~ {.bash}
-echo '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}' | idoit call
+echo '{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}' | idoitcli call
 ~~~
 
 Read request from file:
 
 ~~~ {.bash}
-cat request.txt | idoit call
+cat request.txt | idoitcli call
 ~~~
 
 Read request from standard input (double-enter to execute):
 
 ~~~ {.bash}
-idoit call
+idoitcli call
 ~~~
 
 
