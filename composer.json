@@ -53,7 +53,11 @@
             "@composer dist",
             "@composer clean"
         ],
-        "clean": "rm -rf *.tar.gz `composer config extra.name` ./`composer config extra.name`-`composer config extra.version`/",
+        "clean": [
+            "rm -f `composer config extra.name`",
+            "rm -rf *.tar.gz ./`composer config extra.name`-`composer config extra.version`/",
+            "rm -f `composer config extra.name`.phar `composer config extra.name`.phar.asc"
+        ],
         "build": [
             "@composer dump-autoload --classmap-authoritative",
             "php -d phar.readonly=0 ./vendor/bin/phar-builder package --quiet composer.json",
@@ -62,19 +66,30 @@
             "@composer dump-autoload"
         ],
         "deploy": [
-            "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
-            "cp `composer config extra.name` /usr/local/bin/"
+            "@composer is-built",
+            "install -m 775 `composer config extra.name` /usr/local/bin/"
         ],
         "dist": [
-            "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
+            "@composer is-built",
             "rm -rf ./`composer config extra.name`-`composer config extra.version`/",
             "mkdir ./`composer config extra.name`-`composer config extra.version`/",
-            "cp -r `composer config extra.name` CHANGELOG.md CONTRIBUTING.md LICENSE README.md docs/ ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r `composer config extra.name` ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r CHANGELOG.md  ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r CONTRIBUTING.md ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r LICENSE ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r README.md ./`composer config extra.name`-`composer config extra.version`/",
+            "cp -r docs/ ./`composer config extra.name`-`composer config extra.version`/",
             "tar czf `composer config extra.name`-`composer config extra.version`.tar.gz ./`composer config extra.name`-`composer config extra.version`/",
             "rm -r ./`composer config extra.name`-`composer config extra.version`/"
         ],
         "gitstats": "gitstats -c project_name=`composer config extra.name` . gitstats",
         "gource": "gource -1280x720 --seconds-per-day 3 --auto-skip-seconds 1 --title `composer config extra.name`",
+        "is-built": "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
+        "phive": [
+            "@composer is-built",
+            "cp `composer config extra.name` `composer config extra.name`.phar",
+            "gpg --detach-sign --output `composer config extra.name`.phar.asc `composer config extra.name`.phar"
+        ],
         "phpcpd": "./vendor/bin/phpcpd src/",
         "phpcs": "./vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --exclude=PSR2.Classes.ClassDeclaration,Squiz.Functions.MultiLineFunctionDeclaration bin/ src/",
         "phpdox": "./vendor/bin/phpdox",
@@ -84,7 +99,7 @@
         "security-checker": "./vendor/bin/security-checker security:check ./composer.lock",
         "syntax-check": "php -l src/",
         "test": [
-            "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
+            "@composer is-built",
             "./`composer config extra.name` --help",
             "./`composer config extra.name` --version",
             "for command in $(./`composer config extra.name` list --no-colors | awk '{print $1}'); do echo \"Run command $command\" ; ./`composer config extra.name` \"$command\" --help > /dev/null || echo \"Command $command failed with non-zero exit code\"; done"
@@ -102,6 +117,8 @@
         "dist": "Create a distribution tarball",
         "gitstats": "Create Git statistics",
         "gource": "Visualize Git history",
+        "is-built": "Test whether binary is already built",
+        "phive": "Build PHIVE files",
         "phpcpd": "Detect copy/paste in source code",
         "phpcs": "Detect violations of defined coding standards",
         "phpdox": "Create source code documentation",
