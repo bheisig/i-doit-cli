@@ -111,7 +111,7 @@
     },
     "scripts-descriptions": {
         "ci": "Perform continuous integration tasks",
-        "clean": "Remove binary and distribution tarball",
+        "clean": "Cleanup project directory",
         "build": "Create a binary",
         "deploy": "Install binary to /usr/local/bin",
         "dist": "Create a distribution tarball",
@@ -128,7 +128,7 @@
         "security-checker": "Look for dependencies with known security vulnerabilities",
         "syntax-check": "Check syntax of source code",
         "test": "Perform some tests with the built binary",
-        "uninstall": "Remove binary from /usr/local/bin"
+        "uninstall": "Remove binary from /usr/local/bin/"
     },
     "extra": {
         "name": "idoitcli",
