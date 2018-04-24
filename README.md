@@ -1,7 +1,9 @@
-#   i-doit CLI Tool
+#   i-doit CLI tool
 
 Access your CMDB on the command line interface
 
+[![Latest Stable Version](https://img.shields.io/packagist/v/bheisig/idoitcli.svg)](https://packagist.org/packages/bheisig/idoitcli)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.0-8892BF.svg)](https://php.net/)
 [![Build Status](https://travis-ci.org/bheisig/i-doit-cli.svg?branch=master)](https://travis-ci.org/bheisig/i-doit-cli)
 
 
@@ -9,7 +11,7 @@ Access your CMDB on the command line interface
 
 [i-doit](https://i-doit.com) is a software application for IT documentation and a CMDB (Configuration Management Database). This application is very useful to collect all your knowledge about the IT infrastructure you are dealing with. i-doit is a Web application and [has an exhausting API](https://kb.i-doit.com/pages/viewpage.action?pageId=37355644) which is very useful to automate your infrastructure.
 
-This client provides a simple, but powerful command line interface to access your CMDB data stored in i-doit.
+This application provides a simple, but powerful command line interface to access your CMDB data stored in i-doit.
 
 
 ##  Features
@@ -20,7 +22,7 @@ This client provides a simple, but powerful command line interface to access you
 *   Stress your system: auto-generate thousands of objects
 
 
-##  Dependencies
+##  Requirements
 
 Before using this app your system must meet the following requirements:
 
@@ -29,16 +31,16 @@ Before using this app your system must meet the following requirements:
 *   PHP extensions `bzip2`, `cli`, `cURL`, `json` and `phar`
 
 
-##  Install and Update
+##  Install and update
 
-You have several options to download (and kinda install) this app:
+You have several options to download (and kinda install) this application:
 
 *   Download any stable release (**recommended**)
 *   Use [PHIVE](https://phar.io/)
 *   Clone the Git repository to fetch the (maybe unstable) development branch
 
 
-### Download Release
+### Download release
 
 Download the latest stable version of the binary `idoit` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
@@ -53,7 +55,7 @@ To be up-to-date just repeat the steps above.
 
 ### Use PHIVE
 
-With [PHIVE](https://phar.io/) you are able to download and install PHAR files on your system. Additionally, it will verify the SHA1 and GPG signatures which is highly recommended. If you have PHIVE already installed you can fetch the latest version of this app:
+With [PHIVE](https://phar.io/) you are able to download and install PHAR files on your system. Additionally, it will verify the SHA1 and GPG signatures which is highly recommended. If you have PHIVE already installed you can fetch the latest version of this application:
 
 ~~~ {.bash}
 sudo phive install --global bheisig/i-doit-cli
@@ -68,7 +70,7 @@ sudo phive update --global
 ~~~
 
 
-### Fetch Source Code
+### Fetch source code
 
 Fetch the current development branch (maybe unstable) from the Git repository.
 
@@ -100,16 +102,16 @@ sudo make install
 
 ##  Usage
 
-Just run the app to show the basic usage:
+Just run the application to show the basic usage:
 
 ~~~ {.bash}
 idoit
 ~~~
 
 
-##  First Steps
+##  First steps
 
-This app caches a lot locally to give you the best user experience. Run the `init` command:
+This application caches a lot locally to give you the best user experience. Run the `init` command:
 
 ~~~ {.bash}
 idoit init
@@ -128,7 +130,7 @@ idoit status
 This gives you some basic information about your i-doit installation, your settings and your user.
 
 
-##  Access Your CMDB Data
+##  Access your CMDB data
 
 This is probably the best part: Read information about objects, their types and even attributes.
 
@@ -215,7 +217,7 @@ idoit read host.example.net/model
 **Notice:** These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.
 
 
-##  Show Everything About an Object
+##  Show everything about an object
 
 ~~~ {.bash}
 idoit show myserver
@@ -224,7 +226,7 @@ idoit show 42
 ~~~
 
 
-##  Find Your Data
+##  Find your data
 
 Find your needle in the haystack called CMDB:
 
@@ -234,7 +236,7 @@ idoit search "My Server"
 ~~~
 
 
-##  Show the Next Free IP Address
+##  Show the next free IPv4 address
 
 Get the next free IPv4 address for a particular subnet:
 
@@ -245,7 +247,7 @@ idoit nextip SUBNET
 `SUBNET` may be the object title or its identifier.
 
 
-##  Auto-generate Objects
+##  Auto-generate objects
 
 For testing purposes stress your i-doit installation and let the app create thousands of objects, attributes and relations between objects:
 
@@ -256,7 +258,7 @@ idoit -c FILE random
 There are some examples located under `docs/`.
 
 
-##  Update the Caches
+##  Update the caches
 
 If your CMDB configuration has changed you need to re-create the cache files by running the `init` command:
 
@@ -309,11 +311,11 @@ The configuration files are JSON-formatted.
 
 ##  Contribute
 
-Please, report any issues to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues). Pull requests and OS distribution packages are very welcomed. For further information, see file [`Contribute.md`](Contribute.md).
+Please, report any issues to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues). Pull requests and OS distribution packages are very welcomed. For further information, see file [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ##  Copyright & License
 
-Copyright (C) 2017 [Benjamin Heisig](https://benjamin.heisig.name/)
+Copyright (C) 2016-18 [Benjamin Heisig](https://benjamin.heisig.name/)
 
 Licensed under the [GNU Affero GPL version 3 or later (AGPLv3+)](https://gnu.org/licenses/agpl.html). This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
