@@ -17,7 +17,7 @@ install:
 
 script:
   - composer ci
-  - sudo composer install
+  - sudo composer deploy
   - sudo composer uninstall
 
 matrix:

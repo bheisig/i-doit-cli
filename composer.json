@@ -61,6 +61,10 @@
             "chmod +x `composer config extra.name`",
             "@composer dump-autoload"
         ],
+        "deploy": [
+            "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
+            "cp `composer config extra.name` /usr/local/bin/"
+        ],
         "dist": [
             "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
             "rm -rf ./`composer config extra.name`-`composer config extra.version`/",
@@ -71,10 +75,6 @@
         ],
         "gitstats": "gitstats -c project_name=`composer config extra.name` . gitstats",
         "gource": "gource -1280x720 --seconds-per-day 3 --auto-skip-seconds 1 --title `composer config extra.name`",
-        "install": [
-            "test -x `composer config extra.name` || ( echo 'Run \"composer build\" first' && exit 1 )",
-            "cp `composer config extra.name` /usr/local/bin/"
-        ],
         "phpcpd": "./vendor/bin/phpcpd src/",
         "phpcs": "./vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --exclude=PSR2.Classes.ClassDeclaration,Squiz.Functions.MultiLineFunctionDeclaration bin/ src/",
         "phpdox": "./vendor/bin/phpdox",
@@ -98,10 +98,10 @@
         "ci": "Perform continuous integration tasks",
         "clean": "Remove binary and distribution tarball",
         "build": "Create a binary",
+        "deploy": "Install binary to /usr/local/bin",
         "dist": "Create a distribution tarball",
         "gitstats": "Create Git statistics",
         "gource": "Visualize Git history",
-        "install": "Install binary to /usr/local/bin",
         "phpcpd": "Detect copy/paste in source code",
         "phpcs": "Detect violations of defined coding standards",
         "phpdox": "Create source code documentation",
