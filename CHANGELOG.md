@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##  [Unreleased]
 
-_tbd_
+
+### Fixed
+
+-   `init`: Validation error occures even before initialization could start
 
 
 ##  [0.5] – 2018-04-24

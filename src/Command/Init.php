@@ -37,6 +37,20 @@ class Init extends Command {
     use Cache;
 
     /**
+     * Process some routines before executing command
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    public function setup(): Command {
+        // Restore basic setup to skip validation of configuration settings:
+        $this->start = time();
+
+        return $this;
+    }
+
+    /**
      * Executes the command
      *
      * @return self Returns itself
