@@ -21,7 +21,7 @@
         "php": ">=7.0.0",
         "ext-bz2": "*",
         "ext-Phar": "*",
-        "bheisig/cli": "^0.1",
+        "bheisig/cli": "@DEV",
         "bheisig/idoitapi": "^0.4"
     },
     "require-dev": {

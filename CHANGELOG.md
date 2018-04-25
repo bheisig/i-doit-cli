@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ##  [Unreleased]
 
 
+### Added
+
+-   Support for Windows operating systems
+
+
 ### Fixed
 
 -   `init`: Validation error occures even before initialization could start

@@ -37,8 +37,12 @@ try {
     $app
         ->addConfigSettings([
             'appDir' => __DIR__ . '/..',
-            'baseDir' => $_SERVER['HOME'] . '/.idoitcli',
-            'dataDir' => $_SERVER['HOME'] . '/.idoitcli/data'
+            'baseDir' => (strtolower(substr(PHP_OS, 0, 3)) === 'win') ?
+                $_SERVER['LOCALAPPDATA'] . '\\idoitcli' :
+                $_SERVER['HOME'] . '/.idoitcli',
+            'dataDir' => (strtolower(substr(PHP_OS, 0, 3)) === 'win') ?
+                $_SERVER['LOCALAPPDATA'] . '\\idoitcli\\data' :
+                $_SERVER['HOME'] . '/.idoitcli/data'
         ]);
 
     $app
