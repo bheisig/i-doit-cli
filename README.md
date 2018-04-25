@@ -44,7 +44,7 @@ You have two good options to download and install this application:
 Download the latest stable version of the binary `idoitcli` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
 ~~~ {.bash}
-curl -O https://github.com/bheisig/i-doit-cli/releases/download/0.5/idoitcli
+curl -OL https://github.com/bheisig/i-doit-cli/releases/download/0.5/idoitcli
 chmod 755 idoitcli
 sudo mv idoitcli /usr/local/bin/
 ~~~
