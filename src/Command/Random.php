@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitapi\Subnet;
-use bheisig\cli\IO;
 
 /**
  * Command "random"
@@ -53,8 +52,6 @@ class Random extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        IO::err('Current date and time: %s', date('c', $this->start));
-
         $worked = false;
 
         $topics = [
@@ -88,13 +85,9 @@ class Random extends Command {
      * @throws \Exception on error
      */
     public function tearDown(): self {
-        IO::out('Some statistics:');
+        $this->log->debug('Some statistics:');
 
         $this->statistics['API calls'] = $this->useIdoitAPI()->getAPI()->countRequests();
-        $this->statistics['Memory peak usage (megabytes)'] = round(
-            (memory_get_peak_usage(true) / 1014 / 1024),
-            2
-        );
 
         $tabSize = 4;
 
@@ -103,6 +96,8 @@ class Random extends Command {
         $chars = 0;
 
         foreach ($this->statistics as $key => $value) {
+            $value = (string) $value;
+
             if (strlen($key) > $longestText) {
                 $longestText = strlen($key);
             }
@@ -124,12 +119,14 @@ class Random extends Command {
         $maxLength = $longestText + $gap + $tabSize;
 
         foreach ($this->statistics as $key => $value) {
+            $value = (string) $value;
+
             $line = str_repeat(' ', $tabSize);
             $line .= ucfirst($key) . ':';
             $line .= str_repeat(' ', ($maxLength - strlen($key) + 1));
             $line .= str_repeat(' ', ($chars - strlen($value))) . $value;
 
-            IO::out($line);
+            $this->log->debug($line);
         }
 
         parent::tearDown();
@@ -145,7 +142,7 @@ class Random extends Command {
      * @throws \Exception on error
      */
     protected function createCountries(): self {
-        IO::out('Create countries');
+        $this->log->info('Create countries');
 
         $countryObjects = [];
 
@@ -164,7 +161,7 @@ class Random extends Command {
 
         $this->logStat('Created country objects', count($countryIDs));
 
-        IO::out('Create cities');
+        $this->log->info('Create cities');
 
         $countryIndex = 0;
 
@@ -190,7 +187,7 @@ class Random extends Command {
                 if (array_key_exists('buildings', $this->config)) {
                     if (array_key_exists('minPerCity', $this->config['buildings']) &&
                         array_key_exists('maxPerCity', $this->config['buildings'])) {
-                        IO::out('Create buildings');
+                        $this->log->info('Create buildings');
 
                         $buildingIDs = [];
 
@@ -224,7 +221,7 @@ class Random extends Command {
                             if (array_key_exists('minPerBuilding', $this->config['rooms']) &&
                                 array_key_exists('maxPerBuilding', $this->config['rooms'])
                             ) {
-                                IO::out('Create rooms');
+                                $this->log->info('Create rooms');
 
                                 foreach($buildingIDs as $buildingID) {
                                     $amount = mt_rand(
@@ -271,7 +268,7 @@ class Random extends Command {
      * @throws \Exception on error
      */
     protected function createSubnets(): self {
-        IO::out('Create subnets');
+        $this->log->info('Create subnets');
 
         $subnetObjects = [];
 
@@ -326,7 +323,7 @@ class Random extends Command {
      * @throws \Exception on error
      */
     protected function createRacks(): self {
-        IO::out('Create racks');
+        $this->log->info('Create racks');
 
         if (!array_key_exists('amount', $this->config['racks']) ||
             !is_int($this->config['racks']['amount']) ||
@@ -371,12 +368,12 @@ class Random extends Command {
 
             switch ($amount) {
                 case 0:
-                    IO::out(
+                    $this->log->info(
                         'Assign 1 unit to racks'
                     );
                     break;
                 default:
-                    IO::out(
+                    $this->log->info(
                         'Assign %s units to racks',
                         $amount
                     );
@@ -407,12 +404,12 @@ class Random extends Command {
 
             switch ($amount) {
                 case 0:
-                    IO::out(
+                    $this->log->info(
                         'Assign 1 vertical slot to racks'
                     );
                     break;
                 default:
-                    IO::out(
+                    $this->log->info(
                         'Assign %s vertical slots to racks',
                         $amount
                     );
@@ -431,7 +428,7 @@ class Random extends Command {
         if (array_key_exists('density', $this->config) &&
             is_array($this->config['density']) &&
             array_key_exists('racksPerRoom', $this->config['density'])) {
-            IO::out('Assign racks to rooms');
+            $this->log->info('Assign racks to rooms');
 
             if (!is_array($this->config['density']['racksPerRoom']) ||
                 !array_key_exists('min', $this->config['density']['racksPerRoom']) ||
@@ -476,7 +473,7 @@ class Random extends Command {
 
                 for ($i = 0; $i < $amount; $i++) {
                     if (count($availableRackIDs) === 0) {
-                        IO::out('All racks assigned to rooms');
+                        $this->log->info('All racks assigned to rooms');
                         break;
                     }
 
@@ -512,7 +509,7 @@ class Random extends Command {
      * @throws \Exception on error
      */
     protected function createServers(): self {
-        IO::out('Create servers');
+        $this->log->info('Create servers');
 
         $this->assertInteger(
             'amount',
@@ -544,7 +541,7 @@ class Random extends Command {
         $requests = [];
 
         if (array_key_exists('ips', $this->config['servers'])) {
-            IO::out('Create IP addresses');
+            $this->log->info('Create IP addresses');
 
             $this->assertInteger(
                 'ips',
@@ -607,7 +604,7 @@ class Random extends Command {
         $hostsInRacks = [];
 
         if (array_key_exists('rackUnits', $this->config['servers'])) {
-            IO::out('Mount servers into racks');
+            $this->log->info('Mount servers into racks');
 
             if (!is_array($this->config['servers']['rackUnits']) ||
                 !array_key_exists('min', $this->config['servers']['rackUnits']) ||
@@ -668,7 +665,7 @@ class Random extends Command {
         }
 
         if (array_key_exists('model', $this->config['servers'])) {
-            IO::out('Add information about models');
+            $this->log->info('Add information about models');
 
             $this->assertArray(
                 'model',
@@ -718,7 +715,7 @@ class Random extends Command {
         }
 
         if (array_key_exists('cpu', $this->config['servers'])) {
-            IO::out('Add information about CPU');
+            $this->log->info('Add information about CPU');
 
             $this->assertArray(
                 'cpu',
@@ -750,10 +747,10 @@ class Random extends Command {
                 'Invalid amount of CPU cores'
             );
 
-            $this->assertString(
+            $this->assertFloat(
                 'frequency',
                 $this->config['servers']['cpu'],
-                'Invalid CPU frequency'
+                'Invalid CPU frequency (in GHz)'
             );
 
             $attributes = [
@@ -761,6 +758,7 @@ class Random extends Command {
                 'type' => $this->config['servers']['cpu']['type'],
                 'cores' => $this->config['servers']['cpu']['cores'],
                 'frequency' => $this->config['servers']['cpu']['frequency'],
+                'frequency_unit' => 3 // GHz
             ];
 
             if (array_key_exists('title', $this->config['servers']['cpu'])) {
@@ -895,7 +893,7 @@ class Random extends Command {
             );
 
             if (count($locallyAssignedObjects) > 0) {
-                IO::out(
+                $this->log->debug(
                     'Rack #%s is not empty',
                     $this->rackID
                 );
@@ -908,7 +906,7 @@ class Random extends Command {
                 );
             }
 
-            IO::out(
+            $this->log->debug(
                 'Use rack #%s',
                 $this->rackID
             );
@@ -936,7 +934,7 @@ class Random extends Command {
 
         // No space left:
         if ($this->rackPos >= $this->rackRUs) {
-            IO::out(
+            $this->log->debug(
                 'No space left in rack #%s',
                 $this->rackID
             );
@@ -951,7 +949,7 @@ class Random extends Command {
 
 
         if ($this->rackPos + $neededRUs >= $this->rackRUs) {
-            IO::out(
+            $this->log->debug(
                 'Not enough space left in rack #%s',
                 $this->rackID
             );
@@ -996,7 +994,7 @@ class Random extends Command {
 
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
-            IO::out(
+            $this->log->debug(
                 'Batch requests are limited to %s sub requests',
                 $this->config['limitBatchRequests']
             );
@@ -1020,9 +1018,9 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0 &&
                 $count > $this->config['limitBatchRequests']) {
                 if (count($chunk) === 1) {
-                    IO::out('Create 1 object');
+                    $this->log->debug('Create 1 object');
                 } else {
-                    IO::out('Create %s objects', count($chunk));
+                    $this->log->debug('Create %s objects', count($chunk));
                 }
             }
 
@@ -1073,7 +1071,7 @@ class Random extends Command {
      * @throws \Exception on error
      */
     protected function createCategoryEntry(int $objectID, string $categoryConst, array $attributes): self {
-        IO::out(
+        $this->log->debug(
             'Create one entry into category "%s" for object #%s',
             $categoryConst,
             $objectID
@@ -1100,7 +1098,7 @@ class Random extends Command {
     protected function createCategoryEntries(array $objectIDs, string $categoryConst, array $attributes): self {
         $count = count($objectIDs);
 
-        IO::out(
+        $this->log->debug(
             'Create same entry into category "%s" for %s objects',
             $categoryConst,
             $count
@@ -1108,7 +1106,7 @@ class Random extends Command {
 
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
-            IO::out(
+            $this->log->debug(
                 'Batch requests are limited to %s sub requests',
                 $this->config['limitBatchRequests']
             );
@@ -1130,9 +1128,9 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0 &&
                 $count > $this->config['limitBatchRequests']) {
                 if (count($chunk) === 1) {
-                    IO::out('Push 1 sub request');
+                    $this->log->debug('Push 1 sub request');
                 } else {
-                    IO::out('Push %s sub requests', count($chunk));
+                    $this->log->debug('Push %s sub requests', count($chunk));
                 }
             }
 
@@ -1172,7 +1170,7 @@ class Random extends Command {
     ): self {
         $count = count($attributes);
 
-        IO::out(
+        $this->log->debug(
             'Create %s entries into category "%s" for object #%s',
             $count,
             $categoryConst,
@@ -1181,7 +1179,7 @@ class Random extends Command {
 
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
-            IO::out(
+            $this->log->debug(
                 'Batch requests are limited to %s sub requests',
                 $this->config['limitBatchRequests']
             );
@@ -1203,9 +1201,9 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0 &&
                 $count > $this->config['limitBatchRequests']) {
                 if (count($chunk) === 1) {
-                    IO::out('Push 1 sub request');
+                    $this->log->debug('Push 1 sub request');
                 } else {
-                    IO::out('Push %s sub requests', count($chunk));
+                    $this->log->debug('Push %s sub requests', count($chunk));
                 }
             }
 
@@ -1241,10 +1239,10 @@ class Random extends Command {
 
         switch ($count) {
             case 0:
-                IO::out('Send 1 sub request in a batch request');
+                $this->log->debug('Send 1 sub request in a batch request');
                 break;
             default:
-                IO::out(
+                $this->log->debug(
                     'Send %s sub requests in a batch request',
                     $count
                 );
@@ -1253,7 +1251,7 @@ class Random extends Command {
 
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
-            IO::out(
+            $this->log->debug(
                 'Batch requests are limited to %s sub requests',
                 $this->config['limitBatchRequests']
             );
@@ -1275,9 +1273,9 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0 &&
                 $count > $this->config['limitBatchRequests']) {
                 if (count($chunk) === 1) {
-                    IO::out('Push 1 sub request');
+                    $this->log->debug('Push 1 sub request');
                 } else {
-                    IO::out('Push %s sub requests', count($chunk));
+                    $this->log->debug('Push %s sub requests', count($chunk));
                 }
             }
 
@@ -1371,6 +1369,33 @@ class Random extends Command {
     protected function assertInteger(string $needle, array $haystack, string $error, bool $isPositive = true) {
         if (!array_key_exists($needle, $haystack) ||
             !is_int($haystack[$needle])) {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
+
+        if ($isPositive && $haystack[$needle] <= 0) {
+            throw new \Exception(
+                $error,
+                400
+            );
+        }
+    }
+
+    /**
+     *
+     *
+     * @param string $needle
+     * @param array $haystack
+     * @param string $error
+     * @param bool $isPositive
+     *
+     * @throws \Exception on error
+     */
+    protected function assertFloat(string $needle, array $haystack, string $error, bool $isPositive = true) {
+        if (!array_key_exists($needle, $haystack) ||
+            !is_float($haystack[$needle])) {
             throw new \Exception(
                 $error,
                 400

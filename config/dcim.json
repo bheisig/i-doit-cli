@@ -1,12 +1,12 @@
 {
     "racks": {
-        "amount": 100,
+        "amount": 15,
         "prefix": "rack-",
         "rackUnits": 47,
         "verticalSlots": 2
     },
     "servers": {
-        "amount": 5000,
+        "amount": 100,
         "prefix": "srv-",
         "rackUnits": {
             "min": 1,
@@ -31,7 +31,7 @@
             "manufacturer": "Amdtel",
             "type": "Neon",
             "cores": 12,
-            "frequency": "2,4 GHz"
+            "frequency": 2.4
         },
         "memory": {
             "amount": 16,
