@@ -35,9 +35,10 @@ git clone https://github.com/bheisig/i-doit-cli.git
 
 If you have a GitHub account create a fork first and then clone the repository.
 
-After that, setup the environment with Composer:
+After that, change to your cloned repository and setup the environment with Composer:
 
 ~~~ {.bash}
+cd i-doit-cli/
 composer install
 ~~~
 
@@ -54,6 +55,51 @@ Developers must meet these requirements:
 *   [Xdebug](https://xdebug.org/)
 *   [Composer](https://getcomposer.org/)
 *   [Git](https://git-scm.com/)
+
+
+##  Run it!
+
+To run `idoitcli` you do not need to build a binary first. Just run:
+
+~~~ {.bash}
+bin/idoitcli
+~~~
+
+
+##  Add your own command
+
+Each command has its own PHP class located under `src/Command`. There is a dummy class you can use as a skeleton. Copy it:
+
+~~~ {.bash}
+cd src/Command/
+cp Dummy.dist.php MyCommand.php
+~~~
+
+Note, that the file name must be in camel-case and it ends with `.php`.
+
+Edit this file with your favorite editor. The class name must be the same as the file name (without the file extension). The entry point is the public method `execute()`.
+
+Next step is to register your new command. This is done inside `bin/idoitcli.php`. Add something like this:
+
+~~~ {.php}
+$app
+    ->addCommand(
+        'my-command',
+        __NAMESPACE__ . '\\Command\\MyCommand',
+        'Dummy command to print "Hello, World!"'
+    );
+~~~
+
+Now you are able to execute your command:
+
+~~~ {.bash}
+bin/idoitcli my-command
+~~~
+
+Further steps:
+
+*   Add options to your command with `$app->addOption()`
+*   Overwrite public method `showUsage()` to print usage with option `--help`
 
 
 ##  Release new version
