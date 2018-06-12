@@ -1,4 +1,4 @@
-#   Contribution
+#   Contributors welcome!
 
 Thank you very much for your interest in this project! There are plenty of ways you can support us. :-)
 
@@ -30,7 +30,7 @@ Of course, there are some features in the pipeline. However, if you have good id
 If you like to contribute source code, documentation snippets, self-explaining examples or other useful bits, fork this repository, setup the environment and make a pull request.
 
 ~~~ {.bash}
-git clone https://github.com/bheisig/i-doit-acli.git
+git clone https://github.com/bheisig/i-doit-cli.git
 ~~~
 
 If you have a GitHub account create a fork first and then clone the repository.
@@ -68,14 +68,16 @@ Developers must meet these requirements:
 6.  Build binary file: `composer build`
 7.  Create distribution tarball: `composer dist`
 8.  Build PHIVE files: `composer phive`
-9.  Create Git tag: `git tag -s -m "Release version $(composer config extra.version)" $(composer config extra.version)`
-10.  Push changes: `git push && git push --tags`
-11. Create a release on GitHub based on the last tag
-12. Upload these files and it them to the release:
+9.  Create Git tag: `git tag -s -a -m "Release version $(composer config extra.version)" $(composer config extra.version)`
+10. Push changes: `git push && git push --tags`
+11. Create new release on GitHub based on the last tag
+12. Upload these files and add them to the release:
     *   Distribution tarball: `idoitcli-<VERSION>.tar.gz`
     *   Binaray file: `idoitcli`
     *   PHIVE files: `idoitcli.phar`, `idoitcli.phar.asc`
 13. Cleanup project directory: `composer clean`
+
+If any step produces an error please think twice before releasing. ;-)
 
 
 ##  Composer scripts
