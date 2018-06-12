@@ -72,7 +72,7 @@ Each command has its own PHP class located under `src/Command`. There is a dummy
 
 ~~~ {.bash}
 cd src/Command/
-cp Dummy.dist.php MyCommand.php
+cp Dummy.php MyCommand.php
 ~~~
 
 Note, that the file name must be in camel-case and it ends with `.php`.

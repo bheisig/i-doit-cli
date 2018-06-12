@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Benjamin Heisig <https://benjamin.heisig.name/>
- * @copyright Copyright (C) 2016-17 Benjamin Heisig
+ * @copyright Copyright (C) 2016-18 Benjamin Heisig
  * @license http://www.gnu.org/licenses/agpl-3.0 GNU Affero General Public License (AGPL)
  * @link https://github.com/bheisig/i-doit-cli
  */
