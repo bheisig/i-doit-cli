@@ -113,6 +113,26 @@
             "./`composer config extra.name` --help",
             "./`composer config extra.name` --version",
             "for command in $(./`composer config extra.name` list --no-colors | awk '{print $1}'); do echo \"Run command $command\" ; ./`composer config extra.name` \"$command\" --help > /dev/null || echo \"Command $command failed with non-zero exit code\"; done"
+        ],
+        "win-ci": [
+            "@composer win-system-check",
+            "@composer win-build"
+        ],
+        "win-build": [
+            "@composer dump-autoload --classmap-authoritative",
+            "php -d phar.readonly=0 ./vendor/bin/phar-builder package --quiet composer.json",
+            "mv `composer config extra.name`.phar `composer config extra.name`",
+            "@composer dump-autoload"
+        ],
+        "win-system-check": [
+            "php --version",
+            "php -m",
+            "php --info | Select-String -Pattern \"(max_execution_time|memory_limit)\"",
+            "@composer --version",
+            "@composer validate",
+            "@composer diagnose",
+            "@composer check-platform-reqs",
+            "@composer config extra.version"
         ]
     },
     "scripts-descriptions": {
