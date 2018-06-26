@@ -173,7 +173,7 @@ class Create extends Command {
             }
         }
 
-        switch(count($candidates)) {
+        switch (count($candidates)) {
             case 0:
                 throw new \Exception(sprintf(
                     'Unknown category "%s"',

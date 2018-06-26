@@ -111,7 +111,7 @@ class FixIP extends Command {
 
         if ($limit === 1) {
             $this->log->info('Process 1 object and its IP addresses at once', $limit);
-        } else if ($limit > 1) {
+        } elseif ($limit > 1) {
             $this->log->info('Process %s objects and its IP addresses at once', $limit);
         }
 
@@ -127,9 +127,9 @@ class FixIP extends Command {
             if ($limit > 0) {
                 if ($offset === 0 && $limit === 1) {
                     $this->log->info('Fetch first object');
-                } else if ($offset > 0 && $limit === 1) {
+                } elseif ($offset > 0 && $limit === 1) {
                     $this->log->info('Fetch next object (%s)', ($offset + 1));
-                } else if ($offset === 0) {
+                } elseif ($offset === 0) {
                     $this->log->info('Fetch first %s objects', $limit);
                 } else {
                     $this->log->info('Fetch next %s objects (%s-%s)', $limit, ($offset + 1), ($limit + $offset));
@@ -226,7 +226,7 @@ class FixIP extends Command {
                             $type,
                             $ip
                         );
-                    } else if (array_key_exists($net, $this->unproperSubnets)) {
+                    } elseif (array_key_exists($net, $this->unproperSubnets)) {
                         $this->log->warning(
                             '%s "%s" [%s] has %s address %s assigned to unproper subnet "%s" [%s].',
                             ucfirst($object['type']),
@@ -237,7 +237,7 @@ class FixIP extends Command {
                             $this->unproperSubnets[$net],
                             $net
                         );
-                    } else if (!array_key_exists($net, $nets)) {
+                    } elseif (!array_key_exists($net, $nets)) {
                         $this->log->warning(
                             '%s "%s" [%s] has %s address %s assigned to a subnet [%s] which is not a layer-3-object.',
                             ucfirst($object['type']),
@@ -247,7 +247,7 @@ class FixIP extends Command {
                             $ip,
                             $net
                         );
-                    } else if ($ip2long < ip2long($nets[$net]['firstIP']) ||
+                    } elseif ($ip2long < ip2long($nets[$net]['firstIP']) ||
                         $ip2long > ip2long($nets[$net]['lastIP'])
                     ) {
                         $this->log->warning(
@@ -320,7 +320,6 @@ class FixIP extends Command {
 
                     foreach ($objects as $anotherObject) {
                         foreach ($anotherObject['ips'] as $anotherIP) {
-
                             if ($ipAddress['id'] !== $anotherIP['id'] &&
                                 $ip === $anotherIP['hostaddress']['ref_title'] &&
                                 end($netCandidates) === (int)$anotherIP['net']['id']
@@ -443,7 +442,7 @@ class FixIP extends Command {
 
             if ($countedRequests === 0) {
                 $this->log->info('Nothing to do');
-            } else if ($dryRun === true) {
+            } elseif ($dryRun === true) {
                 $this->log->warning('We are performing a dry run. No data will be altered.');
             } else {
                 if ($countedRequests === 1) {
@@ -538,11 +537,11 @@ class FixIP extends Command {
 
         $countedResults = count($result);
 
-        switch(count($result)) {
+        switch (count($result)) {
             case 0:
                 $this->log->info('Found no objects with IP addresses');
                 break;
-            case 1;
+            case 1:
                 $this->log->info('Found 1 object with IP addresses');
                 break;
             default:

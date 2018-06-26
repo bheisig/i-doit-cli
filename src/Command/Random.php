@@ -224,7 +224,7 @@ class Random extends Command {
                             ) {
                                 $this->log->info('Create rooms');
 
-                                foreach($buildingIDs as $buildingID) {
+                                foreach ($buildingIDs as $buildingID) {
                                     $amount = mt_rand(
                                         $this->config['rooms']['minPerBuilding'],
                                         $this->config['rooms']['maxPerBuilding']
@@ -1175,7 +1175,10 @@ class Random extends Command {
             }
 
             $chunk = array_slice(
-                $objects, $index, $length, true
+                $objects,
+                $index,
+                $length,
+                true
             );
 
             if ($this->config['limitBatchRequests'] > 0 &&
@@ -1285,7 +1288,10 @@ class Random extends Command {
             }
 
             $chunk = array_slice(
-                $objectIDs, $index, $length, true
+                $objectIDs,
+                $index,
+                $length,
+                true
             );
 
             if ($this->config['limitBatchRequests'] > 0 &&
@@ -1358,7 +1364,10 @@ class Random extends Command {
             }
 
             $chunk = array_slice(
-                $attributes, $index, $length, true
+                $attributes,
+                $index,
+                $length,
+                true
             );
 
             if ($this->config['limitBatchRequests'] > 0 &&
@@ -1430,7 +1439,10 @@ class Random extends Command {
             }
 
             $chunk = array_slice(
-                $requests, $index, $length, true
+                $requests,
+                $index,
+                $length,
+                true
             );
 
             if ($this->config['limitBatchRequests'] > 0 &&

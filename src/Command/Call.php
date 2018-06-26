@@ -102,8 +102,11 @@ REQUEST is a JSON-formatted string. Leave empty to read from standard input.
 
 Examples:
 
-1) %1$s %2$s \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\'
-2) echo \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' | %1$s %2$s
+1) %1$s %2$s \\
+    \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\'
+2) echo \\
+    \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' \\
+    | %1$s %2$s
 3) cat request.txt | %1$s %2$s',
             $this->config['args'][0],
             $this->getName(),

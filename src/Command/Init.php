@@ -75,9 +75,11 @@ class Init extends Command {
             }
 
             throw new \Exception(
-                'Unable to initiate idoitcli: ' .
-                    $e->getMessage(),
-                    $code
+                sprintf(
+                    'Unable to initiate "%s": ' . $e->getMessage(),
+                    $this->config['args'][0]
+                ),
+                $code
             );
         }
 

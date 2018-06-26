@@ -70,7 +70,7 @@ class Show extends Command {
 
         if ($query === '') {
             throw new \Exception('Empty query. Please specify an object title or identifier');
-        } else if (is_numeric($query)) {
+        } elseif (is_numeric($query)) {
             $objectID = (int) $query;
 
             if ($objectID <= 0) {
@@ -145,7 +145,7 @@ class Show extends Command {
                 IO::err('');
 
                 switch (count($category['entries'])) {
-                    case 0;
+                    case 0:
                         IO::out(
                             'No entries in category "%s"',
                             $category['title']

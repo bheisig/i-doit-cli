@@ -109,7 +109,7 @@ class Categories extends Command {
                     $result[] = $category;
                 }
             }
-        } else if (in_array('--disabled', $this->config['args'])) {
+        } elseif (in_array('--disabled', $this->config['args'])) {
             $enabledCategories = $this->getEnabledCategories();
 
             foreach ($categories as $category) {
@@ -162,7 +162,7 @@ class Categories extends Command {
 
         $categories = $this->filterByType($categories, $type);
 
-        switch(count($categories)) {
+        switch (count($categories)) {
             case 0:
                 IO::err('No categories found');
                 break;

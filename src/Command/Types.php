@@ -89,7 +89,7 @@ class Types extends Command {
      * @param array $groups
      */
     protected function formatGroups(array $groups) {
-        switch(count($groups)) {
+        switch (count($groups)) {
             case 0:
                 IO::out('No groups found');
                 break;
@@ -116,7 +116,7 @@ class Types extends Command {
      * @param array $types
      */
     protected function formatList(array $types) {
-        switch(count($types)) {
+        switch (count($types)) {
             case 0:
                 IO::out('No object types found');
                 break;

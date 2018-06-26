@@ -95,7 +95,8 @@ try {
         ->addCommand(
             'show',
             __NAMESPACE__ . '\\Command\\Show',
-            'Show everything about an object')
+            'Show everything about an object'
+        )
         ->addCommand(
             'status',
             __NAMESPACE__ . '\\Command\\Status',

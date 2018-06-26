@@ -41,7 +41,7 @@ class Nextip extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $value = $this->getQuery();;
+        $value = $this->getQuery();
 
         if ($value === '') {
             throw new \Exception('Missing SUBNET', 400);
@@ -51,7 +51,8 @@ class Nextip extends Command {
             $objectID = (int) $value;
         } else {
             $objectID = $this->useIdoitAPI()->getCMDBObjects()->getID(
-                $value, $this->config['types']['subnets']
+                $value,
+                $this->config['types']['subnets']
             );
         }
 

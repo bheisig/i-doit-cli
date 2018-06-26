@@ -101,7 +101,7 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objectTypes);
-                } else if (strlen($objectTypeConst) > 0) {
+                } elseif (strlen($objectTypeConst) > 0) {
                     /**
                      * List objects
                      *
@@ -126,7 +126,7 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objects);
-                } else if (is_numeric($parts[0])) {
+                } elseif (is_numeric($parts[0])) {
                     /**
                      * Show common information about an object by its identifier
                      *
@@ -206,7 +206,7 @@ class Read extends Command {
                     IO::err('');
 
                     $this->printTitle($objectTypes);
-                } else if (strlen($objectTypeConst) > 0) {
+                } elseif (strlen($objectTypeConst) > 0) {
                     /**
                      * List objects
                      *
@@ -282,11 +282,16 @@ class Read extends Command {
                         }
 
                         if ($found === false) {
-                            throw new \Exception(sprintf(
-                                'Object "%s" [%s] has unknown object type with identifier %s. Cache seems to be outdated. Please re-run "idoit init".',
+                            $this->log->error(
+                                'Object "%s" [%s] has unknown object type with identifier %s.',
                                 $objects[0]['title'],
                                 $objects[0]['id'],
                                 $objects[0]['type']
+                            );
+
+                            throw new \Exception(sprintf(
+                                'Cache seems to be outdated. Please re-run "%s init".',
+                                $this->config['args'][0]
                             ));
                         }
                     } else {
@@ -330,7 +335,9 @@ class Read extends Command {
                          * idoit read server/host*\/model
                          * idoit read server/*\/model
                          */
-                        $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->useIdoitAPI()->fetchObjects(
+                            ['type' => $objectTypeConst, 'title' => $parts[1]]
+                        );
 
                         $this->formatCategory($objects, $parts[2]);
                     }
@@ -369,11 +376,16 @@ class Read extends Command {
                         }
 
                         if ($found === false) {
-                            throw new \Exception(sprintf(
-                                'Object "%s" [%s] has unknown object type with identifier %s. Cache seems to be outdated. Please re-run "idoit init".',
+                            $this->log->error(
+                                'Object "%s" [%s] has unknown object type with identifier %s.',
                                 $objects[0]['title'],
                                 $objects[0]['id'],
                                 $objects[0]['type']
+                            );
+
+                            throw new \Exception(sprintf(
+                                'Cache seems to be outdated. Please re-run "%s init".',
+                                $this->config['args'][0]
                             ));
                         }
                     } else {
@@ -408,7 +420,9 @@ class Read extends Command {
                          *
                          * idoit read server/host.example.net/model/model
                          */
-                        $objects = $this->useIdoitAPI()->fetchObjects(['type' => $objectTypeConst, 'title' => $parts[1]]);
+                        $objects = $this->useIdoitAPI()->fetchObjects(
+                            ['type' => $objectTypeConst, 'title' => $parts[1]]
+                        );
 
                         $this->formatAttribute($objects, $parts[2], $parts[3]);
                     }
@@ -471,7 +485,7 @@ class Read extends Command {
             }
         }
 
-        switch(count($candidates)) {
+        switch (count($candidates)) {
             case 0:
                 IO::err('Unknown category "%s"', $category);
                 return $this;
@@ -534,7 +548,7 @@ class Read extends Command {
                 $identifiedCategory['const']
             );
 
-            switch(count($batchEntries[0])) {
+            switch (count($batchEntries[0])) {
                 case 0:
                     IO::err(
                         'No entries found in category "%s" [%s]',
@@ -659,7 +673,7 @@ class Read extends Command {
                 IO::err('');
             }
 
-            switch(count($batchEntries[$counter])) {
+            switch (count($batchEntries[$counter])) {
                 case 0:
                     IO::err('No entries found');
                     break;
@@ -766,10 +780,15 @@ class Read extends Command {
         }
 
         if ($categoryConst === '') {
-            throw new \Exception(sprintf(
-                'This object type [%s] has no category "%s". Maybe your cache is outdated. Please re-run "idoit init".',
+            $this->log->error(
+                'This object type [%s] has no category "%s".',
                 $objectType,
                 $categoryTitle
+            );
+
+            throw new \Exception(sprintf(
+                'Cache seems to be outdated. Please re-run "%s init".',
+                $this->config['args'][0]
             ));
         }
 

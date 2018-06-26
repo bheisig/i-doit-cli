@@ -159,9 +159,9 @@ trait Cache {
 
         if (!is_readable($file)) {
             throw new \Exception(sprintf(
-               'Category "%s" has no cache file at "%s"',
-               $categoryConst,
-               $file
+                'Category "%s" has no cache file at "%s"',
+                $categoryConst,
+                $file
             ));
         }
 

@@ -53,7 +53,7 @@ class Search extends Command {
         $results = $this->useIdoitAPI()->getCMDB()->search($query);
 
         switch (count($results)) {
-            case 0;
+            case 0:
                 IO::err('Nothing found');
                 break;
             case 1:
