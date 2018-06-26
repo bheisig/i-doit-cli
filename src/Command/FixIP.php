@@ -732,7 +732,8 @@ class FixIP extends Command {
      * @return self Returns itself
      */
     public function showUsage(): self {
-        $this->log->info('Usage: %1$s [OPTIONS] %2$s [--dry-run]
+        $this->log->info(
+            'Usage: %1$s %2$s [OPTIONS] [--dry-run]
 
 %3$s
 
@@ -768,38 +769,35 @@ ignored. Archived objects will not be touched.
 This command currently works IPv4-only.
 
 
-Configuration
--------------
+Configuration:
 
-These settings are available within the configuration namespace "%2$s":
+    These settings are available within the configuration namespace "%2$s":
 
-blacklistedObjectTypes:
-    List of object types that will be ignored; only insert object type
-    constants
+    blacklistedObjectTypes:
+        List of object types that will be ignored; only insert object type
+        constants
 
-unproperSubnets:
-    List of subnets ("layer-3-net" objects) which are not suitable, for
-    example "Global v4" and "Global v6"
+    unproperSubnets:
+        List of subnets ("layer-3-net" objects) which are not suitable, for
+        example "Global v4" and "Global v6"
 
 
-Options
--------
+Options:
 
     --dry-run   Do not alter anything within i-doit
 
 
-Output
-------
+Output:
 
-There will be a lot of ouput produced by this command:
+    There will be a lot of ouput produced by this command:
 
-    1) Information will be printed to standard output (STDOUT)
-    2) Notices, warnings and errors will be printed to standard error (STDERR)
+        1) Information will be printed to standard output (STDOUT)
+        2) Notices, warnings and errors will be printed to standard error (STDERR)
 
-This difference is very useful to find unwanted behavior. For example, write
-logs containing only notices, etc.:
+    This difference is very useful to find unwanted behavior. For example, write
+    logs containing only notices, etc.:
 
-    %1$s %2$s 2> /var/log/%2$s.log',
+        %1$s %2$s 2> /var/log/%2$s.log',
             $this->config['args'][0],
             $this->getName(),
             $this->getDescription()

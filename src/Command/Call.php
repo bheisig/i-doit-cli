@@ -94,7 +94,7 @@ class Call extends Command {
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s [OPTIONS] %2$s [REQUEST]
+            'Usage: %1$s %2$s [OPTIONS] [REQUEST]
 
 %3$s
 

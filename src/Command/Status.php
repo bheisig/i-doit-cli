@@ -62,8 +62,8 @@ class Status extends Command {
 
         IO::out('About you:');
         IO::out('Name: %s', $info['login']['name']);
-        IO::out('Username: %s', $info['login']['username']);
-        IO::out('Email: %s', $info['login']['mail']);
+        IO::out('User name: %s', $info['login']['username']);
+        IO::out('E-mail: %s', $info['login']['mail']);
         IO::out('Prefered language: %s', $info['login']['language']);
 
         return $this;

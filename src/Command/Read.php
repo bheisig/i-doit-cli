@@ -871,7 +871,7 @@ class Read extends Command {
      */
     public function showUsage(): self {
         $this->log->info(
-            'Usage: %1$s [OPTIONS] %2$s [PATH]
+            'Usage: %1$s %2$s [OPTIONS] [PATH]
 
 %3$s
 

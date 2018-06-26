@@ -165,7 +165,7 @@ class Types extends Command {
      */
     public function showUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s
+            'Usage: %1$s %2$s [OPTIONS]
 
 %3$s',
             $this->config['args'][0],

@@ -83,7 +83,7 @@ class Search extends Command {
      */
     public function showUsage(): self {
         $this->log->info(
-            'Usage: %1$s [OPTIONS] %2$s [QUERY]
+            'Usage: %1$s %2$s [OPTIONS] [QUERY]
 
 %3$s
 
