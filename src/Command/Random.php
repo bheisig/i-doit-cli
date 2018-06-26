@@ -58,7 +58,8 @@ class Random extends Command {
             'countries',
             'subnets',
             'racks',
-            'servers'
+            'servers',
+            'persons'
         ];
 
         foreach ($topics as $topic) {
@@ -135,7 +136,7 @@ class Random extends Command {
     }
 
     /**
-     *
+     * Create countries from list
      *
      * @return self Returns itself
      *
@@ -261,7 +262,7 @@ class Random extends Command {
     }
 
     /**
-     *
+     * Create subnets from list
      *
      * @return self Returns itself
      *
@@ -316,7 +317,7 @@ class Random extends Command {
     }
 
     /**
-     *
+     * Create random racks
      *
      * @return self Returns itself
      *
@@ -502,7 +503,7 @@ class Random extends Command {
     }
 
     /**
-     *
+     * Create random hosts
      *
      * @return self Returns itself
      *
@@ -536,7 +537,7 @@ class Random extends Command {
 
         $serverIDs = $this->createObjects($serverObjects);
 
-        $this->logStat('Created server objects', count($serverIDs));
+        $this->logStat('Created %s server objects', count($serverIDs));
 
         $requests = [];
 
@@ -805,7 +806,169 @@ class Random extends Command {
     }
 
     /**
+     * Create persons with random names, e-mail addresses and desks
      *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createPersons(): self {
+        $this->assertInteger(
+            'amount',
+            $this->config['persons'],
+            'Do not know how many persons to create'
+        );
+
+        $amount = $this->config['persons']['amount'];
+
+        switch ($amount) {
+            case 1:
+                $this->log->info('Create 1 person');
+                break;
+            default:
+                $this->log->info('Create %s persons', $amount);
+                break;
+        }
+
+        $persons = [];
+
+        for ($i = 0; $i < $amount; $i++) {
+            $forenameData = $this->pickRandomElement($this->config['persons']['forenames']);
+            $forename = $forenameData['name'];
+            $sex = $forenameData['sex'];
+            $surname = $this->pickRandomElement($this->config['persons']['surnames']);
+            $name = sprintf('%s %s', $forename, $surname);
+
+            foreach ($persons as $person) {
+                if ($person['title'] === $name) {
+                    $this->log->debug('Name collision detected; re-try…');
+                    $i--;
+                    continue 2;
+                }
+            }
+
+            $persons[] = [
+                'title' => $name,
+                'type' => $this->config['types']['persons'],
+                'sex' => $sex
+            ];
+        }
+
+        if (count($persons) === 0) {
+            $this->log->notice('No persons to create');
+            return $this;
+        }
+
+        $personIDs = $this->createObjects($persons);
+
+        $this->log->info('Add personal information…');
+
+        $requests = [];
+
+        foreach ($personIDs as $index => $personID) {
+            $person = $persons[$index];
+
+            $email = sprintf(
+                '%s@%s',
+                strtolower(str_replace(' ', '.', $person['title'])),
+                $this->config['persons']['emailDomain']
+            );
+
+            $phone = sprintf(
+                '%s%s',
+                $this->config['persons']['phonePrefix'],
+                $personID
+            );
+
+            $requests[] = [
+                'method' => 'cmdb.category.create',
+                'params' => [
+                    'objID' => $personID,
+                    'category' => 'C__CATS__PERSON',
+                    'data' => [
+                        'mail' => $email,
+                        'salutation' => $person['sex'],
+                        'phone_company' => $phone
+                    ]
+                ]
+            ];
+
+            $this->log->debug(
+                '%s. %s [%s], %s, %s',
+                ($person['sex'] === 'f') ? 'Mrs' : 'Mr',
+                $person['title'],
+                $personID,
+                $email,
+                $phone
+            );
+        }
+
+        if (count($requests) > 0) {
+            $this->sendBatchRequest($requests);
+        }
+
+        if ($this->config['persons']['createDesks'] === false) {
+            return $this;
+        }
+
+        switch ($amount) {
+            case 1:
+                $this->log->info('Create 1 desk…');
+                break;
+            default:
+                $this->log->info('Create %s desks…', $amount);
+                break;
+        }
+
+        $desks = [];
+
+        foreach ($personIDs as $index => $personID) {
+            $person = $persons[$index];
+
+            $desks[] = [
+                'title' => $person['title'],
+                'type' => $this->config['types']['desks']
+            ];
+        }
+
+        $deskIDs = $this->createObjects($desks);
+
+        $this->log->info('Assign each person to its desk…');
+
+        $requests = [];
+
+        foreach ($personIDs as $index => $personID) {
+            $requests[] = [
+                'method' => 'cmdb.category.create',
+                'params' => [
+                    'objID' => $personID,
+                    'category' => 'C__CATG__PERSON_ASSIGNED_WORKSTATION',
+                    'data' => [
+                        'assigned_workstations' => $deskIDs[$index]
+                    ]
+                ]
+            ];
+        }
+
+        if (count($requests) > 0) {
+            $this->sendBatchRequest($requests);
+        }
+
+        return $this;
+    }
+
+    protected function pickRandomElement(array $haystack) {
+        if (count($haystack) === 0) {
+            throw new \BadMethodCallException('Empty array');
+        }
+
+        $index = mt_rand(0, (count($haystack) - 1));
+
+        return $haystack[$index];
+    }
+
+    /**
+     * Get next free IPv4 address
      *
      * @return string
      *
@@ -857,7 +1020,7 @@ class Random extends Command {
     }
 
     /**
-     *
+     * Deploy host to server rack
      *
      * @param int $objectID
      * @param int $neededRUs
@@ -981,11 +1144,11 @@ class Random extends Command {
     }
 
     /**
+     * Create many objects at once
      *
+     * @param array $objects List of object titles and types
      *
-     * @param array $objects
-     *
-     * @return array
+     * @return int[] Object identifiers
      *
      * @throws \Exception on error
      */
@@ -1040,10 +1203,10 @@ class Random extends Command {
     }
 
     /**
+     * Assign objects to location
      *
-     *
-     * @param int[] $objectIDs
-     * @param int $locationID
+     * @param int[] $objectIDs List of object identifiers
+     * @param int $locationID Location identifier
      *
      * @return self Returns itself
      *
@@ -1060,11 +1223,11 @@ class Random extends Command {
     }
 
     /**
+     * Create one entry in category for one object
      *
-     *
-     * @param int $objectID
-     * @param string $categoryConst
-     * @param array $attributes
+     * @param int $objectID Object identifier
+     * @param string $categoryConst Category constant
+     * @param array $attributes List of attributes
      *
      * @return self Returns itself
      *
@@ -1072,7 +1235,7 @@ class Random extends Command {
      */
     protected function createCategoryEntry(int $objectID, string $categoryConst, array $attributes): self {
         $this->log->debug(
-            'Create one entry into category "%s" for object #%s',
+            'Create one entry in category "%s" for object #%s',
             $categoryConst,
             $objectID
         );
@@ -1085,11 +1248,11 @@ class Random extends Command {
     }
 
     /**
+     * Create same entry for multiple objects in one category at once
      *
-     *
-     * @param int[] $objectIDs
-     * @param string $categoryConst
-     * @param array $attributes
+     * @param int[] $objectIDs List of object identifiers
+     * @param string $categoryConst Category constant
+     * @param array $attributes List of attributes
      *
      * @return self Returns itself
      *
@@ -1099,7 +1262,7 @@ class Random extends Command {
         $count = count($objectIDs);
 
         $this->log->debug(
-            'Create same entry into category "%s" for %s objects',
+            'Create same entry in category "%s" for %s objects',
             $categoryConst,
             $count
         );
@@ -1153,11 +1316,11 @@ class Random extends Command {
     }
 
     /**
+     * Create multiple entries for one object in one category
      *
-     *
-     * @param int $objectID
-     * @param string $categoryConst
-     * @param array $attributes
+     * @param int $objectID Object identifier
+     * @param string $categoryConst Category constant
+     * @param array $attributes List of attributes
      *
      * @return self Returns itself
      *
@@ -1226,9 +1389,9 @@ class Random extends Command {
     }
 
     /**
+     * Commit multiple requests in a batch
      *
-     *
-     * @param array $requests
+     * @param array $requests List of requests
      *
      * @return self Returns itself
      *
@@ -1291,6 +1454,12 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     * Log statistics
+     *
+     * @param string $key Key
+     * @param int $value Value
+     */
     protected function logStat(string $key, int $value) {
         if (!array_key_exists($key, $this->statistics)) {
             $this->statistics[$key] = $value;
@@ -1299,6 +1468,14 @@ class Random extends Command {
         }
     }
 
+    /**
+     * Generate random string
+     *
+     * @param string $prefix [optional] Prefix
+     * @param string $suffix [optional] Suffix
+     *
+     * @return string
+     */
     protected function genTitle(string $prefix = null, string $suffix = null): string {
         $title = '';
 

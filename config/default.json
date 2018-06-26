@@ -15,7 +15,9 @@
         "rooms": "C__OBJTYPE__ROOM",
         "racks": "C__OBJTYPE__ENCLOSURE",
         "subnets": "C__OBJTYPE__LAYER3_NET",
-        "servers": "C__OBJTYPE__SERVER"
+        "servers": "C__OBJTYPE__SERVER",
+        "persons": "C__OBJTYPE__PERSON",
+        "desks": "C__OBJTYPE__WORKSTATION"
     },
     "fixip": {
         "blacklistedObjectTypes": [

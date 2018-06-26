@@ -288,3 +288,7 @@ Please, report any issues to [our issue tracker](https://github.com/bheisig/i-do
 Copyright (C) 2016-18 [Benjamin Heisig](https://benjamin.heisig.name/)
 
 Licensed under the [GNU Affero GPL version 3 or later (AGPLv3+)](https://gnu.org/licenses/agpl.html). This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+
+[List of first names and gender:](https://www.heise.de/ct/ftp/07/17/182/) Copyright (C) 2007-2008 Jörg Michael, licensed under [GNU Free Documentation License](https://www.gnu.org/licenses/fdl.html)
+
+[List of surnames:](https://github.com/HBehrens/phonet4n/blob/master/src/Tests/data/nachnamen.txt) Copyright (C) Heiko Behrens, lisenced under [GNU Lesser General Public License](https://www.gnu.org/licenses/lgpl-3.0)

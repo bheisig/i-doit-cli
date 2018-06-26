@@ -21,7 +21,9 @@
         {"key": "rooms", "type": "string", "required": true, "minLength": 1},
         {"key": "racks", "type": "string", "required": true, "minLength": 1},
         {"key": "subnets", "type": "string", "required": true, "minLength": 1},
-        {"key": "servers", "type": "string", "required": true, "minLength": 1}
+        {"key": "servers", "type": "string", "required": true, "minLength": 1},
+        {"key": "persons", "type": "string", "required": true, "minLength": 1},
+        {"key": "desks", "type": "string", "required": true, "minLength": 1}
     ]},
     {"key": "fixip", "type": "object", "required": false, "nodes": [
         {"key": "blacklistedObjectTypes", "type": "array", "required": true, "items": "string", "minCount": 0, "minLength": 1},
