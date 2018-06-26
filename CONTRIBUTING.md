@@ -52,7 +52,6 @@ Notice, that any of your contributions merged into this repository will be [lice
 Developers must meet these requirements:
 
 *   See requirements mentioned in the [documentation](README.md)
-*   [Xdebug](https://xdebug.org/)
 *   [Composer](https://getcomposer.org/)
 *   [Git](https://git-scm.com/)
 
@@ -136,6 +135,7 @@ This project comes with some useful composer scripts:
 | `composer clean`              | Cleanup project directory                                 |
 | `composer build`              | Create a binary                                           |
 | `composer dist`               | Create a distribution tarball                             |
+| `composer find-forbidden`     | Find forbidden words in source code                       |
 | `composer gitstats`           | Create Git statistics                                     |
 | `composer gource`             | Visualize Git history                                     |
 | `composer is-built`           | Test whether binary is already built                      |
@@ -148,6 +148,7 @@ This project comes with some useful composer scripts:
 | `composer phpstan`            | Analyze source code                                       |
 | `composer security-checker`   | Look for dependencies with known security vulnerabilities |
 | `composer syntax-check`       | Check syntax of source code                               |
+| `composer system-check`       | Run some system checks                                    |
 | `composer test`               | Perform some tests with the built binary                  |
 
 For example, execute `composer phpstan`.

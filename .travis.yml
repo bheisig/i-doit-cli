@@ -5,7 +5,7 @@ language: php
 
 php:
   - 7.0
-  - 7.1
+  - 7.1.18
   - 7.2
   - nightly
 
@@ -18,7 +18,8 @@ script:
 
 matrix:
   allow_failures:
-    - php: nightly
+    - php:
+      - nightly
 
 notifications:
   email:
