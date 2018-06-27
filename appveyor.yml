@@ -36,9 +36,9 @@ install:
   - IF %PHP%==1 echo extension=php_fileinfo.dll >> php.ini
   - IF %PHP%==1 echo extension=php_mbstring.dll >> php.ini
   - IF %PHP%==1 echo extension=php_openssl.dll >> php.ini
-  - if (%PHP%==1 && $env:php_ver_target -eq "7.0") { echo extension=php_xdebug-2.6.0-7.0-vc14-nts.dll >> php.ini }
-  - if (%PHP%==1 && $env:php_ver_target -eq "7.1") { echo extension=php_xdebug-2.6.0-7.1-vc14-nts.dll >> php.ini }
-  - if (%PHP%==1 && $env:php_ver_target -eq "7.2") { echo extension=php_xdebug-2.6.0-7.2-vc15-nts.dll >> php.ini }
+  - ps: if ($env:php_ver_target -eq "7.0") { echo extension=php_xdebug-2.6.0-7.0-vc14-nts.dll >> php.ini }
+  - ps: if ($env:php_ver_target -eq "7.1") { echo extension=php_xdebug-2.6.0-7.1-vc14-nts.dll >> php.ini }
+  - ps: if ($env:php_ver_target -eq "7.2") { echo extension=php_xdebug-2.6.0-7.2-vc15-nts.dll >> php.ini }
   - IF %PHP%==1 echo extension=php_xsl.dll >> php.ini
   - IF %PHP%==1 echo @php %%~dp0composer.phar %%* > composer.bat
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
