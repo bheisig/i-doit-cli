@@ -48,7 +48,6 @@ install:
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
   - cd %APPVEYOR_BUILD_FOLDER%
   - appveyor-retry composer install --no-progress --profile
-  - composer self-update --update-keys
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
