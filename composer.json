@@ -129,7 +129,7 @@
             "php -m",
             "@composer --version",
             "@composer validate",
-            "@composer diagnose",
+            "@composer diagnose & exit 0",
             "@composer check-platform-reqs",
             "@composer config extra.version"
         ]

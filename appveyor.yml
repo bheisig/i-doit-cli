@@ -50,8 +50,8 @@ install:
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - composer win-ci
-  - php bin/idoitcli.php --help
-  - php bin/idoitcli.php --version
+  - php .\bin\idoitcli.php --help
+  - php .\bin\idoitcli.php --version
 
 notifications:
   - provider: Email
