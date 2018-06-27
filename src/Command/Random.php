@@ -894,7 +894,7 @@ class Random extends Command {
             ];
 
             $this->log->debug(
-                '%s. %s [%s], %s, %s',
+                '    %s. %s [%s], %s, %s',
                 ($person['sex'] === 'f') ? 'Mrs' : 'Mr',
                 $person['title'],
                 $personID,
@@ -1184,9 +1184,9 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0 &&
                 $count > $this->config['limitBatchRequests']) {
                 if (count($chunk) === 1) {
-                    $this->log->debug('Create 1 object');
+                    $this->log->debug('    Create 1 object');
                 } else {
-                    $this->log->debug('Create %s objects', count($chunk));
+                    $this->log->debug('    Create %s objects', count($chunk));
                 }
             }
 
@@ -1411,11 +1411,14 @@ class Random extends Command {
 
         switch ($count) {
             case 0:
-                $this->log->debug('Send 1 sub request in a batch request');
+                $this->log->debug('    Send no sub request in a batch request');
+                break;
+            case 1:
+                $this->log->debug('    Send 1 sub request in a batch request');
                 break;
             default:
                 $this->log->debug(
-                    'Send %s sub requests in a batch request',
+                    '    Send %s sub requests in a batch request',
                     $count
                 );
                 break;
@@ -1424,7 +1427,7 @@ class Random extends Command {
         if ($this->config['limitBatchRequests'] > 0 &&
             $count > $this->config['limitBatchRequests']) {
             $this->log->debug(
-                'Batch requests are limited to %s sub requests',
+                '    Batch requests are limited to %s sub requests',
                 $this->config['limitBatchRequests']
             );
         }
@@ -1432,35 +1435,64 @@ class Random extends Command {
         $index = 0;
 
         while ($index < $count) {
-            $length = null;
-
             if ($this->config['limitBatchRequests'] > 0) {
-                $length = $this->config['limitBatchRequests'];
-            }
+                $chunk = array_slice(
+                    $requests,
+                    $index,
+                    $this->config['limitBatchRequests'],
+                    true
+                );
 
-            $chunk = array_slice(
-                $requests,
-                $index,
-                $length,
-                true
-            );
+                $num = count($chunk);
+                $left = $count - $index - $num;
 
-            if ($this->config['limitBatchRequests'] > 0 &&
-                $count > $this->config['limitBatchRequests']) {
-                if (count($chunk) === 1) {
-                    $this->log->debug('Push 1 sub request');
-                } else {
-                    $this->log->debug('Push %s sub requests', count($chunk));
+                if ($num === 0) {
+                    break;
+                } elseif ($index === 0) {
+                    if ($num === 1) {
+                        if ($left === 0) {
+                            $this->log->debug('        Push 1 sub request');
+                        } elseif ($left === 1) {
+                            $this->log->debug('        Push first sub request; 1 left');
+                        } else {
+                            $this->log->debug('        Push first sub request; %s left', $left);
+                        }
+                    } else {
+                        if ($left === 0) {
+                            $this->log->debug('        Push %s sub requests', $num);
+                        } elseif ($left === 1) {
+                            $this->log->debug('        Push first %s sub requests; 1 left', $num);
+                        } else {
+                            $this->log->debug('        Push first %s sub requests; %s left', $num, $left);
+                        }
+                    }
+                } elseif ($index > 0) {
+                    if ($num === 1) {
+                        if ($left === 0) {
+                            $this->log->debug('        Push last sub request');
+                        } elseif ($left === 1) {
+                            $this->log->debug('        Push next sub request; 1 left');
+                        } else {
+                            $this->log->debug('        Push next 1 sub request; %s left', $left);
+                        }
+                    } else {
+                        if ($left === 0) {
+                            $this->log->debug('        Push last %s sub requests', $num);
+                        } elseif ($left === 1) {
+                            $this->log->debug('        Push next %s sub requests; 1 left', $num);
+                        } else {
+                            $this->log->debug('        Push next %s sub requests; %s left', $num, $left);
+                        }
+                    }
                 }
-            }
 
-            $this->useIdoitAPI()->getAPI()->batchRequest($chunk);
+                $this->useIdoitAPI()->getAPI()->batchRequest($chunk);
 
-            if ($this->config['limitBatchRequests'] <= 0) {
+                $index += $this->config['limitBatchRequests'];
+            } else {
+                $this->useIdoitAPI()->getAPI()->batchRequest($requests);
                 break;
             }
-
-            $index += $this->config['limitBatchRequests'];
         }
 
         return $this;
