@@ -120,8 +120,8 @@
         ],
         "win-build": [
             "@composer dump-autoload --classmap-authoritative",
-            "php -d phar.readonly=0 ./vendor/bin/phar-builder package --quiet composer.json",
-            "mv $(composer config extra.name).phar $(composer config extra.name)",
+            "./vendor/bin/phar-builder.bat package --quiet composer.json",
+            "mv \"$(composer config extra.name).phar\" \"$(composer config extra.name)\"",
             "@composer dump-autoload"
         ],
         "win-system-check": [

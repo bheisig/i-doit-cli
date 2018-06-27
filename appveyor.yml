@@ -42,16 +42,19 @@ install:
   - IF %PHP%==1 echo extension=php_xsl.dll >> php.ini
   - IF %PHP%==1 curl -fsS -o c:\tools\php\ext\php_xdebug-%XDEBUG_VERSION%.dll https://xdebug.org/files/php_xdebug-%XDEBUG_VERSION%.dll
   - IF %PHP%==1 echo zend_extension=php_xdebug-%XDEBUG_VERSION%.dll >> php.ini
+  - IF %PHP%==1 curl -fsS -o c:\tools\php\extras\ssl\cacert.pem https://curl.haxx.se/ca/cacert.pem
+  - IF %PHP%==1 echo curl.cainfo="C:\tools\php\extras\ssl\cacert.pem" >> php.ini
   - IF %PHP%==1 echo @php %%~dp0composer.phar %%* > composer.bat
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
   - cd %APPVEYOR_BUILD_FOLDER%
   - appveyor-retry composer install --no-progress --profile
+  - composer self-update --update-keys
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - ps: composer win-ci
-  - php .\bin\idoitcli.php --help
-  - php .\bin\idoitcli.php --version
+  - php idoitcli --help
+  - php idoitcli --version
 
 notifications:
   - provider: Email
