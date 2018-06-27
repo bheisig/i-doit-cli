@@ -127,7 +127,6 @@
         "win-system-check": [
             "php --version",
             "php -m",
-            "php --info | Select-String -Pattern \"(max_execution_time|memory_limit)\"",
             "@composer --version",
             "@composer validate",
             "@composer diagnose",

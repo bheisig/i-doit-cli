@@ -41,7 +41,7 @@ install:
   - IF %PHP%==1 echo extension=php_openssl.dll >> php.ini
   - IF %PHP%==1 echo extension=php_xsl.dll >> php.ini
   - IF %PHP%==1 curl -fsS -o c:\tools\php\ext\php_xdebug-%XDEBUG_VERSION%.dll https://xdebug.org/files/php_xdebug-%XDEBUG_VERSION%.dll
-  - IF %PHP%==1 echo zend_extensio=php_xdebug-%XDEBUG_VERSION%.dll >> php.ini
+  - IF %PHP%==1 echo zend_extension=php_xdebug-%XDEBUG_VERSION%.dll >> php.ini
   - IF %PHP%==1 echo @php %%~dp0composer.phar %%* > composer.bat
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
   - cd %APPVEYOR_BUILD_FOLDER%
