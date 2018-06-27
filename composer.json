@@ -121,7 +121,7 @@
         "win-build": [
             "@composer dump-autoload --classmap-authoritative",
             "php -d phar.readonly=0 ./vendor/bin/phar-builder package --quiet composer.json",
-            "mv `composer config extra.name`.phar `composer config extra.name`",
+            "mv $(composer config extra.name).phar $(composer config extra.name)",
             "@composer dump-autoload"
         ],
         "win-system-check": [
@@ -130,8 +130,7 @@
             "@composer --version",
             "@composer validate",
             "@composer diagnose & exit 0",
-            "@composer check-platform-reqs",
-            "@composer config extra.version"
+            "@composer check-platform-reqs"
         ]
     },
     "scripts-descriptions": {

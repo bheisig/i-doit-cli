@@ -49,7 +49,7 @@ install:
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - composer win-ci
+  - ps: composer win-ci
   - php .\bin\idoitcli.php --help
   - php .\bin\idoitcli.php --version
 
