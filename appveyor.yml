@@ -8,11 +8,11 @@ clone_depth: 5
 environment:
   matrix:
   - PHP_VERSION: '7.0'
-    XDEBUG_VERSION: '2.6.0-7.0-vc14-nts'
+    XDEBUG_VERSION: '2.6.0-7.0-vc14-nts-x86_64'
   - PHP_VERSION: '7.1'
-    XDEBUG_VERSION: '2.6.0-7.1-vc14-nts'
+    XDEBUG_VERSION: '2.6.0-7.1-vc14-nts-x86_64'
   - PHP_VERSION: '7.2'
-    XDEBUG_VERSION: '2.6.0-7.2-vc15-nts'
+    XDEBUG_VERSION: '2.6.0-7.2-vc15-nts-x86_64'
 
 cache:
   - '%LOCALAPPDATA%\Composer\files -> composer.lock'
@@ -40,7 +40,8 @@ install:
   - IF %PHP%==1 echo extension=php_mbstring.dll >> php.ini
   - IF %PHP%==1 echo extension=php_openssl.dll >> php.ini
   - IF %PHP%==1 echo extension=php_xsl.dll >> php.ini
-  - IF %PHP%==1 echo extension=php_xdebug-%XDEBUG_VERSION%.dll >> php.ini >> php.ini
+  - IF %PHP%==1 curl -fsS -o c:\tools\php\ext\php_xdebug-%XDEBUG_VERSION%.dll https://xdebug.org/files/php_xdebug-%XDEBUG_VERSION%.dll
+  - IF %PHP%==1 echo extension=php_xdebug-%XDEBUG_VERSION%.dll >> php.ini
   - IF %PHP%==1 echo @php %%~dp0composer.phar %%* > composer.bat
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
   - cd %APPVEYOR_BUILD_FOLDER%
@@ -48,7 +49,7 @@ install:
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - composer win-ci
+  - ps: composer win-ci
 
 notifications:
   - provider: Email
