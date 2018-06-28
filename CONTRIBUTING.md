@@ -125,6 +125,17 @@ Further steps:
 If any step produces an error please think twice before releasing. ;-)
 
 
+##  Create OS-related packages
+
+At the moment, only Debian GNU/Linux is supported:
+
+1. Make sure you have [`fpm`](https://github.com/jordansissel/fpm) installed
+2. Build binary file: `composer build`
+3. Create .deb package file: `composer deb`
+
+This results in a file `idoitcli_<VERSION>_all.deb`.
+
+
 ##  Composer scripts
 
 This project comes with some useful composer scripts:
@@ -134,6 +145,7 @@ This project comes with some useful composer scripts:
 | `composer ci`                 | Perform continuous integration tasks                      |
 | `composer clean`              | Cleanup project directory                                 |
 | `composer build`              | Create a binary                                           |
+| `composer deb`                | Create a Debian GNU/Linux package                         |
 | `composer dist`               | Create a distribution tarball                             |
 | `composer find-forbidden`     | Find forbidden words in source code                       |
 | `composer gitstats`           | Create Git statistics                                     |

@@ -66,6 +66,13 @@
             "chmod +x `composer config extra.name`",
             "@composer dump-autoload"
         ],
+        "deb": [
+            "@composer is-built",
+            "touch .dummy",
+            "rm -f `composer config extra.name`_`composer config extra.version`_all.deb",
+            "fpm -s dir -t deb -n `composer config extra.name` -v `composer config extra.version` -a all --license \"`composer config license`\" -m \"benjamin@heisig.name\" --vendor \"benjamin@heisig.name\" --description \"`composer config description`\" --url \"`composer config homepage`\" -d php -d php-cli -d php-common -d php-bz2 -d php-curl -d php-json `composer config extra.name`=/usr/bin/`composer config extra.name` .dummy=/etc/`composer config extra.name`",
+            "rm .dummy"
+        ],
         "dist": [
             "@composer is-built",
             "rm -rf ./`composer config extra.name`-`composer config extra.version`/",
@@ -120,8 +127,8 @@
         ],
         "win-build": [
             "@composer dump-autoload --classmap-authoritative",
-            "./vendor/bin/phar-builder.bat package --quiet composer.json",
-            "mv \"$(composer config extra.name).phar\" \"$(composer config extra.name)\"",
+            ".\\vendor\\bin\\phar-builder.bat package --quiet composer.json",
+            "powershell mv \"$(composer config extra.name).phar\" \"$(composer config extra.name)\"",
             "@composer dump-autoload"
         ],
         "win-system-check": [
@@ -137,6 +144,7 @@
         "ci": "Perform continuous integration tasks",
         "clean": "Cleanup project directory",
         "build": "Create a binary",
+        "deb": "Create a Debian GNU/Linux package",
         "dist": "Create a distribution tarball",
         "find-forbidden": "Find forbidden words in source code",
         "gitstats": "Create Git statistics",
