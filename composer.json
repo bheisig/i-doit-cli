@@ -70,8 +70,9 @@
             "@composer is-built",
             "touch .dummy",
             "rm -f `composer config extra.name`_`composer config extra.version`_all.deb",
-            "fpm -s dir -t deb -n `composer config extra.name` -v `composer config extra.version` -a all --license \"`composer config license`\" -m \"benjamin@heisig.name\" --vendor \"benjamin@heisig.name\" --description \"`composer config description`\" --url \"`composer config homepage`\" -d php -d php-cli -d php-common -d php-bz2 -d php-curl -d php-json `composer config extra.name`=/usr/bin/`composer config extra.name` .dummy=/etc/`composer config extra.name`",
-            "rm .dummy"
+            "fpm -s dir -t deb -n `composer config extra.name` -v `composer config extra.version` -a all --license \"`composer config license`\" -m \"Benjamin Heisig <benjamin@heisig.name>\" --vendor \"Benjamin Heisig <benjamin@heisig.name>\" --description \"`composer config description`\" --url \"`composer config homepage`\" -d php -d php-cli -d php-common -d php-bz2 -d php-curl -d php-json `composer config extra.name`=/usr/bin/`composer config extra.name` .dummy=/etc/`composer config extra.name`",
+            "rm .dummy",
+            "lintian `composer config extra.name`_`composer config extra.version`_all.deb"
         ],
         "dist": [
             "@composer is-built",
