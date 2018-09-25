@@ -25,6 +25,7 @@
         "bheisig/idoitapi": "^0.6"
     },
     "require-dev": {
+        "jakub-onderka/php-parallel-lint": "^1.0",
         "macfja/phar-builder": "^0.2.6",
         "phploc/phploc": "^4.0",
         "phpmd/phpmd" : "@stable",
@@ -105,7 +106,7 @@
         "phpmd": "./vendor/bin/phpmd src text cleancode,codesize,controversial,design,naming,unusedcode",
         "phpstan": "./vendor/bin/phpstan analyze -l max src",
         "security-checker": "./vendor/bin/security-checker security:check ./composer.lock",
-        "syntax-check": "php -l src/",
+        "syntax-check": "./vendor/bin/parallel-lint --exclude vendor --blame .",
         "system-check": [
             "php --version",
             "php -m",
