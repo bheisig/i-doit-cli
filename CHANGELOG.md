@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
--   `init`: Validation error occures even before initialization could start
+-   `init`: Validation error occurs even before initialization could start
 
 
 ##  [0.5] – 2018-04-24
