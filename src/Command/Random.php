@@ -44,6 +44,11 @@ class Random extends Command {
     protected $rackRUs;
     protected $rackPos;
 
+    protected $laptopIDs = [];
+    protected $applicationIDs = [];
+    protected $licenseIDs = [];
+    protected $licenseKeyIDs = [];
+
     /**
      * Executes the command
      *
@@ -59,13 +64,28 @@ class Random extends Command {
             'subnets',
             'racks',
             'servers',
-            'persons'
+            'persons',
+            'laptops',
+            'applications',
+            'licenses'
         ];
 
         foreach ($topics as $topic) {
             if (array_key_exists($topic, $this->config)) {
                 $method = 'create' . ucfirst($topic);
                 $this->$method();
+
+                $worked = true;
+            }
+        }
+
+        $tasks = [
+            'installApplications'
+        ];
+
+        foreach ($tasks as $task) {
+            if (array_key_exists($task, $this->config)) {
+                $this->$task();
 
                 $worked = true;
             }
@@ -957,6 +977,330 @@ class Random extends Command {
         return $this;
     }
 
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createLaptops(): self {
+        $this->laptopIDs = $this->generateObjects('laptops');
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createApplications(): self {
+        $this->applicationIDs = $this->generateObjects('applications');
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function createLicenses(): self {
+        $this->licenseIDs = $this->generateObjects('licenses');
+
+        $this->log->info('…with keys');
+
+        $requests = [];
+
+        foreach ($this->licenseIDs as $licenseID) {
+            $requests[] = [
+                'method' => 'cmdb.category.create',
+                'params' => [
+                    'objID' => $licenseID,
+                    'category' => 'C__CATS__LICENCE_LIST',
+                    'data' => [
+                        'key' => $this->genTitle(),
+                        'type' => 2, // Volume
+                        'amount' => 1000
+                    ]
+                ]
+            ];
+        }
+
+        $results = $this->processRequests($requests);
+
+        $index = 0;
+
+        foreach ($results as $result) {
+            $licenseID = $this->licenseIDs[$index];
+            $this->licenseKeyIDs[$licenseID] = (int) $result['id'];
+            $index++;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws \Exception on error
+     * @return self Returns itself
+     */
+    protected function installApplications(): self {
+        if (count($this->laptopIDs) === 0) {
+            throw new \BadMethodCallException('There are no laptops');
+        }
+
+        $requiredSettings = [
+            'min',
+            'max',
+            'addLicense'
+        ];
+
+        foreach ($requiredSettings as $requiredSetting) {
+            if (!array_key_exists($requiredSetting, $this->config['installApplications'])) {
+                throw new \BadMethodCallException(sprintf(
+                    'Setting "installApplications.%s" missing',
+                    $requiredSetting
+                ));
+            }
+        }
+
+        switch (count($this->applicationIDs)) {
+            case 0:
+                throw new \BadMethodCallException('There are no applications');
+            case 1:
+                $this->log->info('Install 1 application…');
+                break;
+            default:
+                $this->log->info('Install %s applications…', count($this->applicationIDs));
+                break;
+        }
+
+        switch (count($this->laptopIDs)) {
+            case 0:
+                throw new \BadMethodCallException('There are no laptops');
+            case 1:
+                $this->log->info('…on 1 laptop…');
+                break;
+            default:
+                $this->log->info('…on %s laptops…', count($this->laptopIDs));
+                break;
+        }
+
+        if ($this->config['installApplications']['addLicense'] === true) {
+            $this->log->info('…with licenses');
+        } else {
+            $this->log->info('…without licenses');
+        }
+
+        $requests = [];
+
+        foreach ($this->laptopIDs as $laptopID) {
+            $amount = mt_rand(
+                $this->config['installApplications']['min'],
+                $this->config['installApplications']['max']
+            );
+
+            for ($index = 0; $index < $amount; $index++) {
+                $data = [
+                    'application' => $this->pickRandomElement($this->applicationIDs)
+                ];
+
+                if ($this->config['installApplications']['addLicense'] === true) {
+                    $licenseID = $this->pickRandomElement($this->licenseIDs);
+
+                    $data['assigned_license'] = $licenseID;
+                    $data['assigned_license_key'] = $this->licenseKeyIDs[$licenseID];
+                }
+
+                $requests[] = [
+                    'method' => 'cmdb.category.create',
+                    'params' => [
+                        'objID' => $laptopID,
+                        'category' => 'C__CATG__APPLICATION',
+                        'data' => $data
+                    ]
+                ];
+            }
+        }
+
+        $this->processRequests($requests);
+
+        return $this;
+    }
+
+    /**
+     * @param array $requests
+     *
+     * @return array Results
+     * @throws \Exception on error
+     */
+    protected function processRequests(array $requests): array {
+        $requestCounter = count($requests);
+
+        $limit = $this->config['limitBatchRequests'];
+
+        if ($limit <= 0) {
+            $this->log->debug('Unlimited requests per batch allowed');
+            $batchCounter = 1;
+        } elseif ($limit === 1) {
+            $this->log->debug('Only 1 request per batch allowed');
+            $batchCounter = $requestCounter;
+        } else {
+            $this->log->debug('%s requests per batch allowed', $limit);
+            $batchCounter = (int) ceil(count($requests) / $limit);
+        }
+
+        switch ($requestCounter) {
+            case 0:
+                throw new \BadMethodCallException('Nothing to do');
+            case 1:
+                $this->log->debug('Process 1 request');
+                break;
+            default:
+                if ($limit <= 0) {
+                    $this->log->debug(
+                        'Process %s requests in 1 batch',
+                        $requestCounter
+                    );
+                } elseif ($limit === 1) {
+                    $this->log->debug(
+                        'Process 1 request at once',
+                        $requestCounter
+                    );
+                } elseif ($batchCounter === 1) {
+                    $this->log->debug(
+                        'Process %s requests in 1 batch',
+                        $requestCounter
+                    );
+                } else {
+                    $this->log->debug(
+                        'Process %s requests in %s batches',
+                        $requestCounter,
+                        $batchCounter
+                    );
+                }
+                break;
+        }
+
+        if ($requestCounter > 1000) {
+            $this->log->debug('This could take a while…');
+        }
+
+        $offset = 0;
+        $round = 1;
+        $results = [];
+
+        while ($offset < $requestCounter) {
+            $batchRequest = array_slice(
+                $requests,
+                $offset,
+                ($limit > 0) ? $limit : null,
+                true
+            );
+
+            if ($limit > 0 && $requestCounter >= $limit) {
+                if ($offset === 0 && $round === $batchCounter) {
+                    $this->log->debug(
+                        'Round %s/%s: Process all %s requests',
+                        $round,
+                        $batchCounter,
+                        $limit
+                    );
+                } elseif ($offset === 0 && $round < $batchCounter) {
+                    $this->log->debug(
+                        'Round %s/%s: Process first %s requests from %s to %s',
+                        $round,
+                        $batchCounter,
+                        $limit,
+                        $offset + 1,
+                        $offset + $limit
+                    );
+                } elseif (($requestCounter - $offset) === 1) {
+                    $this->log->debug(
+                        'Round %s/%s: Process last request',
+                        $round,
+                        $batchCounter
+                    );
+                } elseif (($requestCounter - $offset) > 1 &&
+                    ($offset + $limit) > $requestCounter) {
+                    $this->log->debug(
+                        'Round %s/%s: Process last %s requests',
+                        $round,
+                        $batchCounter,
+                        $requestCounter - $offset
+                    );
+                } elseif (($requestCounter - $offset) > 1) {
+                    $this->log->debug(
+                        'Round %s/%s: Process next %s requests from %s to %s',
+                        $round,
+                        $batchCounter,
+                        $limit,
+                        $offset + 1,
+                        $offset + $limit
+                    );
+                }
+            }
+
+            $results = $results +
+                $this->useIdoitAPI()->getAPI()->batchRequest($batchRequest);
+
+            if ($limit <= 0) {
+                break;
+            }
+
+            $offset += $limit;
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param string $topic
+     *
+     * @return int[]
+     * @throws \Exception on error
+     */
+    protected function generateObjects(string $topic): array {
+        $this->log->info('Create %s', $topic);
+
+        $this->assertInteger(
+            'amount',
+            $this->config[$topic],
+            sprintf('Do not know how many %s to create', $topic)
+        );
+
+        $requests = [];
+
+        for ($i = 0; $i < $this->config[$topic]['amount']; $i++) {
+            $prefix = null;
+
+            if (array_key_exists('prefix', $this->config[$topic])) {
+                $prefix = $this->config[$topic]['prefix'];
+            }
+
+            $title = $this->genTitle($prefix);
+
+            $requests[] = [
+                'method' => 'cmdb.object.create',
+                'params' => [
+                    'title' => $title,
+                    'type' => $this->config[$topic]['objectType']
+                ]
+            ];
+        }
+
+        $result = $this->processRequests($requests);
+
+        $objectIDs = [];
+
+        foreach ($result as $object) {
+            $objectIDs[] = (int) $object['id'];
+        }
+
+        $this->logStat("Created $topic", count($objectIDs));
+
+        return $objectIDs;
+    }
+
     protected function pickRandomElement(array $haystack) {
         if (count($haystack) === 0) {
             throw new \BadMethodCallException('Empty array');
@@ -1151,6 +1495,8 @@ class Random extends Command {
      * @return int[] Object identifiers
      *
      * @throws \Exception on error
+     *
+     * @deprecated
      */
     protected function createObjects(array $objects): array {
         $count = count($objects);

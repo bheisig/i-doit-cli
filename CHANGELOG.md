@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 -   Support for Windows operating systems
 -   `random`: Create persons with random names, e-mail addresses and desks
+-   `random`: Install applications on laptops with license keys
 
 
 ### Fixed

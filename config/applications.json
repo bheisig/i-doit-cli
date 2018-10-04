@@ -1,0 +1,22 @@
+{
+    "applications": {
+        "amount": 1000,
+        "objectType": "C__OBJTYPE__APPLICATION",
+        "prefix": "app-"
+    },
+    "licenses": {
+        "amount": 100,
+        "objectType": "C__OBJTYPE__LICENCE",
+        "prefix": "license-"
+    },
+    "laptops": {
+        "amount": 1000,
+        "objectType": "C__OBJTYPE__CLIENT",
+        "prefix": "laptop-"
+    },
+    "installApplications": {
+        "min": 1,
+        "max": 10,
+        "addLicense": false
+    }
+}
