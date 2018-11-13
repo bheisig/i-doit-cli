@@ -1107,8 +1107,7 @@ class Random extends Command {
                 if ($this->config['installApplications']['addLicense'] === true) {
                     $licenseID = $this->pickRandomElement($this->licenseIDs);
 
-                    $data['assigned_license'] = $licenseID;
-                    $data['assigned_license_key'] = $this->licenseKeyIDs[$licenseID];
+                    $data['assigned_license'] = $this->licenseKeyIDs[$licenseID];
                 }
 
                 $requests[] = [
@@ -1247,6 +1246,7 @@ class Random extends Command {
                 break;
             }
 
+            $round++;
             $offset += $limit;
         }
 
