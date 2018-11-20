@@ -88,6 +88,11 @@ try {
             'Fetch information from your CMDB'
         )
         ->addCommand(
+            'save',
+            __NAMESPACE__ . '\\Command\\Save',
+            'Create/update CMDB objects and their category entries'
+        )
+        ->addCommand(
             'search',
             __NAMESPACE__ . '\\Command\\Search',
             'Find your needle in the haystack called CMDB'
