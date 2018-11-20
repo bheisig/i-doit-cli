@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##  [Unreleased]
 
+_tbd_
+
+
+##  [0.6]
+
 
 ### Added
 
@@ -107,7 +112,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Initial release
 
 
-[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.5...HEAD
+[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.6...HEAD
+[0.6]: https://github.com/bheisig/i-doit-cli/compare/0.5...0.6
 [0.5]: https://github.com/bheisig/i-doit-cli/compare/0.4...0.5
 [0.4]: https://github.com/bheisig/i-doit-cli/compare/0.3...0.4
 [0.3]: https://github.com/bheisig/i-doit-cli/compare/0.2...0.3
