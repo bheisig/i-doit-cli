@@ -565,7 +565,7 @@ class Read extends Command {
                     break;
                 default:
                     IO::err(
-                        'Found %s entries in category "" [%s]',
+                        'Found %s entries in category "%s" [%s]',
                         count($batchEntries[0]),
                         $identifiedCategory['title'],
                         $identifiedCategory['const']

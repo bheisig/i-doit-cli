@@ -169,11 +169,12 @@ class FixIP extends Command {
                 foreach ($object['ips'] as $ipAddress) {
                     $net = null;
 
-                    if (is_array($ipAddress['net'])) {
-                        $net = (int)$ipAddress['net']['id'];
+                    if (is_array($ipAddress['net']) &&
+                        array_key_exists('id', $ipAddress['net'])) {
+                        $net = (int) $ipAddress['net']['id'];
                     }
 
-                    $ip = $ipAddress['hostaddress']['ref_title'];
+                    $ip = $ipAddress['ipv4_address']['ref_title'];
                     $ip2long = ip2long($ip);
                     $type = 'IPv4';
 
@@ -554,9 +555,10 @@ class FixIP extends Command {
                 $refObjId = (int) $ipAddress['objID'];
                 $entryID = (int) $ipAddress['id'];
 
-                if (!is_array($ipAddress['primary_hostaddress']) ||
-                    count($ipAddress['primary_hostaddress']) === 0 ||
-                    empty($ipAddress['primary_hostaddress']['ref_title'])) {
+                if (!is_array($ipAddress['ipv4_address']) ||
+                    count($ipAddress['ipv4_address']) === 0 ||
+                    !is_string($ipAddress['ipv4_address']['ref_title']) ||
+                    strlen($ipAddress['ipv4_address']['ref_title']) === 0) {
                     continue;
                 }
 

@@ -29,7 +29,7 @@ namespace bheisig\idoitcli\Command;
 /**
  * Command "nextip"
  */
-class Nextip extends Command {
+class NextIP extends Command {
 
     protected $freeIPAddresses = [];
 

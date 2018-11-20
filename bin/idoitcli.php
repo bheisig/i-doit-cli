@@ -63,7 +63,7 @@ try {
         )
         ->addCommand(
             'fixip',
-            __NAMESPACE__ . '\\Command\\Fixip',
+            __NAMESPACE__ . '\\Command\\FixIP',
             'Assign IPs to subnets'
         )
         // Extent basic command for caching:
@@ -74,7 +74,7 @@ try {
         )
         ->addCommand(
             'nextip',
-            __NAMESPACE__ . '\\Command\\Nextip',
+            __NAMESPACE__ . '\\Command\\NextIP',
             'Fetch the next free IP address for a given subnet'
         )
         ->addCommand(
