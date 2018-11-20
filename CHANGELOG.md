@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 -   `init`: Validation error occurs even before initialization could start
+-   `init`: Ask for hostname if HTTP proxy will be used
 
 
 ##  [0.5] – 2018-04-24

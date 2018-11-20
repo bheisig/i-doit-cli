@@ -7,6 +7,7 @@
         {"key": "language", "type": "string", "required": false, "values": ["en", "de"]},
         {"key": "proxy", "type": "object", "required": false, "nodes": [
             {"key": "type", "type": "string", "required": true, "values": ["HTTP", "SOCKS5"]},
+            {"key": "host", "type": "string", "required": false, "minLength": 1},
             {"key": "port", "type": "integer", "required": false, "ge": 1, "le": 65536},
             {"key": "username", "type": "string", "required": false, "minLength": 1},
             {"key": "password", "type": "string", "required": false, "minLength": 1}
