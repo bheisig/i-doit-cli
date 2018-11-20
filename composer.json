@@ -22,7 +22,7 @@
         "ext-bz2": "*",
         "ext-Phar": "*",
         "bheisig/cli": "@DEV",
-        "bheisig/idoitapi": "^0.6"
+        "bheisig/idoitapi": "@DEV"
     },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "^1.0",
@@ -40,7 +40,7 @@
             "bheisig\\idoitcli\\": "src/"
         }
     },
-    "bin": ["bin/idoit"],
+    "bin": ["bin/idoitcli"],
     "scripts": {
         "ci": [
             "@composer system-check",
@@ -166,7 +166,7 @@
     },
     "extra": {
         "name": "idoitcli",
-        "version": "0.6",
+        "version": "0.7-dev",
         "phar-builder": {
             "skip-shebang": false,
             "include-dev": false,
