@@ -728,11 +728,11 @@ class FixIP extends Command {
 
 
     /**
-     * Shows usage of command
+     * Print usage of command
      *
      * @return self Returns itself
      */
-    public function showUsage(): self {
+    public function printUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s [OPTIONS] [--dry-run]
 

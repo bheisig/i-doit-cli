@@ -219,11 +219,11 @@ class Show extends Command {
     }
 
     /**
-     * Shows usage of this command
+     * Print usage of command
      *
      * @return self Returns itself
      */
-    public function showUsage(): self {
+    public function printUsage(): self {
         $this->log->info(
             'Usage: %1$s %2$s [OPTIONS] [QUERY]
 
