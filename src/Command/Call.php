@@ -108,7 +108,7 @@ Examples:
     \'{"version": "2.0","method": "idoit.version","params": {"apikey": "c1ia5q","language": "en"},"id": 1}\' \\
     | %1$s %2$s
 3) cat request.txt | %1$s %2$s',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

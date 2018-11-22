@@ -49,7 +49,7 @@ class Read extends Command {
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
-                $this->config['args'][0]
+                $this->config['composer']['extra']['name']
             ), 500);
         }
 
@@ -291,7 +291,7 @@ class Read extends Command {
 
                             throw new \Exception(sprintf(
                                 'Unsufficient data. Please run "%s cache" first.',
-                                $this->config['args'][0]
+                                $this->config['composer']['extra']['name']
                             ));
                         }
                     } else {
@@ -385,7 +385,7 @@ class Read extends Command {
 
                             throw new \Exception(sprintf(
                                 'Unsufficient data. Please run "%s cache" first.',
-                                $this->config['args'][0]
+                                $this->config['composer']['extra']['name']
                             ));
                         }
                     } else {
@@ -788,7 +788,7 @@ class Read extends Command {
 
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
-                $this->config['args'][0]
+                $this->config['composer']['extra']['name']
             ));
         }
 
@@ -955,7 +955,7 @@ Show atttribute value:
 These examples work great with unique names. That is why it is common practice
 to give objects unique titles that are not in conflict with object types and
 categories.',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

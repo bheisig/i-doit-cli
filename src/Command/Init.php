@@ -64,7 +64,7 @@ class Init extends Command {
                 ->printEmptyLine()
                 ->info(
                     '    %s cache',
-                    $this->config['args'][0]
+                    $this->config['composer']['extra']['name']
                 );
         } catch (\Exception $e) {
             $code = $e->getCode();
@@ -76,7 +76,7 @@ class Init extends Command {
             throw new \Exception(
                 sprintf(
                     'Unable to initiate "%s": ' . $e->getMessage(),
-                    $this->config['args'][0]
+                    $this->config['composer']['extra']['name']
                 ),
                 $code
             );

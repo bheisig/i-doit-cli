@@ -256,7 +256,7 @@ Examples:
 
     %1$s %2$s --global --enabled    Only list global categories which are assigned to object types
     %1$s %2$s --specific            List all specific categories',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

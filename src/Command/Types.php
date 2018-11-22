@@ -168,7 +168,7 @@ class Types extends Command {
             'Usage: %1$s %2$s [OPTIONS]
 
 %3$s',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

@@ -93,7 +93,7 @@ Examples:
 
 1) %1$s %2$s myserver
 2) %1$s %2$s "My Server"',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

@@ -245,7 +245,7 @@ Add model for server "host.example.net":
 Add model to all servers:
 
     %1$s %2$s server/*/model --manufacturer VendorXY --title Model123',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

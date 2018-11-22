@@ -80,7 +80,7 @@ Examples:
 
 1) %1$s %2$s "Global v4"
 2) %1$s %2$s 20',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );

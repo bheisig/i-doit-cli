@@ -236,7 +236,7 @@ trait Cache {
             throw new \Exception(sprintf(
                 'No proper configuration found' . PHP_EOL .
                 'Run "%s init" to create configuration settings',
-                $this->config['args'][0]
+                $this->config['composer']['extra']['name']
             ));
         }
 

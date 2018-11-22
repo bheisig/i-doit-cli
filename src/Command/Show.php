@@ -49,7 +49,7 @@ class Show extends Command {
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
-                $this->config['args'][0]
+                $this->config['composer']['extra']['name']
             ), 500);
         }
 
@@ -236,7 +236,7 @@ Examples:
 1) %1$s %2$s myserver
 2) %1$s %2$s "My Server"
 3) %1$s %2$s 42',
-            $this->config['args'][0],
+            $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
         );
