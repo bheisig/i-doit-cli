@@ -8,7 +8,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ##  [Unreleased]
 
-_tbd_
+
+### Added
+
+-   `cache`: Create cache files needed for faster processing
+
+
+### Changed
+
+-   `init`: Just create configuration file and do not cache files anymore
+
+
+### Fixed
+
+-   `init`: Ask to enable proxy settings
 
 
 ##  [0.6]

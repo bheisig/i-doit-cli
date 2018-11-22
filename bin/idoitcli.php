@@ -32,9 +32,7 @@ use bheisig\cli\IO;
 try {
     require_once __DIR__ . '/../vendor/autoload.php';
 
-    $app = new App();
-
-    $app
+    (new App())
         ->addConfigSettings([
             'appDir' => __DIR__ . '/..',
             'baseDir' => (strtolower(substr(PHP_OS, 0, 3)) === 'win') ?
@@ -43,9 +41,12 @@ try {
             'dataDir' => (strtolower(substr(PHP_OS, 0, 3)) === 'win') ?
                 $_SERVER['LOCALAPPDATA'] . '\\idoitcli\\data' :
                 $_SERVER['HOME'] . '/.idoitcli/data'
-        ]);
-
-    $app
+        ])
+        ->addCommand(
+            'cache',
+            __NAMESPACE__ . '\\Command\\Cache',
+            'Create cache files needed for faster processing'
+        )
         ->addCommand(
             'call',
             __NAMESPACE__ . '\\Command\\Call',
@@ -111,9 +112,14 @@ try {
             'types',
             __NAMESPACE__ . '\\Command\\Types',
             'Print a list of available object types and group them'
-        );
-
-    $app->run();
+        )
+        // Used by command "save":
+        ->addOption(
+            'a',
+            'attribute',
+            App::OPTION_NOT_REQUIRED
+        )
+        ->run();
 } catch (\Exception $e) {
     IO::err($e->getMessage());
 

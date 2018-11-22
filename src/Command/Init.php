@@ -26,15 +26,12 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Cache;
 use bheisig\cli\Command\Init as BaseInit;
 
 /**
  * Command "init"
  */
 class Init extends Command {
-
-    use Cache;
 
     /**
      * Process some routines before executing command
@@ -62,11 +59,13 @@ class Init extends Command {
             $baseInit = new BaseInit($this->config, $this->log);
             $baseInit->execute();
 
-            $this
-                ->clearCache()
-                ->createCache();
-
-            $this->log->info('Done.');
+            $this->log
+                ->info('Create cache files needed for faster processing:')
+                ->printEmptyLine()
+                ->info(
+                    '    %s cache',
+                    $this->config['args'][0]
+                );
         } catch (\Exception $e) {
             $code = $e->getCode();
 
@@ -81,152 +80,6 @@ class Init extends Command {
                 ),
                 $code
             );
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string $file
-     * @param mixed $value
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function serialize(string $file, $value): self {
-        $filePath = $this->getHostDir() . '/' . $file;
-
-        $status = file_put_contents($filePath, serialize($value));
-
-        if ($status === false) {
-            throw new \Exception(sprintf(
-                'Unable to write to cache file "%s"',
-                $filePath
-            ));
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function clearCache(): self {
-        $hostDir = $this->getHostDir();
-
-        if (!is_dir($hostDir)) {
-            $this->log->info(
-                'Create cache directory for i-doit instance "%s"',
-                $this->config['api']['url']
-            );
-
-            $status = mkdir($hostDir, 0775, true);
-
-            if ($status === false) {
-                throw new \Exception(sprintf(
-                    'Unable to create data directory "%s"',
-                    $hostDir
-                ));
-            }
-        } else {
-            $this->log->info('Clear cache files');
-
-            $files = new \DirectoryIterator($hostDir);
-
-            foreach ($files as $file) {
-                if ($file->isFile()) {
-                    $status = @unlink($file->getPathname());
-
-                    if ($status === false) {
-                        throw new \Exception(sprintf(
-                            'Unable to clear data in "%s". Unable to delete file "%s"',
-                            $hostDir,
-                            $file->getPathname()
-                        ));
-                    }
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function createCache(): self {
-        $this->log->info('Fetch list of object types');
-
-        $objectTypes = $this->useIdoitAPI()->getCMDBObjectTypes()->read();
-
-        $this->serialize(
-            'object_types',
-            $objectTypes
-        );
-
-        $this->log->info('Fetch list of assigned categories');
-
-        $objectTypeIDs = [];
-
-        foreach ($objectTypes as $objectType) {
-            $objectTypeIDs[] = (int) $objectType['id'];
-        }
-
-        $batchedAssignedCategories = $this->useIdoitAPI()->getCMDBObjectTypeCategories()->batchReadByID($objectTypeIDs);
-
-        for ($i = 0; $i < count($objectTypes); $i++) {
-            $this->serialize(
-                sprintf(
-                    'object_type__%s',
-                    $objectTypes[$i]['const']
-                ),
-                $batchedAssignedCategories[$i]
-            );
-        }
-
-        $this->log->info('Fetch information about categories');
-
-        $categoryConsts = [];
-
-        $categories = [];
-
-        foreach ($batchedAssignedCategories as $assignedCategories) {
-            foreach ($assignedCategories as $type => $categoryList) {
-                if ($type !== 'catg' && $type !== 'cats') {
-                    $this->log->warning('Ignore customized categories');
-                    continue;
-                }
-
-                foreach ($categoryList as $category) {
-                    $categoryConsts[] = $category['const'];
-                    $categories[$category['const']] = $category;
-                }
-            }
-        }
-
-        if (count($categoryConsts) > 0) {
-            $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($categoryConsts);
-
-            $counter = 0;
-
-            foreach ($categoryConsts as $categoryConst) {
-                $categories[$categoryConst]['properties'] = $batchCategoryInfo[$counter];
-
-                $this->serialize(
-                    sprintf(
-                        'category__%s',
-                        $categoryConst
-                    ),
-                    $categories[$categoryConst]
-                );
-
-                $counter++;
-            }
         }
 
         return $this;

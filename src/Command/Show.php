@@ -48,7 +48,7 @@ class Show extends Command {
 
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
-                'Unsufficient data. Please run "%s init" first.',
+                'Unsufficient data. Please run "%s cache" first.',
                 $this->config['args'][0]
             ), 500);
         }

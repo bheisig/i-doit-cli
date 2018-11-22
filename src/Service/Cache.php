@@ -96,8 +96,8 @@ trait Cache {
             if ($this->config['cacheLifetime'] > 0 &&
                 (time() - $this->config['cacheLifetime'] > $file->getCTime())) {
                 IO::err(
-                    'Your cache is out-dated. Please re-run "%s init".',
-                    $this->config['args'][0]
+                    'Your cache is out-dated. Please run "%s cache" first.',
+                    $this->config['composer']['extra']['name']
                 );
                 IO::err('');
             }

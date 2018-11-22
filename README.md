@@ -86,7 +86,11 @@ This application caches a lot locally to give you the best user experience. Run 
 idoitcli init
 ~~~
 
-Some simple questions will be asked how to access your i-doit installation.
+Some simple questions will be asked how to access your i-doit installation. Next step is to create cache files:
+
+~~~ {.bash}
+idoitcli cache
+~~~
 
 After that some files will be created in your home directory under `~/.idoitcli/`: Each i-doit installation has its own cache files under `data/`. Your user-defined configuration file is called `config.json`.
 

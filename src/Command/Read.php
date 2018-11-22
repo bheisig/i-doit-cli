@@ -48,7 +48,7 @@ class Read extends Command {
 
         if ($this->isCached() === false) {
             throw new \Exception(sprintf(
-                'Unsufficient data. Please run "%s init" first.',
+                'Unsufficient data. Please run "%s cache" first.',
                 $this->config['args'][0]
             ), 500);
         }
@@ -290,7 +290,7 @@ class Read extends Command {
                             );
 
                             throw new \Exception(sprintf(
-                                'Cache seems to be outdated. Please re-run "%s init".',
+                                'Unsufficient data. Please run "%s cache" first.',
                                 $this->config['args'][0]
                             ));
                         }
@@ -384,7 +384,7 @@ class Read extends Command {
                             );
 
                             throw new \Exception(sprintf(
-                                'Cache seems to be outdated. Please re-run "%s init".',
+                                'Unsufficient data. Please run "%s cache" first.',
                                 $this->config['args'][0]
                             ));
                         }
@@ -787,7 +787,7 @@ class Read extends Command {
             );
 
             throw new \Exception(sprintf(
-                'Cache seems to be outdated. Please re-run "%s init".',
+                'Unsufficient data. Please run "%s cache" first.',
                 $this->config['args'][0]
             ));
         }
