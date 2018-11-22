@@ -26,8 +26,6 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
 
-use bheisig\cli\IO;
-
 /**
  * Trait for API calls
  */
@@ -90,19 +88,15 @@ trait Cache {
             }
 
             if ($file->isFile() === false) {
-                return false;
+                continue;
             }
 
             if ($this->config['cacheLifetime'] > 0 &&
                 (time() - $this->config['cacheLifetime'] > $file->getCTime())) {
-                IO::err(
-                    'Your cache is out-dated. Please run "%s cache" first.',
-                    $this->config['composer']['extra']['name']
-                );
-                IO::err('');
+                return false;
             }
 
-            // First file is valid – this is all I need to know:
+            // First file is valid – this is all we need to know:
             return true;
         }
 
