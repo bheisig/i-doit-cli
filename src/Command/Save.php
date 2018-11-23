@@ -35,20 +35,64 @@ class Save extends Command {
 
     use Cache;
 
+    /**
+     * @var int
+     */
     protected $objectTypeID;
+
+    /**
+     * @var string
+     */
     protected $objectTypeConstant;
+
+    /**
+     * @var string
+     */
     protected $objectTypeTitle;
 
+    /**
+     * @var int
+     */
     protected $objectID;
+
+    /**
+     * @var string
+     */
     protected $objectTitle;
 
+    /**
+     * @var array
+     */
+    protected $object;
+
+    /**
+     * @var int
+     */
     protected $categoryID;
+
+    /**
+     * @var string
+     */
     protected $categoryConstant;
+
+    /**
+     * @var string
+     */
     protected $categoryTitle;
 
+    /**
+     * @var array
+     */
     protected $attributes = [];
 
+    /**
+     * @var int
+     */
     protected $entryID;
+
+    /**
+     * @var array
+     */
     protected $entry;
 
     /**
@@ -197,6 +241,19 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function analyseCollectedData(): self {
+        $this
+            ->reportObjectType()
+            ->reportObject()
+            ->reportCategory()
+            ->reportEntry();
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     */
+    protected function reportObjectType(): self {
         if ($this->hasObjectType()) {
             $this->log->debug(
                 'Object type identified: %s [%s]',
@@ -207,6 +264,15 @@ class Save extends Command {
             $this->log->debug('No object type identified');
         }
 
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function reportObject(): self {
         if ($this->hasObject()) {
             $this->log->debug(
                 'Object identified: %s [%s]',
@@ -217,6 +283,29 @@ class Save extends Command {
             $this->log->debug('No object identified');
         }
 
+        if ($this->hasObjectType() && $this->hasObject()) {
+            if ($this->isObjectToType($this->object, $this->objectTypeID) === false) {
+                throw new \BadMethodCallException(sprintf(
+                    'Object "%s" [%s] has type "%s" [%s], but "%s" [%s] is given',
+                    $this->object['title'],
+                    $this->object['id'],
+                    $this->object['type_title'],
+                    array_key_exists('type', $this->object) ? $this->object['type'] : $this->object['objecttype'],
+                    $this->objectTypeTitle,
+                    $this->objectTypeConstant
+                ));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function reportCategory(): self {
         if ($this->hasCategory()) {
             $this->log->debug(
                 'Category identified : %s [%s]',
@@ -239,6 +328,13 @@ class Save extends Command {
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     */
+    protected function reportEntry(): self {
         if ($this->hasEntry()) {
             $this->log->debug(
                 'Category entry identified by ID: %s',
@@ -304,6 +400,7 @@ class Save extends Command {
      * If found set…
      * @see $objectID
      * @see $objectTitle
+     * @see $object
      *
      * Also set object type if needed by using
      * @see identifyObjectType
@@ -316,25 +413,23 @@ class Save extends Command {
      */
     protected function identifyObject(string $candidate): bool {
         if ($this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
-            $objects = $this->useIdoitAPI()->fetchObjects([
-                'ids' => [(int) $candidate],
-                'type' => $this->objectTypeID
-            ]);
+            $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
 
-            if (count($objects) === 1) {
-                $object = end($objects);
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
+            if (count($object) > 0) {
+                $this->object = $object;
+                $this->objectID = (int) $this->object['id'];
+                $this->objectTitle = $this->object['title'];
                 return true;
             }
         } elseif (!$this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
             $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
 
             if (count($object) > 0) {
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
+                $this->object = $object;
+                $this->objectID = (int) $this->object['id'];
+                $this->objectTitle = $this->object['title'];
 
-                $this->identifyObjectType((string) $object['type']);
+                $this->identifyObjectType((string) $this->object['type']);
                 return true;
             }
         } elseif ($this->hasObjectType()) {
@@ -347,9 +442,9 @@ class Save extends Command {
                 case 0:
                     return false;
                 case 1:
-                    $object = end($objects);
-                    $this->objectID = (int) $object['id'];
-                    $this->objectTitle = $object['title'];
+                    $this->object = end($objects);
+                    $this->objectID = (int) $this->object['id'];
+                    $this->objectTitle = $this->object['title'];
                     return true;
                 default:
                     throw new \RuntimeException(sprintf(
@@ -366,11 +461,11 @@ class Save extends Command {
                 case 0:
                     return false;
                 case 1:
-                    $object = end($objects);
-                    $this->objectID = (int) $object['id'];
-                    $this->objectTitle = $object['title'];
+                    $this->object = end($objects);
+                    $this->objectID = (int) $this->object['id'];
+                    $this->objectTitle = $this->object['title'];
 
-                    $this->identifyObjectType((string) $object['type']);
+                    $this->identifyObjectType((string) $this->object['type']);
                     return true;
                 default:
                     throw new \RuntimeException(sprintf(
@@ -475,6 +570,18 @@ class Save extends Command {
         );
 
         return true;
+    }
+
+    protected function isObjectToType(array $object, $objectTypeID): bool {
+        if (array_key_exists('type', $object) &&
+            (int) $object['type'] === $objectTypeID) {
+            return true;
+        } elseif (array_key_exists('objecttype', $object) &&
+            (int) $object['objecttype'] === $objectTypeID) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
