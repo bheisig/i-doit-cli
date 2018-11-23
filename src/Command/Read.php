@@ -269,8 +269,10 @@ class Read extends Command {
 
                         $found = false;
 
+                        $object = end($objects);
+
                         foreach ($objectTypes as $objectType) {
-                            if ($objectType['id'] === $objects[0]['type']) {
+                            if ((int) $objectType['id'] === $object['type']) {
                                 $assignedCategories = $this->getAssignedCategories($objectType['const']);
 
                                 $this->formatAssignedCategories($assignedCategories);
@@ -284,9 +286,9 @@ class Read extends Command {
                         if ($found === false) {
                             $this->log->error(
                                 'Object "%s" [%s] has unknown object type with identifier %s.',
-                                $objects[0]['title'],
-                                $objects[0]['id'],
-                                $objects[0]['type']
+                                $object['title'],
+                                $object['id'],
+                                $object['type']
                             );
 
                             throw new \Exception(sprintf(
@@ -365,8 +367,10 @@ class Read extends Command {
 
                         $found = false;
 
+                        $object = end($objects);
+
                         foreach ($objectTypes as $objectType) {
-                            if ($objectType['id'] === $objects[0]['type']) {
+                            if ((int) $objectType['id'] === $object['type']) {
                                 $this->formatAttributes($objectType['const'], $parts[1]);
 
                                 $found = true;
@@ -378,9 +382,9 @@ class Read extends Command {
                         if ($found === false) {
                             $this->log->error(
                                 'Object "%s" [%s] has unknown object type with identifier %s.',
-                                $objects[0]['title'],
-                                $objects[0]['id'],
-                                $objects[0]['type']
+                                $object['title'],
+                                $object['id'],
+                                $object['type']
                             );
 
                             throw new \Exception(sprintf(
