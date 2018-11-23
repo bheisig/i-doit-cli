@@ -117,6 +117,11 @@ class Cache extends Command {
             }
         }
 
+        $this->log->debug(
+            '    Stored cache files in directory %s',
+            $hostDir
+        );
+
         return $this;
     }
 
@@ -129,6 +134,25 @@ class Cache extends Command {
         $this->log->info('Fetch list of object types');
 
         $objectTypes = $this->useIdoitAPI()->getCMDBObjectTypes()->read();
+
+        switch (count($objectTypes)) {
+            case 0:
+                $this->log->notice(
+                    '    Found no object types'
+                );
+                break;
+            case 1:
+                $this->log->debug(
+                    '    Found 1 object type'
+                );
+                break;
+            default:
+                $this->log->debug(
+                    '    Found %s object types',
+                    count($objectTypes)
+                );
+                break;
+        }
 
         $this->serialize(
             'object_types',
@@ -146,6 +170,31 @@ class Cache extends Command {
         $batchedAssignedCategories = $this->useIdoitAPI()->getCMDBObjectTypeCategories()->batchReadByID($objectTypeIDs);
 
         for ($i = 0; $i < count($objectTypes); $i++) {
+            switch (count($batchedAssignedCategories[$i])) {
+                case 0:
+                    $this->log->notice(
+                        '    Object type "%s" [%s] has no categories assigned',
+                        $objectTypes[$i]['title'],
+                        $objectTypes[$i]['const']
+                    );
+                    break;
+                case 1:
+                    $this->log->debug(
+                        '    Object type "%s" [%s] has 1 category assigned',
+                        $objectTypes[$i]['title'],
+                        $objectTypes[$i]['const']
+                    );
+                    break;
+                default:
+                    $this->log->debug(
+                        '    Object type "%s" [%s] has %s categories assigned',
+                        $objectTypes[$i]['title'],
+                        $objectTypes[$i]['const'],
+                        count($batchedAssignedCategories[$i])
+                    );
+                    break;
+            }
+
             $this->serialize(
                 sprintf(
                     'object_type__%s',
@@ -161,19 +210,50 @@ class Cache extends Command {
 
         $categories = [];
 
+        $blacklistedCategories = $this->useIdoitAPI()->getCMDBCategoryInfo()->getVirtualCategoryConstants();
+
         foreach ($batchedAssignedCategories as $assignedCategories) {
             foreach ($assignedCategories as $type => $categoryList) {
                 if ($type !== 'catg' && $type !== 'cats') {
-                    $this->log->warning('Ignore customized categories');
+                    $this->log->notice('Ignore customized categories');
                     continue;
                 }
 
                 foreach ($categoryList as $category) {
+                    if (in_array($category['const'], $blacklistedCategories)) {
+                        continue;
+                    }
+
+                    if (array_key_exists($category['const'], $categories)) {
+                        continue;
+                    }
+
                     $categoryConsts[] = $category['const'];
                     $categories[$category['const']] = $category;
                 }
             }
         }
+
+        switch (count($categoryConsts)) {
+            case 0:
+                $this->log->notice(
+                    '    Found no information about assigned categories'
+                );
+                break;
+            case 1:
+                $this->log->debug(
+                    '    Found information about 1 category'
+                );
+                break;
+            default:
+                $this->log->debug(
+                    '    Found information about %s categories',
+                    count($categoryConsts)
+                );
+                break;
+        }
+
+        $propertyCounter = 0;
 
         if (count($categoryConsts) > 0) {
             $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($categoryConsts);
@@ -183,16 +263,64 @@ class Cache extends Command {
             foreach ($categoryConsts as $categoryConst) {
                 $categories[$categoryConst]['properties'] = $batchCategoryInfo[$counter];
 
-                $this->serialize(
-                    sprintf(
-                        'category__%s',
-                        $categoryConst
-                    ),
-                    $categories[$categoryConst]
-                );
+                $propertyCounter += count($batchCategoryInfo[$counter]);
+
+                switch (count($batchCategoryInfo[$counter])) {
+                    case 0:
+                        $this->log->debug(
+                            '    Category "%s" [%s] has no properties',
+                            $categories[$categoryConst]['title'],
+                            $categoryConst
+                        );
+                        break;
+                    case 1:
+                        $this->log->debug(
+                            '    Category "%s" [%s] has 1 property',
+                            $categories[$categoryConst]['title'],
+                            $categoryConst
+                        );
+                        break;
+                    default:
+                        $this->log->debug(
+                            '    Category "%s" [%s] has %s properties',
+                            $categories[$categoryConst]['title'],
+                            $categoryConst,
+                            count($batchCategoryInfo[$counter])
+                        );
+                        break;
+                }
+
+                if (count($batchCategoryInfo[$counter]) > 0) {
+                    $this->serialize(
+                        sprintf(
+                            'category__%s',
+                            $categoryConst
+                        ),
+                        $categories[$categoryConst]
+                    );
+                }
 
                 $counter++;
             }
+        }
+
+        switch ($propertyCounter) {
+            case 0:
+                $this->log->notice(
+                    'Found no properties over all categories'
+                );
+                break;
+            case 1:
+                $this->log->debug(
+                    'Found 1 property over all categories'
+                );
+                break;
+            default:
+                $this->log->debug(
+                    'Found %s properties over all categories',
+                    $propertyCounter
+                );
+                break;
         }
 
         return $this;
