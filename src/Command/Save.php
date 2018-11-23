@@ -83,7 +83,12 @@ class Save extends Command {
     /**
      * @var array
      */
-    protected $attributes = [];
+    protected $categoryAttributes;
+
+    /**
+     * @var array Attribute key as key and its value as value
+     */
+    protected $collectedAttributes = [];
 
     /**
      * @var int
@@ -129,6 +134,7 @@ class Save extends Command {
 
         $this
             ->parseQuery($query)
+            ->parseAttributes($this->config['options'])
             ->analyseCollectedData();
 
         return $this;
@@ -236,6 +242,78 @@ class Save extends Command {
     }
 
     /**
+     * @param array $options Options passed
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function parseAttributes(array $options) {
+        $lookFor = ['a', 'attribute'];
+
+        foreach ($lookFor as $option) {
+            if (!array_key_exists($option, $options)) {
+                continue;
+            }
+
+            $candidates = [];
+
+            if (is_array($options[$option])) {
+                $candidates = $options[$option];
+            } elseif (is_string($options[$option])) {
+                $candidates = [$options[$option]];
+            }
+
+            foreach ($candidates as $candidate) {
+                $parts = explode('=', $candidate);
+
+                if (count($parts) !== 2) {
+                    throw new \BadMethodCallException(sprintf(
+                        'Invalid attribute "%s" provided as option',
+                        $candidate
+                    ));
+                }
+
+                $keyOrTitle = strtolower(trim($parts[0]));
+                $value = trim($parts[1]);
+
+                if (!$this->hasCategory()) {
+                    throw new \BadMethodCallException(
+                        'You set one or more attributes for an unknown category'
+                    );
+                }
+
+                $key = '';
+
+                foreach ($this->categoryAttributes as $categoryAttributeKey => $categoryAttribute) {
+                    if ($categoryAttributeKey === $keyOrTitle) {
+                        $key = $categoryAttributeKey;
+                        break;
+                    }
+
+                    if (strtolower($categoryAttribute['title']) === $keyOrTitle) {
+                        $key = $categoryAttributeKey;
+                        break;
+                    }
+                }
+
+                if (strlen($key) === 0) {
+                    throw new \BadMethodCallException(sprintf(
+                        'Category "%s" [%s] has no attribute "%s"',
+                        $this->categoryTitle,
+                        $this->categoryConstant,
+                        $keyOrTitle
+                    ));
+                }
+
+                $this->collectedAttributes[$key] = $value;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * @return self Returns itself
      *
      * @throws \Exception on error
@@ -245,7 +323,8 @@ class Save extends Command {
             ->reportObjectType()
             ->reportObject()
             ->reportCategory()
-            ->reportEntry();
+            ->reportEntry()
+            ->reportAttributes();
 
         return $this;
     }
@@ -341,7 +420,41 @@ class Save extends Command {
                 $this->entryID
             );
         } else {
-            $this->log->debug('No category entry identifier');
+            $this->log->debug('No category entry identified');
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function reportAttributes(): self {
+        if ($this->hasAttributes()) {
+            switch (count($this->collectedAttributes)) {
+                case 1:
+                    $this->log->debug('1 attribute identified');
+                    break;
+                default:
+                    $this->log->debug(
+                        '%s attributes identified',
+                        count($this->collectedAttributes)
+                    );
+                    break;
+            }
+
+            foreach ($this->collectedAttributes as $key => $value) {
+                $this->log->debug(
+                    '    %s [%s]: %s',
+                    $this->categoryAttributes[$key]['title'],
+                    $key,
+                    $value
+                );
+            }
+        } else {
+            $this->log->debug('No attributes identified');
         }
 
         return $this;
@@ -501,7 +614,7 @@ class Save extends Command {
 
             foreach ($categories as $category) {
                 if ((int) $category['id'] === $candidateID) {
-                    $this->attributes = $category['properties'];
+                    $this->categoryAttributes = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
@@ -511,13 +624,13 @@ class Save extends Command {
         } else {
             foreach ($categories as $category) {
                 if (strtolower($category['title']) === strtolower($candidate)) {
-                    $this->attributes = $category['properties'];
+                    $this->categoryAttributes = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
                     return true;
                 } elseif (strtolower($category['const']) === strtolower($candidate)) {
-                    $this->attributes = $category['properties'];
+                    $this->categoryAttributes = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
@@ -651,6 +764,15 @@ class Save extends Command {
     }
 
     /**
+     * Has user passed attributes as options?
+     *
+     * @return bool
+     */
+    protected function hasAttributes(): bool {
+        return count($this->collectedAttributes) > 0;
+    }
+
+    /**
      * Shows usage of command
      *
      * @return self Returns itself
@@ -676,8 +798,9 @@ class Save extends Command {
 
 <strong>COMMAND OPTIONS</strong>
 
-    -a <u>ATTRIBUTE=VALUE</u>,         <dim>Localized attribute name ATTRIBUTE</dim>
-    --attribute=<u>ATTRIBUTE=VALUE</u> <dim>and its value VALUE</dim>
+    -a <u>ATTRIBUTE=VALUE</u>,         <dim>Localized name or key of ATTRIBUTE</dim>
+    --attribute=<u>ATTRIBUTE=VALUE</u> <dim>and its VALUE</dim>
+                                <dim>(Use only if category is set)</dim>
 
 <strong>COMMON OPTIONS</strong>
     -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
