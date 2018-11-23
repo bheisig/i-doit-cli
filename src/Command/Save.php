@@ -101,6 +101,11 @@ class Save extends Command {
     protected $entry;
 
     /**
+     * @var array
+     */
+    protected $template = [];
+
+    /**
      * Process some routines before execution
      *
      * @return self Returns itself
@@ -135,7 +140,18 @@ class Save extends Command {
         $this
             ->parseQuery($query)
             ->parseAttributes($this->config['options'])
-            ->analyseCollectedData();
+            ->analyzeCollectedData()
+            ->interviewUser();
+
+        if (!$this->hasCategory() && $this->hasObjectType()) {
+            $this->loadTemplate();
+        }
+
+        if ($this->hasTemplate()) {
+            $this->applyTemplate();
+        }
+
+        $this->save();
 
         return $this;
     }
@@ -318,7 +334,7 @@ class Save extends Command {
      *
      * @throws \Exception on error
      */
-    protected function analyseCollectedData(): self {
+    protected function analyzeCollectedData(): self {
         $this
             ->reportObjectType()
             ->reportObject()
@@ -456,6 +472,53 @@ class Save extends Command {
         } else {
             $this->log->debug('No attributes identified');
         }
+
+        return $this;
+    }
+
+    /**
+     * Interview user to collect missing attributes
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function interviewUser(): self {
+        $this
+            ->askForObjectType()
+            ->reportObjectType()
+            ->askForObjectTitle();
+
+        return $this;
+    }
+
+    /**
+     * Ask user for object type
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function askForObjectType(): self {
+        if (!$this->hasObjectType()) {
+            $objectType = $this->askQuestion('Object type?');
+
+            $this->identifyObjectType($objectType);
+
+            if (!$this->hasObjectType()) {
+                $this->askForObjectType();
+            }
+        }
+
+        return $this;
+    }
+
+    protected function askForObjectTitle(): self {
+        if (!$this->hasObject()) {
+            $this->objectTitle = $this->askQuestion('Object title?');
+        }
+
+        // @todo Check whether object already exists and ask user to continue!
 
         return $this;
     }
@@ -770,6 +833,97 @@ class Save extends Command {
      */
     protected function hasAttributes(): bool {
         return count($this->collectedAttributes) > 0;
+    }
+
+    protected function hasTemplate(): bool {
+        return count($this->template) > 0;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception
+     */
+    protected function loadTemplate() {
+        if (!array_key_exists('templates', $this->config) ||
+            !is_array($this->config['templates'])) {
+            return $this;
+        }
+
+        if (!array_key_exists($this->objectTypeConstant, $this->config['templates'])) {
+            return $this;
+        }
+
+        if (!is_array($this->config['templates'][$this->objectTypeConstant])) {
+            throw new \DomainException(sprintf(
+                'Template "%s" is invalid: invalid data type',
+                $this->objectTypeConstant
+            ));
+        }
+
+        try {
+            $this->validateTemplate(
+                $this->config['templates'][$this->objectTypeConstant]
+            );
+        } catch (\Exception $e) {
+            throw new \DomainException(sprintf(
+                'Template "%s" is invalid: %s',
+                $this->objectTypeConstant,
+                $e->getMessage()
+            ));
+        }
+
+        $this->template = $this->config['templates'][$this->objectTypeConstant];
+
+        return $this;
+    }
+
+    /**
+     * @param array $template Template
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception
+     */
+    protected function validateTemplate(array $template): self {
+        foreach ($template as $index => $block) {
+            if (!is_array($block)) {
+                throw new \DomainException(sprintf(
+                    'Block %s has wrong data type',
+                    $index
+                ));
+            }
+
+            if (!array_key_exists('category', $block)) {
+                throw new \DomainException(sprintf(
+                    'Block %s needs a category name, constant or numeric identifier',
+                    $index
+                ));
+            }
+
+            if (!array_key_exists('attribute', $block)) {
+                throw new \DomainException(sprintf(
+                    'Block %s needs an attribute key or name',
+                    $index
+                ));
+            }
+
+            // @todo Check whether attribute key or name is assigned to category!
+        }
+
+        return $this;
+    }
+
+    protected function applyTemplate() {
+        // @todo Interview user!
+        return $this;
+    }
+
+    protected function save() {
+        // @todo Create object if necessary and save optional category data!
+        // @todo If object has to be created use cmdb.object.create and add optional category data!
+        // @todo If object is already available use batch request for cmdb.category.save!
+        return $this;
     }
 
     /**

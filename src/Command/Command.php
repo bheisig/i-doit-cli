@@ -28,6 +28,7 @@ namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\Command\Command as BaseCommand;
 use bheisig\cli\Config;
+use bheisig\cli\IO;
 use bheisig\cli\JSONFile;
 use bheisig\idoitcli\API\Idoit;
 
@@ -59,9 +60,9 @@ abstract class Command extends BaseCommand {
     }
 
     /**
+     * Is interactive mode enabled?
      *
-     *
-     * @return bool
+     * @return bool Returns true if yes, otherwise false
      */
     protected function isInteractive(): bool  {
         if (array_key_exists('yes', $this->config['options']) ||
@@ -70,6 +71,56 @@ abstract class Command extends BaseCommand {
         }
 
         return true;
+    }
+
+    protected function askQuestion(string $question): string {
+        return IO::in($question);
+    }
+
+    protected function askYesNo($question) {
+        $answer = strtolower(
+            IO::in($question  . ' [Y|n]:')
+        );
+
+        switch ($answer) {
+            case 'yes':
+            case 'y':
+            case 'true':
+            case '1':
+            case '':
+                return true;
+            case 'no':
+            case 'n':
+            case 'false':
+            case '0':
+                return false;
+            default:
+                $this->log->warning('Excuse me, what do you mean?');
+                return $this->askYesNo($question);
+        }
+    }
+
+    protected function askNoYes($question) {
+        $answer = strtolower(
+            IO::in($question  . ' [y|N]:')
+        );
+
+        switch ($answer) {
+            case 'yes':
+            case 'y':
+            case 'true':
+            case '1':
+                return false;
+            case 'no':
+            case 'n':
+            case 'false':
+            case '0':
+            case '':
+                return true;
+            default:
+                $this->log->warning('Excuse me, what do you mean?');
+                return $this->askNoYes($question);
+        }
     }
 
     /**
