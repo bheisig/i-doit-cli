@@ -16,7 +16,7 @@
     ]},
     {"key": "cacheLifetime", "type": "integer", "required": true, "ge": 0},
     {"key": "limitBatchRequests", "type": "integer", "required": true, "ge": 0},
-    {"key": "types", "type": "object", "required": true, "nodes": [
+    {"key": "types", "type": "object", "required": false, "nodes": [
         {"key": "countries", "type": "string", "required": true, "minLength": 1},
         {"key": "cities", "type": "string", "required": true, "minLength": 1},
         {"key": "buildings", "type": "string", "required": true, "minLength": 1},
