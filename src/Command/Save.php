@@ -97,7 +97,15 @@ class Save extends Command {
     protected $entry;
 
     /**
-     * @var array
+     * @var array Indexed array of arrays:
+     * [
+     *     'categoryConstant' => 'C__CATG__MODEL',
+     *     'categoryTitle' => 'Model',
+     *     'categoryID' => 42,
+     *     'attributeKey' => 'serial',
+     *     'attributeTitle' => 'Serial number',
+     *     'value' => 'abc123'
+     * ]
      */
     protected $template = [];
 
@@ -131,16 +139,20 @@ class Save extends Command {
     public function execute(): self {
         $this->log->info($this->getDescription());
 
-        $query = $this->getQuery();
+        if (array_key_exists(0, $this->config['arguments'])) {
+            $this
+                ->parseQuery($this->config['arguments'][0]);
+        }
 
         $this
-            ->parseQuery($query)
             ->parseAttributes($this->config['options'])
             ->analyzeCollectedData()
             ->interviewUser();
 
         if (!$this->hasCategory() && $this->hasObjectType()) {
             $this->loadTemplate();
+        } else {
+            $this->log->debug('Do not load template');
         }
 
         if ($this->hasTemplate()) {
@@ -165,11 +177,6 @@ class Save extends Command {
         $queryParts = explode('/', $query);
 
         switch (count($queryParts)) {
-            case 0:
-                /**
-                 * We're completely in interactive mode.
-                 */
-                break;
             case 1:
                 /**
                  * Either it's an object type…
@@ -370,6 +377,12 @@ class Save extends Command {
                 $this->objectTitle,
                 $this->objectID
             );
+        } elseif (isset($this->objectTitle) &&
+            strlen($this->objectTitle) > 0) {
+            $this->log->debug(
+                'Object "%s" not found',
+                $this->objectTitle
+            );
         } else {
             $this->log->debug('No object identified');
         }
@@ -509,14 +522,150 @@ class Save extends Command {
         return $this;
     }
 
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function askForObjectTitle(): self {
-        if (!$this->hasObject()) {
+        if (!$this->hasObject() &&
+            isset($this->objectTitle) &&
+            strlen($this->objectTitle) > 0) {
+            if ($this->validate->isOneLiner($this->objectTitle) === false) {
+                $this->log->warning('Object title is invalid');
+                return $this->askForObjectTitle();
+            }
+        } elseif (!$this->hasObject()) {
             $this->objectTitle = $this->userInteraction->askQuestion('Object title?');
+
+            if ($this->validate->isOneLiner($this->objectTitle) === false) {
+                $this->log->warning('Object title is invalid');
+                return $this->askForObjectTitle();
+            }
+
+            $objects = $this->useIdoitAPI()->fetchObjects([
+                'title' => $this->objectTitle,
+                'type' => $this->objectTypeConstant
+            ]);
+
+            switch (count($objects)) {
+                case 0:
+                    $this->log->debug(
+                        'Object "%s" with type "%s" [%s] not found. Excellent.',
+                        $this->objectTitle,
+                        $this->objectTypeTitle,
+                        $this->objectTypeConstant
+                    );
+                    break;
+                case 1:
+                    $object = end($objects);
+
+                    $this->log->notice(
+                        'There is another object [%s] with same title and type',
+                        $object['id']
+                    );
+
+                    $decision = $this->userInteraction->askYesNo(
+                        'Do you like to update it instead of creating a new one?'
+                    );
+
+                    if ($decision === true) {
+                        $this->object = $object;
+                        $this->objectID = (int) $this->object['id'];
+                        $this->objectTitle = $this->object['title'];
+
+                        $this->reportObject();
+                    }
+                    break;
+                default:
+                    $this->log->notice(
+                        'There are another objects with same title and type:'
+                    );
+
+                    foreach ($objects as $objectID => $object) {
+                        $this->log->notice(
+                            '%s: %s',
+                            $objectID,
+                            $object['title']
+                        );
+                    }
+
+                    $this->log->notice('Do you like to update one of these?');
+
+                    $decision = (int) $this->userInteraction->askQuestion(
+                        'Select object identifier or just enter to create new object'
+                    );
+
+                    if (array_key_exists($decision, $objects)) {
+                        $this->object = $objects[$decision];
+                        $this->objectID = (int) $this->object['id'];
+                        $this->objectTitle = $this->object['title'];
+                    }
+
+                    $this->reportObject();
+                    break;
+            }
         }
 
-        // @todo Check whether object already exists and ask user to continue!
-
         return $this;
+    }
+
+    /**
+     * Ask for category
+     *
+     * @return string
+     *
+     * @throws \Exception on error
+     */
+    protected function askForCategory(): string {
+        if ($this->hasObjectType()) {
+            $assignedCategories = $this->cache->getAssignedCategories($this->objectTypeConstant);
+
+            if (count($assignedCategories) === 0) {
+                throw new \BadMethodCallException(sprintf(
+                    'Object type "%s" [%s] has no categories assigned',
+                    $this->objectTypeTitle,
+                    $this->objectTypeConstant
+                ));
+            }
+
+            $this->log->notice('You need to specify a category');
+
+            $this->log->info(
+                'List of available catogories for objecty type "%s" [%s]:',
+                $this->objectTypeTitle,
+                $this->objectTypeConstant
+            );
+
+            foreach ($assignedCategories as $type => $categories) {
+                switch ($type) {
+                    case 'catg':
+                        $this->log->info('    Global categories:');
+                        break;
+                    case 'cats':
+                        $this->log->info('    Specific categories:');
+                        break;
+                    case 'custom':
+                        $this->log->info('    Custom categories:');
+                        break;
+                }
+                foreach ($categories as $category) {
+                    $this->log->info(
+                        '        %s [%s]',
+                        $category['title'],
+                        $category['const']
+                    );
+                }
+            }
+
+            return $this->userInteraction->askQuestion(
+                'Please select a category:'
+            );
+        } else {
+            return $this->userInteraction->askQuestion(
+                'Please specify a category:'
+            );
+        }
     }
 
     /**
@@ -584,6 +733,8 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyObject(string $candidate): bool {
+        $this->objectTitle = $candidate;
+
         if ($this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
             $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
 
@@ -666,6 +817,10 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyCategory(string $candidate): bool {
+        if (strlen($candidate) === 0) {
+            $candidate = $this->askForCategory();
+        }
+
         $categories = $this->cache->getCategories();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
@@ -841,77 +996,194 @@ class Save extends Command {
      * @throws \Exception
      */
     protected function loadTemplate() {
-        if (!array_key_exists('templates', $this->config) ||
-            !is_array($this->config['templates'])) {
-            return $this;
-        }
-
-        if (!array_key_exists($this->objectTypeConstant, $this->config['templates'])) {
-            return $this;
-        }
-
-        if (!is_array($this->config['templates'][$this->objectTypeConstant])) {
-            throw new \DomainException(sprintf(
-                'Template "%s" is invalid: invalid data type',
-                $this->objectTypeConstant
-            ));
-        }
-
         try {
-            $this->validateTemplate(
-                $this->config['templates'][$this->objectTypeConstant]
+            if (!array_key_exists('templates', $this->config) ||
+                !is_array($this->config['templates'])) {
+                return $this;
+            }
+
+            $template = [];
+
+            if (array_key_exists(
+                $this->objectTypeConstant,
+                $this->config['templates']
+            )) {
+                $template = $this->config['templates'][$this->objectTypeConstant];
+            } elseif (array_key_exists(
+                strtolower($this->objectTypeConstant),
+                $this->config['templates']
+            )) {
+                $template = $this->config['templates'][strtolower($this->objectTypeConstant)];
+            } elseif (array_key_exists(
+                $this->objectTypeID,
+                $this->config['templates']
+            )) {
+                $template = $this->config['templates'][$this->objectTypeID];
+            } elseif (array_key_exists(
+                $this->objectTypeTitle,
+                $this->config['templates']
+            )) {
+                $template = $this->config['templates'][$this->objectTypeTitle];
+            } elseif (array_key_exists(
+                strtolower($this->objectTypeTitle),
+                $this->config['templates']
+            )) {
+                $template = $this->config['templates'][strtolower($this->objectTypeTitle)];
+            }
+
+            if (!is_array($template)) {
+                throw new \DomainException(
+                    'Invalid data type'
+                );
+            }
+
+            if (count($template) === 0) {
+                $this->log->warning(
+                    'Empty template found for object type "%s" [%s]',
+                    $this->objectTypeTitle,
+                    $this->objectTypeConstant
+                );
+
+                return $this;
+            }
+
+            $this->log->debug(
+                'Template found for object type "%s" [%s]',
+                $this->objectTypeTitle,
+                $this->objectTypeConstant
             );
+
+            $this->template = [];
+
+            $categories = $this->cache->getCategories();
+
+            foreach ($template as $index => $block) {
+                if (!is_array($block)) {
+                    throw new \DomainException(sprintf(
+                        'Block %s has wrong data type',
+                        $index
+                    ));
+                }
+
+                if (!array_key_exists('category', $block)) {
+                    throw new \DomainException(sprintf(
+                        'Block %s needs a category name, constant or numeric identifier',
+                        $index
+                    ));
+                }
+
+                if (!array_key_exists('attribute', $block)) {
+                    throw new \DomainException(sprintf(
+                        'Block %s needs an attribute key or name',
+                        $index
+                    ));
+                }
+
+                $categoryConstant = '';
+                $categoryID = '';
+                $categoryTitle = '';
+
+                if (is_numeric($block['category']) && (int) $block['category'] > 0) {
+                    $candidateID = (int) $block['category'];
+
+                    foreach ($categories as $category) {
+                        if ((int) $category['id'] === $candidateID) {
+                            $categoryConstant = $category['const'];
+                            $categoryID = (int) $category['id'];
+                            $categoryTitle = $category['title'];
+                            break;
+                        }
+                    }
+                } else {
+                    foreach ($categories as $category) {
+                        if (strtolower($category['title']) === strtolower($block['category'])) {
+                            $categoryConstant = $category['const'];
+                            $categoryID = (int) $category['id'];
+                            $categoryTitle = $category['title'];
+                            break;
+                        } elseif (strtolower($category['const']) === strtolower($block['category'])) {
+                            $categoryConstant = $category['const'];
+                            $categoryID = (int) $category['id'];
+                            $categoryTitle = $category['title'];
+                            break;
+                        }
+                    }
+                }
+
+                if (strlen($categoryConstant) === 0) {
+                    throw new \DomainException(sprintf(
+                        'Unknown category in block #%s',
+                        $index
+                    ));
+                }
+
+                $attributeKey = '';
+                $attributeTitle = '';
+
+                $categoryInfo = $this->cache->getCategoryInfo($categoryConstant);
+
+                foreach ($categoryInfo['properties'] as $categoryAttributeKey => $categoryAttribute) {
+                    if ($categoryAttributeKey === $block['attribute']) {
+                        $attributeKey = $categoryAttributeKey;
+                        $attributeTitle = $categoryAttribute['title'];
+                        break;
+                    }
+
+                    if (strtolower($categoryAttribute['title']) === $block['attribute']) {
+                        $attributeKey = $categoryAttributeKey;
+                        $attributeTitle = $categoryAttribute['title'];
+                        break;
+                    }
+                }
+
+                if (strlen($attributeKey) === 0) {
+                    throw new \DomainException(sprintf(
+                        'Unknown attribute for category "%s" [%s] in block #%s',
+                        $categoryTitle,
+                        $categoryConstant,
+                        $index
+                    ));
+                }
+
+                $this->template[] = [
+                    'categoryConstant' => $categoryConstant,
+                    'categoryTitle' => $categoryTitle,
+                    'categoryID' => $categoryID,
+                    'attributeKey' => $attributeKey,
+                    'attributeTitle' => $attributeTitle
+                ];
+            }
         } catch (\Exception $e) {
             throw new \DomainException(sprintf(
-                'Template "%s" is invalid: %s',
+                'Template for object type "%s" [%s] is invalid: %s',
+                $this->objectTypeTitle,
                 $this->objectTypeConstant,
                 $e->getMessage()
             ));
-        }
-
-        $this->template = $this->config['templates'][$this->objectTypeConstant];
-
-        return $this;
-    }
-
-    /**
-     * @param array $template Template
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception
-     */
-    protected function validateTemplate(array $template): self {
-        foreach ($template as $index => $block) {
-            if (!is_array($block)) {
-                throw new \DomainException(sprintf(
-                    'Block %s has wrong data type',
-                    $index
-                ));
-            }
-
-            if (!array_key_exists('category', $block)) {
-                throw new \DomainException(sprintf(
-                    'Block %s needs a category name, constant or numeric identifier',
-                    $index
-                ));
-            }
-
-            if (!array_key_exists('attribute', $block)) {
-                throw new \DomainException(sprintf(
-                    'Block %s needs an attribute key or name',
-                    $index
-                ));
-            }
-
-            // @todo Check whether attribute key or name is assigned to category!
         }
 
         return $this;
     }
 
     protected function applyTemplate() {
-        // @todo Interview user!
+        foreach ($this->template as $index => $block) {
+            $value = $this->userInteraction->askQuestion(sprintf(
+                '[%s] %s?',
+                $block['categoryTitle'],
+                $block['attributeTitle']
+            ));
+
+            if (strlen($value) === 0) {
+                continue;
+            }
+
+            if (is_numeric($value)) {
+                $value = (int) $value;
+            }
+
+            $this->template[$index]['value'] = $value;
+        }
+
         return $this;
     }
 

@@ -31,6 +31,18 @@ namespace bheisig\idoitcli\Service;
  */
 class Validate extends Service {
 
+    public function isOneLiner(string $value): bool {
+        $length = strlen($value);
 
+        if ($length <= 0) {
+            return false;
+        }
+
+        if ($length > 255) {
+            return false;
+        }
+
+        return true;
+    }
 
 }
