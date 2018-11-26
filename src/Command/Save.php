@@ -496,7 +496,8 @@ class Save extends Command {
         $this
             ->askForObjectType()
             ->reportObjectType()
-            ->askForObjectTitle();
+            ->askForObjectTitle()
+            ->askForAttributes();
 
         return $this;
     }
@@ -665,6 +666,20 @@ class Save extends Command {
             return $this->userInteraction->askQuestion(
                 'Please specify a category:'
             );
+        }
+    }
+
+    protected function askForAttributes(): self {
+        if (!$this->hasCategory()) {
+            return $this;
+        }
+
+        if ($this->hasAttributes()) {
+            return $this;
+        }
+
+        foreach ($this->categoryAttributes as $attributeKey => $attribute) {
+            // @todo Implement me!
         }
     }
 
@@ -1187,10 +1202,80 @@ class Save extends Command {
         return $this;
     }
 
+    /**
+     * Save data
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function save() {
-        // @todo Create object if necessary and save optional category data!
-        // @todo If object has to be created use cmdb.object.create and add optional category data!
-        // @todo If object is already available use batch request for cmdb.category.save!
+        if ($this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
+            $this->log->debug('Save one category entry');
+
+            $this->useIdoitAPI()->getCMDBCategory()->save(
+                $this->objectID,
+                $this->categoryConstant,
+                $this->collectedAttributes
+            );
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $this->objectID
+            );
+        } elseif (!$this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
+            $this->log->debug('Create object and save one category entry');
+
+            $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
+                $this->objectTypeConstant,
+                $this->objectTitle,
+                [
+                    $this->categoryConstant => [$this->collectedAttributes]
+                ]
+            );
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $result['id']
+            );
+        } elseif (!$this->hasObject() && !$this->hasAttributes() && !$this->hasTemplate()) {
+            $this->log->debug('Create object');
+
+            $this->objectID = $this->useIdoitAPI()->getCMDBObject()->create(
+                $this->objectTypeConstant,
+                $this->objectTitle
+            );
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $this->objectID
+            );
+        } elseif ($this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
+            $this->log->debug('Save one or more category entries');
+
+            // @todo Sort attributes by category and save data by batch request of cmdb.category.save!
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $this->objectID
+            );
+        } elseif (!$this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
+            $this->log->debug('Create object and save one or more category entries');
+
+            // @todo Sort attributes by category and save data by cmdb.object.create!
+//            $this->log->info(
+//                'Link: %s?objID=%s',
+//                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+//                $this->objectID
+//            );
+        } else {
+            throw new \BadMethodCallException('Do not know what to do');
+        }
+
         return $this;
     }
 
