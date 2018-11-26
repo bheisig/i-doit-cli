@@ -27,14 +27,11 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
-use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "categories"
  */
 class Categories extends Command {
-
-    use Cache;
 
     /**
      * Executes the command
@@ -44,7 +41,7 @@ class Categories extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $categories = $this->getCategories();
+        $categories = $this->cache->getCategories();
 
         $categories = $this->filterCategories($categories);
 
@@ -134,10 +131,10 @@ class Categories extends Command {
     protected function getEnabledCategories(): array {
         $result = [];
 
-        $objectTypes = $this->getObjectTypes();
+        $objectTypes = $this->cache->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
-            $assignedCategories = $this->getAssignedCategories($objectType['const']);
+            $assignedCategories = $this->cache->getAssignedCategories($objectType['const']);
 
             foreach ($assignedCategories as $type => $categories) {
                 foreach ($categories as $category) {

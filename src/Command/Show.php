@@ -27,14 +27,11 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
-use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "show"
  */
 class Show extends Command {
-
-    use Cache;
 
     /**
      * Processes some routines before the execution
@@ -46,7 +43,7 @@ class Show extends Command {
     public function setup(): Command {
         parent::setup();
 
-        if ($this->isCached() === false) {
+        if ($this->cache->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
@@ -136,7 +133,7 @@ class Show extends Command {
                 }
 
                 try {
-                    $categoryInfo = $this->getCategoryInfo($category['const']);
+                    $categoryInfo = $this->cache->getCategoryInfo($category['const']);
                 } catch (\Exception $e) {
                     IO::err($e->getMessage());
                     continue;

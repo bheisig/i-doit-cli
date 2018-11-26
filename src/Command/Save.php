@@ -26,14 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Cache;
-
 /**
  * Command "save"
  */
 class Save extends Command {
-
-    use Cache;
 
     /**
      * @var int
@@ -115,7 +111,7 @@ class Save extends Command {
     public function setup(): Command {
         parent::setup();
 
-        if ($this->isCached() === false) {
+        if ($this->cache->isCached() === false) {
             throw new \RuntimeException(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
@@ -501,7 +497,7 @@ class Save extends Command {
      */
     protected function askForObjectType(): self {
         if (!$this->hasObjectType()) {
-            $objectType = $this->askQuestion('Object type?');
+            $objectType = $this->userInteraction->askQuestion('Object type?');
 
             $this->identifyObjectType($objectType);
 
@@ -515,7 +511,7 @@ class Save extends Command {
 
     protected function askForObjectTitle(): self {
         if (!$this->hasObject()) {
-            $this->objectTitle = $this->askQuestion('Object title?');
+            $this->objectTitle = $this->userInteraction->askQuestion('Object title?');
         }
 
         // @todo Check whether object already exists and ask user to continue!
@@ -538,7 +534,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyObjectType(string $candidate): bool {
-        $objectTypes = $this->getObjectTypes();
+        $objectTypes = $this->cache->getObjectTypes();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
             $candidateID = (int) $candidate;
@@ -670,7 +666,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyCategory(string $candidate): bool {
-        $categories = $this->getCategories();
+        $categories = $this->cache->getCategories();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
             $candidateID = (int) $candidate;
@@ -771,7 +767,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function isCategoryAssignedToObjectType(string $objectTypeConstant, string $categoryConstant): bool {
-        $assignedCategories = $this->getAssignedCategories($objectTypeConstant);
+        $assignedCategories = $this->cache->getAssignedCategories($objectTypeConstant);
 
         $types = ['catg', 'cats', 'custom'];
 

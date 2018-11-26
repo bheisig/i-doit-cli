@@ -26,14 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Cache;
-
 /**
  * Command "create"
  */
 class Create extends Command {
-
-    use Cache;
 
     /**
      * Path
@@ -61,7 +57,7 @@ class Create extends Command {
 
         $this->path = explode('/', $this->getQuery());
 
-        $objectTypes = $this->getObjectTypes();
+        $objectTypes = $this->cache->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
             if (strtolower($objectType['title']) === strtolower($this->path[0])) {
@@ -159,7 +155,7 @@ class Create extends Command {
      * @throws \Exception on error
      */
     protected function getCategoryConst(string $category): string {
-        $categories = $this->getCategories();
+        $categories = $this->cache->getCategories();
 
         $candidates = [];
 

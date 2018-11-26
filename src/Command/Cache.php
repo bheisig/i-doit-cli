@@ -26,14 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Cache as CacheService;
-
 /**
  * Command "cache"
  */
 class Cache extends Command {
-
-    use CacheService;
 
     /**
      * Executes the command
@@ -61,7 +57,7 @@ class Cache extends Command {
      * @throws \Exception on error
      */
     protected function serialize(string $file, $value): self {
-        $filePath = $this->getHostDir() . '/' . $file;
+        $filePath = $this->cache->getHostDir() . '/' . $file;
 
         $status = file_put_contents($filePath, serialize($value));
 
@@ -81,7 +77,7 @@ class Cache extends Command {
      * @throws \Exception on error
      */
     protected function clearCache(): self {
-        $hostDir = $this->getHostDir();
+        $hostDir = $this->cache->getHostDir();
 
         if (!is_dir($hostDir)) {
             $this->log->info(

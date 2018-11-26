@@ -26,14 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Cache;
-
 /**
  * Command "fixip"
  */
 class FixIP extends Command {
-
-    use Cache;
 
     /**
      * Unproper subnets (object IDs)
@@ -59,7 +55,7 @@ class FixIP extends Command {
     public function setup(): Command {
         parent::setup();
 
-        if ($this->isCached() === false) {
+        if ($this->cache->isCached() === false) {
             throw new \Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
@@ -94,7 +90,7 @@ class FixIP extends Command {
         $this->log->info('Fetch all object types to use the configurable blacklist');
 
         $blacklistedObjectTypes = [];
-        $objectTypes = $this->getObjectTypes();
+        $objectTypes = $this->cache->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
             if (!in_array($objectType['const'], $this->config['fixip']['blacklistedObjectTypes'])) {

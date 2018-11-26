@@ -27,14 +27,11 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use bheisig\cli\IO;
-use bheisig\idoitcli\Service\Cache;
 
 /**
  * Command "types"
  */
 class Types extends Command {
-
-    use Cache;
 
     /**
      * Executes the command
@@ -44,7 +41,7 @@ class Types extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $types = $this->getObjectTypes();
+        $types = $this->cache->getObjectTypes();
 
         $types = array_filter($types, [$this, 'filterObjectTypes']);
 

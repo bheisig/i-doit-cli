@@ -27,16 +27,9 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Service;
 
 /**
- * Trait for API calls
+ * Cache files
  */
-trait Cache {
-
-    /**
-     * Configuration settings
-     *
-     * @var array Associative array
-     */
-    protected $config = [];
+class Cache extends Service {
 
     /**
      * Cached object types
@@ -73,7 +66,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function isCached(): bool {
+    public function isCached(): bool {
         $hostDir = $this->getHostDir();
 
         if (!is_dir($hostDir)) {
@@ -110,7 +103,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getObjectTypes(): array {
+    public function getObjectTypes(): array {
         $hostDir = $this->getHostDir();
 
         return unserialize(file_get_contents($hostDir . '/object_types'));
@@ -121,11 +114,11 @@ trait Cache {
      *
      * @param string $title Object type title
      *
-     * @return string Object type constant, otherwise NULL on error
+     * @return string Object type constant, otherwise \Exception is thrown
      *
      * @throws \Exception on error
      */
-    protected function getObjectTypeConstantByTitle(string $title) {
+    public function getObjectTypeConstantByTitle(string $title) {
         $objectTypes = $this->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
@@ -134,7 +127,10 @@ trait Cache {
             }
         }
 
-        return null;
+        throw new \RuntimeException(sprintf(
+            'Unable to find constant for object type "%s"',
+            $title
+        ));
     }
 
     /**
@@ -146,7 +142,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getCategoryInfo(string $categoryConst): array {
+    public function getCategoryInfo(string $categoryConst): array {
         $hostDir = $this->getHostDir();
 
         $file = $hostDir . '/category__' . $categoryConst;
@@ -171,7 +167,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getAssignedCategories(string $type): array {
+    public function getAssignedCategories(string $type): array {
         $hostDir = $this->getHostDir();
 
         $file = $hostDir . '/object_type__' . $type;
@@ -194,7 +190,7 @@ trait Cache {
      *
      * @throws \Exception on error
      */
-    protected function getCategories(): array {
+    public function getCategories(): array {
         $categories = [];
         $hostDir = $this->getHostDir();
 
@@ -224,7 +220,7 @@ trait Cache {
      *
      * @throws \Exception when configuration settings are missing
      */
-    protected function getHostDir(): string {
+    public function getHostDir(): string {
         if (!array_key_exists('api', $this->config) ||
             !array_key_exists('url', $this->config['api'])) {
             throw new \Exception(sprintf(
