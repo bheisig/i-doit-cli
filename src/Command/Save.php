@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use bheisig\idoitcli\Service\Attribute;
+
 /**
  * Command "save"
  */
@@ -146,6 +148,7 @@ class Save extends Command {
 
         $this
             ->parseAttributes($this->config['options'])
+            ->preloadEntry()
             ->analyzeCollectedData()
             ->interviewUser();
 
@@ -328,6 +331,49 @@ class Save extends Command {
                 $this->collectedAttributes[$key] = $value;
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Try to preload single-value category entry
+     *
+     * This is needed for printing default values.
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function preloadEntry(): self {
+        if (!$this->hasObject()) {
+            return $this;
+        }
+
+        if (!$this->hasCategory()) {
+            return $this;
+        }
+
+        if ($this->hasEntry()) {
+            return $this;
+        }
+
+        $categoryInfo = $this->cache->getCategoryInfo($this->categoryConstant);
+
+        if ($categoryInfo['multi_value'] === '1') {
+            return $this;
+        }
+
+        $entry = $this->useIdoitAPI()->getCMDBCategory()->readFirst(
+            $this->objectID,
+            $this->categoryConstant
+        );
+
+        if (count($entry) === 0) {
+            return $this;
+        }
+
+        $this->entryID = (int) $entry['id'];
+        $this->entry = $entry;
 
         return $this;
     }
@@ -669,6 +715,88 @@ class Save extends Command {
         }
     }
 
+    /**
+     * Ask user for category entry
+     *
+     * @return string Category identifier as string
+     *
+     * @throws \Exception on error
+     */
+    protected function askForEntry(): string {
+        $entries = $this->useIdoitAPI()->getCMDBCategory()->read(
+            $this->objectID,
+            $this->categoryConstant
+        );
+
+        $this->log->notice(
+            'You need to specify an entry for object "%s" [%s] in category "%s" [%s]',
+            $this->objectTitle,
+            $this->objectID,
+            $this->categoryTitle,
+            $this->categoryConstant
+        );
+
+        switch (count($entries)) {
+            case 0:
+                $this->log->notice(
+                    'No entries found. A new one will be created.'
+                );
+                return '';
+            case 1:
+                $this->log->info(
+                    '1 entry found:'
+                );
+
+                foreach ($entries as $entry) {
+                    $this->log->info(
+                        '    %s',
+                        $entry['id']
+                    );
+                }
+
+                $answer = $this->userInteraction->askYesNo(
+                    'Do you like to update this entry?'
+                );
+
+                if ($answer === true) {
+                    return $entries[0]['id'];
+                } else {
+                    $this->log->info('A new entry will be created.');
+                }
+
+                return '';
+            default:
+                $this->log->info(
+                    '%s entries found:',
+                    count($entries)
+                );
+
+                foreach ($entries as $entry) {
+                    $this->log->info(
+                        '    %s',
+                        $entry['id']
+                    );
+                }
+
+                return $this->userInteraction->askQuestion(
+                    'Please select an entry (leave empty to create a new one):'
+                );
+        }
+    }
+
+    /**
+     * Ask user for attributes' values
+     *
+     * Category is specified in:
+     * @uses $categoryTitle
+     *
+     * Attributes are stored to:
+     * @uses $collectedAttributes
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function askForAttributes(): self {
         if (!$this->hasCategory()) {
             return $this;
@@ -678,9 +806,68 @@ class Save extends Command {
             return $this;
         }
 
-        foreach ($this->categoryAttributes as $attributeKey => $attribute) {
-            // @todo Implement me!
+        foreach ($this->categoryAttributes as $attributeKey => $attributeDefinition) {
+            $defaultValue = '';
+
+            if ($this->hasEntry() &&
+                array_key_exists($attributeKey, $this->entry)) {
+                $defaultValue = (new Attribute($this->config, $this->log))
+                    ->setUp($attributeDefinition, $this->useIdoitAPI())
+                    ->encode($this->entry[$attributeKey]);
+            }
+
+            $value = $this->askForAttribute(
+                $this->categoryTitle,
+                $attributeDefinition,
+                $defaultValue
+            );
+
+            if (isset($value)) {
+                $this->collectedAttributes[$attributeKey] = $value;
+            }
         }
+
+        return $this;
+    }
+
+    /**
+     * Ask user for attribute's value
+     *
+     * @param string $categoryTitle Category title
+     * @param array $attributeDefinition Attribute definition
+     * @param string $defaultValue Default value
+     *
+     * @return mixed Value, otherwise null if skipped by user
+     *
+     * @throws \Exception on error
+     */
+    protected function askForAttribute(string $categoryTitle, array $attributeDefinition, $defaultValue = '') {
+        if (strlen($defaultValue) > 0) {
+            $value = $this->userInteraction->askQuestion(sprintf(
+                '[%s] %s [%s]?',
+                $categoryTitle,
+                $attributeDefinition['title'],
+                $defaultValue
+            ));
+
+            if (strlen($value) === 0 || $value === $defaultValue) {
+                return null;
+            }
+        } else {
+            $value = $this->userInteraction->askQuestion(sprintf(
+                '[%s] %s?',
+                $categoryTitle,
+                $attributeDefinition['title']
+            ));
+
+            if (strlen($value) === 0) {
+                return null;
+            }
+        }
+
+        return (new Attribute($this->config, $this->log))
+            ->setUp($attributeDefinition, $this->useIdoitAPI())
+            ->decode($value);
     }
 
     /**
@@ -698,6 +885,10 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyObjectType(string $candidate): bool {
+        if (strlen($candidate) === 0) {
+            return false;
+        }
+
         $objectTypes = $this->cache->getObjectTypes();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
@@ -748,6 +939,10 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyObject(string $candidate): bool {
+        if (strlen($candidate) === 0) {
+            return false;
+        }
+
         $this->objectTitle = $candidate;
 
         if ($this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
@@ -879,7 +1074,7 @@ class Save extends Command {
      *
      * @param string $candidate
      *
-     * @return bool Returns true, otherwise \Exception is thrown
+     * @return bool Returns true, otherwise false
      *
      * @throws \Exception on error
      */
@@ -894,6 +1089,14 @@ class Save extends Command {
             throw new \BadMethodCallException(
                 'Unknown categories cannot have entries'
             );
+        }
+
+        if (strlen($candidate) === 0) {
+            $candidate = $this->askForEntry();
+
+            if (strlen($candidate) === 0) {
+                return false;
+            }
         }
 
         if (!is_numeric($candidate) && (int) $candidate <= 0) {
@@ -1134,6 +1337,7 @@ class Save extends Command {
 
                 $attributeKey = '';
                 $attributeTitle = '';
+                $attribute = [];
 
                 $categoryInfo = $this->cache->getCategoryInfo($categoryConstant);
 
@@ -1141,12 +1345,14 @@ class Save extends Command {
                     if ($categoryAttributeKey === $block['attribute']) {
                         $attributeKey = $categoryAttributeKey;
                         $attributeTitle = $categoryAttribute['title'];
+                        $attribute = $categoryAttribute;
                         break;
                     }
 
                     if (strtolower($categoryAttribute['title']) === $block['attribute']) {
                         $attributeKey = $categoryAttributeKey;
                         $attributeTitle = $categoryAttribute['title'];
+                        $attribute = $categoryAttribute;
                         break;
                     }
                 }
@@ -1165,7 +1371,8 @@ class Save extends Command {
                     'categoryTitle' => $categoryTitle,
                     'categoryID' => $categoryID,
                     'attributeKey' => $attributeKey,
-                    'attributeTitle' => $attributeTitle
+                    'attributeTitle' => $attributeTitle,
+                    'attribute' => $attribute
                 ];
             }
         } catch (\Exception $e) {
@@ -1180,23 +1387,21 @@ class Save extends Command {
         return $this;
     }
 
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function applyTemplate() {
         foreach ($this->template as $index => $block) {
-            $value = $this->userInteraction->askQuestion(sprintf(
-                '[%s] %s?',
+            $value = $this->askForAttribute(
                 $block['categoryTitle'],
-                $block['attributeTitle']
-            ));
+                $block['attribute']
+            );
 
-            if (strlen($value) === 0) {
-                continue;
+            if (isset($value)) {
+                $this->template[$index]['value'] = $value;
             }
-
-            if (is_numeric($value)) {
-                $value = (int) $value;
-            }
-
-            $this->template[$index]['value'] = $value;
         }
 
         return $this;
