@@ -154,12 +154,16 @@ class Save extends Command {
 
         if (!$this->hasCategory() && $this->hasObjectType()) {
             $this->loadTemplate();
-        } else {
-            $this->log->debug('Do not load template');
         }
 
         if ($this->hasTemplate()) {
-            $this->applyTemplate();
+            $decision = $this->userInteraction->askYesNo(
+                'Add more attributes?'
+            );
+
+            if ($decision === true) {
+                $this->applyTemplate();
+            }
         }
 
         $this->save();
@@ -1461,7 +1465,38 @@ class Save extends Command {
         } elseif ($this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
             $this->log->debug('Save one or more category entries');
 
-            // @todo Sort attributes by category and save data by batch request of cmdb.category.save!
+            $categories = [];
+
+            foreach ($this->template as $block) {
+                if (!array_key_exists('value', $block)) {
+                    continue;
+                }
+
+                if (!array_key_exists($block['categoryConstant'], $categories)) {
+                    $categories[$block['categoryConstant']] = [];
+                }
+
+                $categories[$block['categoryConstant']][$block['attributeKey']] = $block['value'];
+            }
+
+            $requests = [];
+
+            foreach ($categories as $categoryConstant => $attributes) {
+                $requests[] = [
+                    'method' => 'cmdb.category.save',
+                    'params' => [
+                        'object' => $this->objectID,
+                        'category' => $categoryConstant,
+                        'data' => $attributes
+                    ]
+                ];
+            }
+
+            if (count($requests) === 0) {
+                $this->log->notice('Nothing to do');
+            } else {
+                $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+            }
 
             $this->log->info(
                 'Link: %s?objID=%s',
@@ -1471,12 +1506,31 @@ class Save extends Command {
         } elseif (!$this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
             $this->log->debug('Create object and save one or more category entries');
 
-            // @todo Sort attributes by category and save data by cmdb.object.create!
-//            $this->log->info(
-//                'Link: %s?objID=%s',
-//                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
-//                $this->objectID
-//            );
+            $categories = [];
+
+            foreach ($this->template as $block) {
+                if (!array_key_exists('value', $block)) {
+                    continue;
+                }
+
+                if (!array_key_exists($block['categoryConstant'], $categories)) {
+                    $categories[$block['categoryConstant']] = [0 => []];
+                }
+
+                $categories[$block['categoryConstant']][0][$block['attributeKey']] = $block['value'];
+            }
+
+            $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
+                $this->objectTypeConstant,
+                $this->objectTitle,
+                $categories
+            );
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $result['id']
+            );
         } else {
             throw new \BadMethodCallException('Do not know what to do');
         }
@@ -1537,27 +1591,65 @@ class Save extends Command {
     <dim># Create new object with type "server" and title "mylittleserver":</dim>
     \$ %1\$s %2\$s server/mylittleserver
 
-    <dim># Create/update attributes in a single-value category</dim>
+    <dim># Create/update attributes in a single-value category:</dim>
     \$ %1\$s %2\$s server/mylittleserver/model \\
-        -a manufacturer=A -a title=123
+        -a manufacturer=VendorA -a model=ModelA
+    <dim># Another one:</dim>
     \$ %1\$s %2\$s server/mylittleserver/location \\
-        -a ru=11
+        -a location="Data Center"
 
-    <dim># Update attributes in a multi-value category</dim>
+    <dim># Update attributes in a multi-value category:</dim>
     \$ %1\$s %2\$s server/mylittleserver/hostaddress/1 \\
-        -a ipv4address=192.168.42.23
+        -a ipv4_address=192.168.42.23 \\
+        -a hostname=mylittleserver \\
+        -a domain=example.com
+        
+    <dim># Use a template for an interactive mode:</dim>
+    \$ cat template.json
+    {
+        "templates": {
+            "server": [
+                {
+                    "category": "model",
+                    "attribute": "manufacturer"
+                },
+                {
+                    "category": "model",
+                    "attribute": "model"
+                },
+                {
+                    "category": "host address",
+                    "attribute": "ipv4_address"
+                },
+                {
+                    "category": "host address",
+                    "attribute": "hostname"
+                },
+                {
+                    "category": "host address",
+                    "attribute": "domain"
+                },
+                {
+                    "category": "location",
+                    "attribute": "location"
+                }
+            ]
+        }
+    }
 
-    <dim># Interactive mode (based on templates)</dim>
-    \$ %1\$s %2\$s
-    Create new object
+    <dim># Interactive mode:</dim>
+    \$ %1\$s %2\$s -c template.json
+    %3\$s
     Type? server
     Title? mylittleserver
-    Add more attributes [y/N]? y
-    [Model] Manufacturer? A
-    [Model] Model? 123
+    Add more attributes? [Y/n] y
+    [Model] Manufacturer? VendorA
+    [Model] Model? ModelA
+    [Host address] IPv4 address? 192.168.42.23
     [Hostaddress] Hostname? mylittleserver
-    [Location] Location? rackXY
-    […]
+    [Host address] Domain? example.com
+    [Location] Location? Data Center
+    Link: http://cmdb.example.com/i-doit/?objID=42
 EOF
             ,
             $this->config['composer']['extra']['name'],

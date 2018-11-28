@@ -294,6 +294,27 @@ class Attribute extends Service {
             array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'object') {
             $this->type = self::OBJECT_RELATION;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'exportHostname') {
+            $this->type = self::TEXT;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'exportIpReference') {
+            $this->type = self::TEXT;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'location') {
+            $this->type = self::OBJECT_RELATION;
         } else {
             throw new \RuntimeException(sprintf(
                 'Attribute "%s" has unknown type',

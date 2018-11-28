@@ -1,0 +1,30 @@
+{
+    "templates": {
+        "server": [
+            {
+                "category": "model",
+                "attribute": "manufacturer"
+            },
+            {
+                "category": "model",
+                "attribute": "model"
+            },
+            {
+                "category": "host address",
+                "attribute": "ipv4_address"
+            },
+            {
+                "category": "host address",
+                "attribute": "hostname"
+            },
+            {
+                "category": "host address",
+                "attribute": "domain"
+            },
+            {
+                "category": "location",
+                "attribute": "location"
+            }
+        ]
+    }
+}
