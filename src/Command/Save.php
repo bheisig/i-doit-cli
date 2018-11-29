@@ -1419,8 +1419,23 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function save() {
-        if ($this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
-            $this->log->info('Save one category entry');
+        if ($this->hasObject() && $this->hasAttributes() && $this->hasEntry() && !$this->hasTemplate()) {
+            $this->log->info('Update 1 category entry');
+
+            $this->useIdoitAPI()->getCMDBCategory()->save(
+                $this->objectID,
+                $this->categoryConstant,
+                $this->collectedAttributes,
+                $this->entryID
+            );
+
+            $this->log->info(
+                'Link: %s?objID=%s',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url']),
+                $this->objectID
+            );
+        } elseif ($this->hasObject() && $this->hasAttributes() && !$this->hasEntry() && !$this->hasTemplate()) {
+            $this->log->info('Create 1 category entry');
 
             $this->useIdoitAPI()->getCMDBCategory()->save(
                 $this->objectID,
@@ -1434,7 +1449,7 @@ class Save extends Command {
                 $this->objectID
             );
         } elseif (!$this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
-            $this->log->info('Create new object and save one category entry');
+            $this->log->info('Create new object and save 1 category entry');
 
             $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
                 $this->objectTypeConstant,
@@ -1623,7 +1638,7 @@ class Save extends Command {
         -a location="Data Center"
 
     <dim># Update attributes in a multi-value category:</dim>
-    \$ %1\$s %2\$s server/mylittleserver/hostaddress/1 \\
+    \$ %1\$s %2\$s server/mylittleserver/host\\ address/1 \\
         -a ipv4_address=192.168.42.23 \\
         -a hostname=mylittleserver \\
         -a domain=example.com
