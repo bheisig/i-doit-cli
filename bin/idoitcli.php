@@ -67,11 +67,11 @@ try {
             __NAMESPACE__ . '\\Command\\FixIP',
             'Assign IPs to subnets'
         )
-        // Extent basic command for caching:
+        // Extent basic command:
         ->addCommand(
             'init',
             __NAMESPACE__ . '\\Command\\Init',
-            'Create configuration settings and create cache'
+            'Create/update user-defined or system-wide configuration settings'
         )
         ->addCommand(
             'nextip',

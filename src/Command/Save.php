@@ -152,7 +152,9 @@ class Save extends Command {
             ->analyzeCollectedData()
             ->interviewUser();
 
-        if (!$this->hasCategory() && $this->hasObjectType()) {
+        if (!$this->hasCategory() &&
+            $this->hasObjectType() &&
+            !$this->userInteraction->isInteractive()) {
             $this->loadTemplate();
         }
 
@@ -543,6 +545,10 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function interviewUser(): self {
+        if (!$this->userInteraction->isInteractive()) {
+            return $this;
+        }
+
         $this
             ->askForObjectType()
             ->reportObjectType()
@@ -1031,7 +1037,8 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function identifyCategory(string $candidate): bool {
-        if (strlen($candidate) === 0) {
+        if (strlen($candidate) === 0 &&
+            $this->userInteraction->isInteractive()) {
             $candidate = $this->askForCategory();
         }
 
@@ -1095,7 +1102,8 @@ class Save extends Command {
             );
         }
 
-        if (strlen($candidate) === 0) {
+        if (strlen($candidate) === 0 &&
+            $this->userInteraction->isInteractive()) {
             $candidate = $this->askForEntry();
 
             if (strlen($candidate) === 0) {
@@ -1578,7 +1586,7 @@ class Save extends Command {
     }
 
     /**
-     * Shows usage of command
+     * Print usage of command
      *
      * @return self Returns itself
      */
@@ -1602,7 +1610,6 @@ class Save extends Command {
                      <dim>of an existing category entry</dim>
 
 <strong>COMMAND OPTIONS</strong>
-
     -a <u>ATTRIBUTE=VALUE</u>,         <dim>Localized name or key of ATTRIBUTE</dim>
     --attribute=<u>ATTRIBUTE=VALUE</u> <dim>and its VALUE</dim>
                                 <dim>(Use only if category is set)</dim>
@@ -1642,7 +1649,7 @@ class Save extends Command {
         -a ipv4_address=192.168.42.23 \\
         -a hostname=mylittleserver \\
         -a domain=example.com
-        
+
     <dim># Use a template for an interactive mode:</dim>
     \$ cat template.json
     {
