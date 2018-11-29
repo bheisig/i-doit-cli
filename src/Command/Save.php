@@ -1420,7 +1420,7 @@ class Save extends Command {
      */
     protected function save() {
         if ($this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
-            $this->log->debug('Save one category entry');
+            $this->log->info('Save one category entry');
 
             $this->useIdoitAPI()->getCMDBCategory()->save(
                 $this->objectID,
@@ -1434,7 +1434,7 @@ class Save extends Command {
                 $this->objectID
             );
         } elseif (!$this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
-            $this->log->debug('Create object and save one category entry');
+            $this->log->info('Create new object and save one category entry');
 
             $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
                 $this->objectTypeConstant,
@@ -1450,7 +1450,7 @@ class Save extends Command {
                 $result['id']
             );
         } elseif (!$this->hasObject() && !$this->hasAttributes() && !$this->hasTemplate()) {
-            $this->log->debug('Create object');
+            $this->log->info('Create object');
 
             $this->objectID = $this->useIdoitAPI()->getCMDBObject()->create(
                 $this->objectTypeConstant,
@@ -1463,8 +1463,6 @@ class Save extends Command {
                 $this->objectID
             );
         } elseif ($this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
-            $this->log->debug('Save one or more category entries');
-
             $categories = [];
 
             foreach ($this->template as $block) {
@@ -1492,10 +1490,23 @@ class Save extends Command {
                 ];
             }
 
-            if (count($requests) === 0) {
-                $this->log->notice('Nothing to do');
-            } else {
-                $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+            switch (count($requests)) {
+                case 0:
+                    $this->log->notice('Nothing to do');
+                    break;
+                case 1:
+                    $this->log->info('Save 1 category entry');
+
+                    $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                    break;
+                default:
+                    $this->log->info(
+                        'Save %s category entries',
+                        count($requests)
+                    );
+
+                    $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                    break;
             }
 
             $this->log->info(
@@ -1504,8 +1515,6 @@ class Save extends Command {
                 $this->objectID
             );
         } elseif (!$this->hasObject() && $this->hasTemplate() && !$this->hasAttributes()) {
-            $this->log->debug('Create object and save one or more category entries');
-
             $categories = [];
 
             foreach ($this->template as $block) {
@@ -1520,6 +1529,21 @@ class Save extends Command {
                 $categories[$block['categoryConstant']][0][$block['attributeKey']] = $block['value'];
             }
 
+            switch (count($categories)) {
+                case 0:
+                    $this->log->notice('Create object');
+                    break;
+                case 1:
+                    $this->log->info('Create object and save 1 category entry');
+                    break;
+                default:
+                    $this->log->info(
+                        'Create object and save %s category entries',
+                        count($categories)
+                    );
+                    break;
+            }
+
             $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
                 $this->objectTypeConstant,
                 $this->objectTitle,
@@ -1532,7 +1556,7 @@ class Save extends Command {
                 $result['id']
             );
         } else {
-            throw new \BadMethodCallException('Do not know what to do');
+            $this->log->notice('Nothing to do');
         }
 
         return $this;
