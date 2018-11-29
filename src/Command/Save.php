@@ -1692,7 +1692,7 @@ class Save extends Command {
     [Model] Manufacturer? VendorA
     [Model] Model? ModelA
     [Host address] IPv4 address? 192.168.42.23
-    [Hostaddress] Hostname? mylittleserver
+    [Host address] Hostname? mylittleserver
     [Host address] Domain? example.com
     [Location] Location? Data Center
     Link: http://cmdb.example.com/i-doit/?objID=42

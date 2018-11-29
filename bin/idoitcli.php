@@ -74,6 +74,11 @@ try {
             'Create/update user-defined or system-wide configuration settings'
         )
         ->addCommand(
+            'logs',
+            __NAMESPACE__ . '\\Command\\Logs',
+            'Read logs from i-doit'
+        )
+        ->addCommand(
             'nextip',
             __NAMESPACE__ . '\\Command\\NextIP',
             'Fetch the next free IP address for a given subnet'
