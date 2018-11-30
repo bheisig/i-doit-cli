@@ -45,4 +45,12 @@ class Validate extends Service {
         return true;
     }
 
+    public function isIDAsString(string $id) {
+        return is_numeric($id) && (int) $id > 0;
+    }
+
+    public function isID(int $id): bool {
+        return $id > 0;
+    }
+
 }

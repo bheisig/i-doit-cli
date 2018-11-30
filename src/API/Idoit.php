@@ -28,9 +28,11 @@ namespace bheisig\idoitcli\API;
 
 use bheisig\cli\Log;
 use bheisig\idoitapi\API;
+use bheisig\idoitapi\Request;
 use bheisig\idoitapi\CMDBCategory;
 use bheisig\idoitapi\CMDBCategoryInfo;
 use bheisig\idoitapi\CMDBDialog;
+use \bheisig\idoitapi\CMDBLogbook;
 use bheisig\idoitapi\CMDBObject;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBObjectTypeCategories;
@@ -111,8 +113,14 @@ class Idoit {
      */
     protected function getInstanceOf($class) {
         if (!array_key_exists($class, $this->instances)) {
-            $className = "bheisig\\idoitapi\\$class";
-            $this->instances[$class] = new $className($this->api);
+            if (is_a($class, Request::class, true) === false) {
+                throw new \RuntimeException(sprintf(
+                    '%s is not an API request class',
+                    $class
+                ));
+            }
+
+            $this->instances[$class] = new $class($this->api);
         }
 
         return $this->instances[$class];
@@ -124,7 +132,7 @@ class Idoit {
      * @return CMDB
      */
     public function getCMDB(): CMDB {
-        return $this->getInstanceOf('Idoit');
+        return $this->getInstanceOf(Idoit::class);
     }
 
     /**
@@ -133,7 +141,7 @@ class Idoit {
      * @return CMDBObject
      */
     public function getCMDBObject(): CMDBObject {
-        return $this->getInstanceOf('CMDBObject');
+        return $this->getInstanceOf(CMDBObject::class);
     }
 
     /**
@@ -142,7 +150,7 @@ class Idoit {
      * @return CMDBObjects
      */
     public function getCMDBObjects(): CMDBObjects {
-        return $this->getInstanceOf('CMDBObjects');
+        return $this->getInstanceOf(CMDBObjects::class);
     }
 
     /**
@@ -151,7 +159,7 @@ class Idoit {
      * @return CMDBObjectTypeCategories
      */
     public function getCMDBObjectTypeCategories(): CMDBObjectTypeCategories {
-        return $this->getInstanceOf('CMDBObjectTypeCategories');
+        return $this->getInstanceOf(CMDBObjectTypeCategories::class);
     }
 
     /**
@@ -160,7 +168,7 @@ class Idoit {
      * @return CMDBObjectTypes
      */
     public function getCMDBObjectTypes(): CMDBObjectTypes {
-        return $this->getInstanceOf('CMDBObjectTypes');
+        return $this->getInstanceOf(CMDBObjectTypes::class);
     }
 
     /**
@@ -169,7 +177,7 @@ class Idoit {
      * @return CMDBCategory
      */
     public function getCMDBCategory(): CMDBCategory {
-        return $this->getInstanceOf('CMDBCategory');
+        return $this->getInstanceOf(CMDBCategory::class);
     }
 
     /**
@@ -178,7 +186,7 @@ class Idoit {
      * @return CMDBCategoryInfo
      */
     public function getCMDBCategoryInfo(): CMDBCategoryInfo {
-        return $this->getInstanceOf('CMDBCategoryInfo');
+        return $this->getInstanceOf(CMDBCategoryInfo::class);
     }
 
     /**
@@ -187,7 +195,16 @@ class Idoit {
      * @return CMDBDialog
      */
     public function getCMDBDialog(): CMDBDialog {
-        return $this->getInstanceOf('CMDBDialog');
+        return $this->getInstanceOf(CMDBDialog::class);
+    }
+
+    /**
+     * Factory for CMDBDialog
+     *
+     * @return CMDBLogbook
+     */
+    public function getCMDBLogbook(): CMDBLogbook {
+        return $this->getInstanceOf(CMDBLogbook::class);
     }
 
     /**
@@ -196,7 +213,7 @@ class Idoit {
      * @return Subnet
      */
     public function getSubnet(): Subnet {
-        return $this->getInstanceOf('Subnet');
+        return $this->getInstanceOf(Subnet::class);
     }
 
     /**

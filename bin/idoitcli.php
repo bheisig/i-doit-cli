@@ -76,7 +76,7 @@ try {
         ->addCommand(
             'logs',
             __NAMESPACE__ . '\\Command\\Logs',
-            'Read logs from i-doit'
+            'Print logs from i-doit'
         )
         ->addCommand(
             'nextip',
@@ -122,6 +122,37 @@ try {
         ->addOption(
             'a',
             'attribute',
+            App::OPTION_NOT_REQUIRED
+        )
+        // Used by command "logs":
+        ->addOption(
+            'f',
+            'follow',
+            App::NO_VALUE
+        )
+        ->addOption(
+            null,
+            'id',
+            App::OPTION_NOT_REQUIRED
+        )
+        ->addOption(
+            'n',
+            'number',
+            App::OPTION_NOT_REQUIRED
+        )
+        ->addOption(
+            null,
+            'since',
+            App::OPTION_NOT_REQUIRED
+        )
+        ->addOption(
+            null,
+            'title',
+            App::OPTION_NOT_REQUIRED
+        )
+        ->addOption(
+            null,
+            'type',
             App::OPTION_NOT_REQUIRED
         )
         ->run();
