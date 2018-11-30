@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+-   `log`: Add entry to i-doit logbook
+-   `logs`: Print logs from i-doit
 -   `cache`: Create cache files needed for faster processing
 
 

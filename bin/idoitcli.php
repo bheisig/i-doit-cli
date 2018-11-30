@@ -74,6 +74,11 @@ try {
             'Create/update user-defined or system-wide configuration settings'
         )
         ->addCommand(
+            'log',
+            __NAMESPACE__ . '\\Command\\Log',
+            'Add entry to i-doit logbook'
+        )
+        ->addCommand(
             'logs',
             __NAMESPACE__ . '\\Command\\Logs',
             'Print logs from i-doit'
@@ -122,6 +127,12 @@ try {
         ->addOption(
             'a',
             'attribute',
+            App::OPTION_NOT_REQUIRED
+        )
+        // Used by command "log":
+        ->addOption(
+            'm',
+            'message',
             App::OPTION_NOT_REQUIRED
         )
         // Used by command "logs":

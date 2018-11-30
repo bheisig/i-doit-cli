@@ -44,6 +44,11 @@ class UserInteraction extends Service {
             return false;
         }
 
+        if (function_exists('posix_isatty') &&
+            posix_isatty(STDOUT) === false) {
+            return false;
+        }
+
         return true;
     }
 

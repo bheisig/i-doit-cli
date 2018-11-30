@@ -89,7 +89,7 @@
             "rm -r ./`composer config extra.name`-`composer config extra.version`/"
         ],
         "find-forbidden": [
-            "! grep -rEn \"(var_dump|die|exit)\" src/*"
+            "! grep -rEn \"(var_dump|die|exit)\\(\" src/*"
         ],
         "gitstats": "gitstats -c project_name=`composer config extra.name` . gitstats",
         "gource": "gource -1280x720 --seconds-per-day 3 --auto-skip-seconds 1 --title `composer config extra.name`",
