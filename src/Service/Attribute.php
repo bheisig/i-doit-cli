@@ -316,10 +316,7 @@ class Attribute extends Service {
             $this->definition['format']['callback'][1] === 'location') {
             $this->type = self::OBJECT_RELATION;
         } else {
-            throw new \RuntimeException(sprintf(
-                'Attribute "%s" has unknown type',
-                $this->definition['title']
-            ));
+            $this->type = self::TEXT;
         }
 
         return $this;
