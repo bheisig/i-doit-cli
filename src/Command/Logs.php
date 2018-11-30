@@ -69,7 +69,7 @@ class Logs extends Command {
     protected $logs = [];
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
@@ -464,13 +464,13 @@ EOF
 
 <strong>COMMAND OPTIONS</strong>
     -f, --follow        <dim>Start a continuous stream of logs</dim>
-    --id=<u>id</u>             <dim>Filter logs by numeric object identifier</dim>
+    --id=<u>ID</u>             <dim>Filter logs by numeric object identifier</dim>
                         <dim>Repeat to filter by more than one identifiers</dim>
-    -n <u>limit</u>,           <dim>Limit to last number of logs</dim>
-    --number=<u>limit</u>
-    --since=<u>time</u>        <dim>Filter logs since a specific date/time</dim>
+    -n <u>LIMIT</u>,           <dim>Limit to last number of logs</dim>
+    --number=<u>LIMIT</u>
+    --since=<u>TIME</u>        <dim>Filter logs since a specific date/time</dim>
                         <dim>May be everything that can be interpreted as a date/time</dim>
-    --title=<u>title</u>       <dim>Filter logs by object title</dim>
+    --title=<u>TITLE</u>       <dim>Filter logs by object title</dim>
                         <dim>Wildcards like "*" and "[ae]" are allowed</dim>
                         <dim>Repeat to filter by more than one titles</dim>
     

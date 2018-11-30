@@ -132,7 +132,7 @@ class Save extends Command {
     }
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
@@ -1603,7 +1603,7 @@ class Save extends Command {
     
             <u>type</u>     <dim>is the localized name of an object type,</dim>
                      <dim>its constant or its numeric identifier</dim>
-            <u>object</u>   <dim>title of numeric identifier</dim>
+            <u>object</u>   <dim>title or numeric identifier</dim>
             <u>category</u> <dim>is the localized name of the category,</dim>
                      <dim>its contant or numeric identifier</dim>
             <u>entry</u>    <dim>is the numeric identifier</dim>
