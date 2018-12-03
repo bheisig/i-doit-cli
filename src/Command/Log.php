@@ -203,6 +203,11 @@ class Log extends Command {
         return $this;
     }
 
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function askForMessage(): self {
         try {
             if (function_exists('exec') === false) {
@@ -211,17 +216,18 @@ class Log extends Command {
                 );
             }
 
-            $editor = getenv('EDITOR');
+            $editor = $this->findEditor();
 
-            if ($editor === false || strlen($editor) === 0) {
-                throw new \BadMethodCallException(
-                    'No editor specified in environment variable EDITOR'
-                );
+            if ($editor === '') {
+                // Last chance:
+                $editor = $this->askForEditor();
             }
+
+            $this->log->debug('Editor: %s', $editor);
 
             $tmpFile = $temp_file = tempnam(
                 sys_get_temp_dir(),
-                $this->config['composer']['extra']['name']
+                $this->config['composer']['extra']['name'] . '_'
             );
 
             if (!is_writable($tmpFile)) {
@@ -278,6 +284,15 @@ EOF
                 ));
             }
 
+            $status = unlink($tmpFile);
+
+            if ($status === false) {
+                throw new \RuntimeException(sprintf(
+                    'Unable to remove temporary file "%s"',
+                    $tmpFile
+                ));
+            }
+
             $lines = explode(PHP_EOL, $content);
 
             $messageLines = [];
@@ -305,6 +320,96 @@ EOF
         }
 
         return $this;
+    }
+
+    /**
+     * Find a proper editor to edit files
+     *
+     * Try (in the following order):
+     * - Environment variable "EDITOR"
+     * - Environment variable "VISUAL"
+     * - Command "editor"
+     * - Command "sensible-editor"
+     * - Command "xdg-mime query default"
+     * - Editor "nano"
+     * - Editor "vim"
+     * - Editor "vi"
+     * - Editor "joe"
+     * - Editor "gedit"
+     * - Editor "kate"
+     *
+     * @return string
+     */
+    protected function findEditor(): string {
+        $environmentVariables = [
+            'EDITOR',
+            'VISUAL'
+        ];
+
+        foreach ($environmentVariables as $environmentVariable) {
+            $this->log->debug('Check environment variable "%s"', $environmentVariable);
+
+            $editor = getenv($environmentVariable);
+
+            if ($editor !== false && strlen($editor) > 0) {
+                return $editor;
+            }
+        }
+
+        $commands = [
+            'editor',
+            'sensible-editor',
+            'xdg-mime query default',
+            'nano',
+            'vim',
+            'vi',
+            'joe',
+            'gedit',
+            'kate'
+        ];
+
+        foreach ($commands as $command) {
+            $this->log->debug('Check command "%s"', $command);
+
+            if ($this->testCommand($command)) {
+                return $command;
+            }
+        }
+
+        $this->log->debug('No editor found');
+
+        return '';
+    }
+
+    protected function testCommand(string $command): bool {
+        $output = [];
+        $exitCode = 0;
+
+        exec("type $command > /dev/null 2> /dev/null", $output, $exitCode);
+
+        if ($exitCode === 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function askForEditor(): string {
+        $editor = $this->userInteraction->askQuestion('Which editor do you prefer?');
+
+        if (strlen($editor) === 0) {
+            $this->log->warning('Excuse me, what do you mean?');
+
+            return $this->askForEditor();
+        }
+
+        if ($this->testCommand($editor) === false) {
+            $this->log->warning('Command not found');
+
+            return $this->askForEditor();
+        }
+
+        return $editor;
     }
 
     protected function reportObject(): self {
@@ -354,12 +459,10 @@ EOF
      * @return self Returns itself
      */
     public function printUsage(): self {
-        $editor = getenv('EDITOR');
+        $editor = $this->findEditor();
 
-        if ($editor === false || strlen($editor) === 0) {
-            $editorNote = 'Note: No editor found';
-        } else {
-            $editorNote = 'Your editor is: ' . $editor;
+        if ($editor === '') {
+            $editor = 'no editor found';
         }
 
         $this->log->info(
@@ -374,9 +477,7 @@ EOF
 
 <strong>COMMAND OPTIONS</strong>
     -m <u>MESSAGE</u>,         <dim>Add message text, otherwise type your message in</dim>
-    --message=<u>MESSAGE</u>   <dim>your prefered editor based on environment</dim>
-                        <dim>variable EDITOR</dim>
-                        <dim>%4\$s</dim>
+    --message=<u>MESSAGE</u>   <dim>your prefered editor: %4\$s</dim>
 
 <strong>COMMON OPTIONS</strong>
     -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
@@ -414,7 +515,7 @@ EOF
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription(),
-            $editorNote
+            $editor
         );
 
         return $this;
