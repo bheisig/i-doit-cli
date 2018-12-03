@@ -89,6 +89,11 @@ try {
             'Fetch the next free IP address for a given subnet'
         )
         ->addCommand(
+            'rack',
+            __NAMESPACE__ . '\\Command\\Rack',
+            'Visualize hardware rack'
+        )
+        ->addCommand(
             'random',
             __NAMESPACE__ . '\\Command\\Random',
             'Create randomized data'
