@@ -35,6 +35,7 @@ class Logs extends Command {
     protected $filterByTitles = [];
     protected $filterByDateTime = '';
     protected $limit = 0;
+    protected $hardLimit = 10000;
 
     protected $events = [
         'C__LOGBOOK_EVENT__OBJECTTYPE_PURGED' => 'Object type purged',
@@ -293,7 +294,7 @@ class Logs extends Command {
         $this->logs = [];
 
         if (!$this->hasAnyFilter()) {
-            $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read();
+            $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read(null, $this->hardLimit);
         } else {
             $since = null;
 
@@ -307,7 +308,8 @@ class Logs extends Command {
                         $this->logs,
                         $this->useIdoitAPI()->getCMDBLogbook()->readByObject(
                             $objectID,
-                            $since
+                            $since,
+                            $this->hardLimit
                         )
                     );
                 }
@@ -317,7 +319,10 @@ class Logs extends Command {
                     [self::class, 'sortLogsByDate']
                 );
             } else {
-                $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read($since);
+                $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read(
+                    $since,
+                    $this->hardLimit
+                );
             }
 
             if ($this->hasTitleFilter()) {
@@ -467,7 +472,8 @@ EOF
     --id=<u>ID</u>             <dim>Filter logs by numeric object identifier</dim>
                         <dim>Repeat to filter by more than one identifiers</dim>
     -n <u>LIMIT</u>,           <dim>Limit to last number of logs</dim>
-    --number=<u>LIMIT</u>
+    --number=<u>LIMIT</u>      <dim>Note: There is a hard limit set to a maximum amount of</dim>
+                        <dim>%4\$s entries to prevent server-side errors</dim>
     --since=<u>TIME</u>        <dim>Filter logs since a specific date/time</dim>
                         <dim>May be everything that can be interpreted as a date/time</dim>
     --title=<u>TITLE</u>       <dim>Filter logs by object title</dim>
@@ -517,7 +523,8 @@ EOF
             ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
-            $this->getDescription()
+            $this->getDescription(),
+            $this->hardLimit
         );
 
         return $this;
