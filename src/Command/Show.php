@@ -141,13 +141,6 @@ class Show extends Command {
                     continue;
                 }
 
-                try {
-                    $categoryInfo = $this->cache->getCategoryInfo($category['const']);
-                } catch (\Exception $e) {
-                    IO::err($e->getMessage());
-                    continue;
-                }
-
                 IO::err('');
 
                 switch (count($category['entries'])) {
@@ -170,6 +163,13 @@ class Show extends Command {
                             $category['title']
                         );
                         break;
+                }
+
+                try {
+                    $categoryInfo = $this->cache->getCategoryInfo($category['const']);
+                } catch (\Exception $e) {
+                    IO::err($e->getMessage());
+                    continue;
                 }
 
                 foreach ($category['entries'] as $entry) {
