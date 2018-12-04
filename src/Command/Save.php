@@ -155,7 +155,9 @@ class Save extends Command {
         if (!$this->hasCategory() &&
             $this->hasObjectType() &&
             $this->userInteraction->isInteractive()) {
-            $this->loadTemplate();
+            $this
+                ->loadTemplate()
+                ->preloadEntriesFromTemplate();
         }
 
         if ($this->hasTemplate()) {
@@ -1400,6 +1402,84 @@ class Save extends Command {
     }
 
     /**
+     * Try to pre-load entries for single-value categories found in loaded template
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function preloadEntriesFromTemplate(): self {
+        if (!$this->hasObject()) {
+            return $this;
+        }
+
+        $categoryConstants = [];
+
+        foreach ($this->template as $block) {
+            if (in_array($block['categoryConstant'], $categoryConstants)) {
+                continue;
+            }
+
+            $categoryInfo = $this->cache->getCategoryInfo($block['categoryConstant']);
+
+            if ($categoryInfo['multi_value'] === '1') {
+                continue;
+            }
+
+            $categoryConstants[] = $block['categoryConstant'];
+        }
+
+        if (count($categoryConstants) === 0) {
+            return $this;
+        }
+
+        $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(
+            [$this->objectID],
+            $categoryConstants
+        );
+
+        $entries = [];
+
+        for ($index = 0; $index < count($categoryConstants); $index++) {
+            if (!is_array($result[$index]) ||
+                !array_key_exists(0, $result[$index]) ||
+                !is_array($result[$index][0]) ||
+                count($result[$index][0]) === 0) {
+                continue;
+            }
+
+            $entries[$categoryConstants[$index]] = $result[$index][0];
+        }
+
+        unset($result);
+
+        if (count($entries) === 0) {
+            return $this;
+        }
+
+        foreach ($this->template as $index => $block) {
+            if (!array_key_exists($block['categoryConstant'], $entries)) {
+                continue;
+            }
+
+            if (!array_key_exists($block['attributeKey'], $entries[$block['categoryConstant']]) ||
+                !isset($entries[$block['categoryConstant']][$block['attributeKey']])) {
+                continue;
+            }
+
+            $defaultValue = (new Attribute($this->config, $this->log))
+                ->setUp($block['attribute'], $this->useIdoitAPI())
+                ->encode($entries[$block['categoryConstant']][$block['attributeKey']]);
+
+            $this->template[$index]['defaultValue'] = $defaultValue;
+        }
+
+
+
+        return $this;
+    }
+
+    /**
      * @return self Returns itself
      *
      * @throws \Exception on error
@@ -1408,7 +1488,8 @@ class Save extends Command {
         foreach ($this->template as $index => $block) {
             $value = $this->askForAttribute(
                 $block['categoryTitle'],
-                $block['attribute']
+                $block['attribute'],
+                array_key_exists('defaultValue', $block) ? $block['defaultValue'] : ''
             );
 
             if (isset($value)) {
