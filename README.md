@@ -28,7 +28,8 @@ Before using this app your system must meet the following requirements:
 
 *   Any POSIX operating system (GNU/Linux, *BSD, MacOS) or Windows
 *   PHP >= 7.0 (7.2 is recommended)
-*   PHP extensions `bzip2`, `cli`, `cURL`, `json` and `phar`
+*   PHP extensions `bzip2`, `calendar`, `cli`, `cURL`, `json` and `phar`
+*   PHP extension `pcntl` is optional, but highly recommended (non-Windows only)
 
 
 ##  Install and update
