@@ -23,7 +23,8 @@
             },
             {
                 "category": "location",
-                "attribute": "location"
+                "attribute": "location",
+                "default": "Root location"
             }
         ]
     }

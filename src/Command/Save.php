@@ -1380,7 +1380,7 @@ class Save extends Command {
                     ));
                 }
 
-                $this->template[] = [
+                $data = [
                     'categoryConstant' => $categoryConstant,
                     'categoryTitle' => $categoryTitle,
                     'categoryID' => $categoryID,
@@ -1388,6 +1388,14 @@ class Save extends Command {
                     'attributeTitle' => $attributeTitle,
                     'attribute' => $attribute
                 ];
+
+                if (array_key_exists('default', $block) &&
+                    is_string($block['default']) &&
+                    strlen($block['default']) > 0) {
+                    $data['defaultValue'] = $block['default'];
+                }
+
+                $this->template[] = $data;
             }
         } catch (\Exception $e) {
             throw new \DomainException(sprintf(
@@ -1491,6 +1499,14 @@ class Save extends Command {
                 $block['attribute'],
                 array_key_exists('defaultValue', $block) ? $block['defaultValue'] : ''
             );
+
+            // Use default value if user skipped it:
+            if (!isset($value) &&
+                array_key_exists('defaultValue', $block)) {
+                $value = (new Attribute($this->config, $this->log))
+                    ->setUp($block['attribute'], $this->useIdoitAPI())
+                    ->decode($block['defaultValue']);
+            }
 
             if (isset($value)) {
                 $this->template[$index]['value'] = $value;
@@ -1758,11 +1774,17 @@ class Save extends Command {
                 },
                 {
                     "category": "location",
-                    "attribute": "location"
+                    "attribute": "location",
+                    "default": "Root location"
                 }
             ]
         }
     }
+    <dim># Notes:</dim>
+    <dim># - "category" (required): localized name of the category, its contant or</dim>
+    <dim>#   numeric identifier</dim>
+    <dim># - "attribute" (required): localized name of attribute or its key</dim>
+    <dim># - "default" (optional): default value (must be a string)</dim>
 
     <dim># Interactive mode:</dim>
     \$ %1\$s %2\$s -c template.json
