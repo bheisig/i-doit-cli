@@ -39,6 +39,9 @@ class Attribute extends Service {
     const DIALOG_PLUS = 'dialog_plus';
     const YES_NO_DIALOG = 'yes_no_dialog';
     const OBJECT_RELATION = 'object_relation';
+    const COORDINATES = 'coordinates';
+    const IP_ADDRESS = 'ip_address';
+    const UNKNOWN = 'unknown';
 
     protected $definition = [];
     protected $type = '';
@@ -57,19 +60,37 @@ class Attribute extends Service {
         return $this;
     }
 
+    /**
+     * @param mixed $value Value from i-doit API
+     *
+     * @return string Encoded value, even if it's empty
+     *
+     * @throws \Exception on error
+     */
     public function encode($value): string {
         if (!$this->isLoaded()) {
             throw new \BadMethodCallException('Missing attribute definition');
         }
 
+        if ($value === null) {
+            return '';
+        }
+
         switch ($this->type) {
             case self::TEXT:
-            case self::TEXT_AREA:
                 return $value;
+            case self::TEXT_AREA:
+                // Rich-text editor with HTML:
+                return strip_tags($value);
             case self::DIALOG:
             case self::DIALOG_PLUS:
                 return $value['title'];
             case self::YES_NO_DIALOG:
+                // @todo C__CATG__IP::use_standard_gateway always returns category entry identifier…
+                if (!array_key_exists('title', $value)) {
+                    return 'no';
+                }
+
                 $check = filter_var(
                     $value['title'],
                     FILTER_VALIDATE_BOOLEAN
@@ -78,6 +99,71 @@ class Attribute extends Service {
                 return ($check) ? 'yes' : 'no';
             case self::OBJECT_RELATION:
                 return $value['title'];
+            case self::IP_ADDRESS:
+                return $value['ref_title'];
+            case self::COORDINATES:
+                $longitude = '';
+                $latitude = '';
+
+                if (!is_array($value)) {
+                    return '';
+                }
+
+                if (array_key_exists('longitude', $value) &&
+                    is_string($value['longitude'])) {
+                    $longitude = $value['longitude'];
+                }
+
+                if (array_key_exists('latitude', $value) &&
+                    is_string($value['latitude'])) {
+                    $latitude = $value['latitude'];
+                }
+
+                if ($longitude !== '' && $latitude !== '') {
+                    return $longitude . ', ' . $latitude;
+                } elseif ($longitude !== '' && $latitude === '') {
+                    return $longitude;
+                } elseif ($longitude === '' && $latitude !== '') {
+                    return $latitude;
+                } else {
+                    return '';
+                }
+                break;
+            case self::UNKNOWN:
+                switch (gettype($value)) {
+                    case 'array':
+                        if (array_key_exists('title', $value)) {
+                            return $value['title'];
+                        } elseif (array_key_exists('ref_title', $value)) {
+                            return $value['ref_title'];
+                        } else {
+                            $values = [];
+
+                            foreach ($value as $subObject) {
+                                if (is_array($subObject) &&
+                                    array_key_exists('title', $subObject)) {
+                                    $values[] = $subObject['title'];
+                                }
+
+                                if (is_array($subObject)) {
+                                    if (array_key_exists('title', $value)) {
+                                        $values[] = $subObject['title'];
+                                    } elseif (array_key_exists('ref_title', $value)) {
+                                        $values[] = $subObject['ref_title'];
+                                    }
+                                }
+                            }
+
+                            return implode(', ', $values);
+                        }
+                        break;
+                    case 'string':
+                        // Rich text editor uses HTML:
+                        return strip_tags($value);
+                    default:
+                        return '';
+                }
+                break;
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to encode value for attribute "%s"',
@@ -110,6 +196,7 @@ class Attribute extends Service {
         switch ($this->type) {
             case self::TEXT:
             case self::TEXT_AREA:
+            case self::IP_ADDRESS:
                 $decodedValue = $value;
                 break;
             case self::DIALOG:
@@ -166,6 +253,10 @@ class Attribute extends Service {
                     }
                 }
                 break;
+            case self::COORDINATES:
+                // Ignore!
+                break;
+            case self::UNKNOWN:
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to encode value for attribute "%s"',
@@ -189,13 +280,13 @@ class Attribute extends Service {
         }
 
         switch ($this->type) {
-            case self::TEXT:
-                return strlen($value) <= 255;
             case self::TEXT_AREA:
                 return strlen($value) <= 65535;
+            case self::TEXT:
             case self::DIALOG:
             case self::DIALOG_PLUS:
             case self::OBJECT_RELATION:
+            case self::IP_ADDRESS:
                 return strlen($value) <= 255;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
@@ -205,6 +296,9 @@ class Attribute extends Service {
                 );
 
                 return is_bool($check);
+            case self::UNKNOWN:
+            case self::COORDINATES:
+                return true;
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -220,6 +314,7 @@ class Attribute extends Service {
 
         switch ($this->type) {
             case self::TEXT:
+            case self::IP_ADDRESS:
                 return is_string($value) && strlen($value) <= 255;
             case self::TEXT_AREA:
                 return is_string($value) && strlen($value) <= 65535;
@@ -241,6 +336,9 @@ class Attribute extends Service {
                 );
 
                 return is_bool($check);
+            case self::UNKNOWN:
+            case self::COORDINATES:
+                return true;
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -307,7 +405,7 @@ class Attribute extends Service {
             is_array($this->definition['format']['callback']) &&
             array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'exportIpReference') {
-            $this->type = self::TEXT;
+            $this->type = self::IP_ADDRESS;
         } elseif (array_key_exists('format', $this->definition) &&
             is_array($this->definition['format']) &&
             array_key_exists('callback', $this->definition['format']) &&
@@ -315,8 +413,15 @@ class Attribute extends Service {
             array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'location') {
             $this->type = self::OBJECT_RELATION;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'property_callback_gps') {
+            $this->type = self::COORDINATES;
         } else {
-            $this->type = self::TEXT;
+            $this->type = self::UNKNOWN;
         }
 
         return $this;

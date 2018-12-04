@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use bheisig\idoitcli\Service\Attribute;
+
 /**
  * Command "show"
  */
@@ -186,32 +188,9 @@ class Show extends Command {
                             continue;
                         }
 
-                        switch (gettype($value)) {
-                            case 'array':
-                                if (array_key_exists('ref_title', $value)) {
-                                    $value = $value['ref_title'];
-                                } elseif (array_key_exists('title', $value)) {
-                                    $value = $value['title'];
-                                } else {
-                                    $values = [];
-
-                                    foreach ($value as $subObject) {
-                                        if (is_array($subObject) &&
-                                            array_key_exists('title', $subObject)) {
-                                            $values[] = $subObject['title'];
-                                        }
-                                    }
-
-                                    $value = implode(', ', $values);
-                                }
-                                break;
-                            case 'string':
-                                // Rich text editor uses HTML:
-                                $value = strip_tags($value);
-                                break;
-                            default:
-                                break;
-                        }
+                        $value = (new Attribute($this->config, $this->log))
+                            ->setUp($categoryInfo['properties'][$attribute], $this->useIdoitAPI())
+                            ->encode($value);
 
                         if (!isset($value) || $value === '') {
                             $value = '-';
