@@ -154,7 +154,7 @@ class Save extends Command {
 
         if (!$this->hasCategory() &&
             $this->hasObjectType() &&
-            !$this->userInteraction->isInteractive()) {
+            $this->userInteraction->isInteractive()) {
             $this->loadTemplate();
         }
 
