@@ -122,6 +122,11 @@ class Show extends Command {
 
         $categoryTypes = ['catg', 'cats'];
 
+        $blacklistedCategories = $this
+            ->useIdoitAPI()
+            ->getCMDBCategoryInfo()
+            ->getVirtualCategoryConstants();
+
         foreach ($categoryTypes as $categoryType) {
             if (!array_key_exists($categoryType, $object)) {
                 continue;
@@ -129,6 +134,10 @@ class Show extends Command {
 
             foreach ($object[$categoryType] as $category) {
                 if (in_array($category['const'], ['C__CATG__RELATION', 'C__CATG__LOGBOOK'])) {
+                    continue;
+                }
+
+                if (in_array($category['const'], $blacklistedCategories)) {
                     continue;
                 }
 
