@@ -84,6 +84,7 @@ class Logs extends Command {
 
         $this
             ->buildFilters($this->config['options'])
+            ->fetchObjectIDsByTitles()
             ->readLogs()
             ->printLogs();
 
@@ -293,6 +294,20 @@ class Logs extends Command {
      *
      * @throws \Exception on error
      */
+    protected function fetchObjectIDsByTitles(): self {
+        if ($this->hasTitleFilter()) {
+            $objectIDs = $this->useIdoitAPI()->fetchObjectIDsByTitles($this->filterByTitles);
+
+            $this->filterByIDs = array_merge($this->filterByIDs, $objectIDs);
+        }
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
     protected function readLogs(): self {
         $this->logs = [];
 
@@ -321,29 +336,10 @@ class Logs extends Command {
                     $this->logs,
                     [self::class, 'sortLogsByDate']
                 );
-            } elseif ($this->hasTitleFilter()) {
-                // @todo Fetch object IDs by titles, fetch log events and combine them!
             } else {
                 $this->logs = $this->useIdoitAPIFactory()->getCMDBLogbook()->read(
                     $since,
                     $this->hardLimit
-                );
-            }
-
-            if ($this->hasTitleFilter()) {
-                $titles = $this->filterByTitles;
-
-                $this->logs = array_filter(
-                    $this->logs,
-                    function ($log) use ($titles) {
-                        foreach ($titles as $title) {
-                            if (fnmatch($title, $log['object_title'], FNM_CASEFOLD)) {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
                 );
             }
         }
@@ -484,7 +480,6 @@ EOF
     --since=<u>TIME</u>        <dim>Filter logs since a specific date/time</dim>
                         <dim>May be everything that can be interpreted as a date/time</dim>
     --title=<u>TITLE</u>       <dim>Filter logs by object title</dim>
-                        <dim>Wildcards like "*" and "[ae]" are allowed</dim>
                         <dim>Repeat to filter by more than one titles</dim>
     
     <dim>Any combination of options is allowed.</dim>
@@ -515,8 +510,8 @@ EOF
     <dim># Read logs about 2 objects by their identifiers:</dim>
     \$ %1\$s %2\$s --id 23 --id 42
 
-    <dim># Read logs about various objects by similar titles:</dim>
-    \$ %1\$s %2\$s --title "host*.example.com"
+    <dim># Read logs about an objects by its title:</dim>
+    \$ %1\$s %2\$s --title "host001.example.com"
 
     <dim># Follow:</dim>
     \$ %1\$s %2\$s -f

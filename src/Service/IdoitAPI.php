@@ -207,4 +207,64 @@ class IdoitAPI extends Service {
         }
     }
 
+    /**
+     * Translate object titles into identifiers
+     *
+     * Keep in mind that there could be objects which
+     *
+     * - have none of provided titles or
+     * - have the same titles.
+     *
+     * As a result the returned array could have a smaller, bigger or even size as the provided titles array.
+     *
+     * @param array $titles Object titles as strings
+     *
+     * @return array List of object identifiers
+     *
+     * @throws \Exception on error
+     */
+    public function fetchObjectIDsByTitles(array $titles): array {
+        $objectdIDs = [];
+
+        switch (count($titles)) {
+            case 0:
+                throw new \BadMethodCallException('Empty list of object titles');
+            case 1:
+                $title = end($titles);
+
+                $objects = $this->idoitAPIFactory->getCMDBObjects()->read([
+                    'title' => $title
+                ]);
+
+                foreach ($objects as $object) {
+                    $objectdIDs[] = (int) $object['id'];
+                }
+                break;
+            default:
+                $requests = [];
+
+                foreach ($titles as $title) {
+                    $requests[] = [
+                        'method' => 'cmdb.objects.read',
+                        'params' => [
+                            'filter' => [
+                                'title' => $title
+                            ]
+                        ]
+                    ];
+                }
+
+                $result = $this->idoitAPIFactory->getAPI()->batchRequest($requests);
+
+                foreach ($result as $objects) {
+                    foreach ($objects as $object) {
+                        $objectdIDs[] = (int) $object['id'];
+                    }
+                }
+                break;
+        }
+
+        return $objectdIDs;
+    }
+
 }
