@@ -57,7 +57,7 @@ class Create extends Command {
 
         $this->path = explode('/', $this->getQuery());
 
-        $objectTypes = $this->cache->getObjectTypes();
+        $objectTypes = $this->useCache()->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
             if (strtolower($objectType['title']) === strtolower($this->path[0])) {
@@ -66,11 +66,13 @@ class Create extends Command {
             }
         }
 
+        $this->log->warning('This command is deprecated. Please use command "save" instead.');
+
         return $this;
     }
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
@@ -82,7 +84,7 @@ class Create extends Command {
                 throw new \Exception('Path has only 1 part');
             case 2:
                 if (isset($this->objectTypeConst)) {
-                    $objectID = $this->useIdoitAPI()->getCMDBObject()->create(
+                    $objectID = $this->useIdoitAPIFactory()->getCMDBObject()->create(
                         $this->objectTypeConst,
                         $this->path[1]
                     );
@@ -129,7 +131,7 @@ class Create extends Command {
             return (int) $object['id'];
         }, $objects);
 
-        $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
+        $this->useIdoitAPIFactory()->getCMDBCategory()->batchCreate(
             $objectIDs,
             $category,
             [$attributes]
@@ -155,7 +157,7 @@ class Create extends Command {
      * @throws \Exception on error
      */
     protected function getCategoryConst(string $category): string {
-        $categories = $this->cache->getCategories();
+        $categories = $this->useCache()->getCategories();
 
         $candidates = [];
 

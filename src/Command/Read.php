@@ -34,38 +34,24 @@ use bheisig\cli\IO;
 class Read extends Command {
 
     /**
-     * Processes some routines before the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup(): Command {
-        parent::setup();
-
-        if ($this->cache->isCached() === false) {
-            throw new \Exception(sprintf(
-                'Unsufficient data. Please run "%s cache" first.',
-                $this->config['composer']['extra']['name']
-            ), 500);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine()
+            ->printAsOutput();
+
         $path = $this->getQuery();
 
         $parts = explode('/', $path);
 
-        $objectTypes = $this->cache->getObjectTypes();
+        $objectTypes = $this->useCache()->getObjectTypes();
 
         $objectTypeConst = '';
 
@@ -140,7 +126,7 @@ class Read extends Command {
                         ));
                     }
 
-                    $result = $this->useIdoitAPI()->getCMDBObject()->read($objectID);
+                    $result = $this->useIdoitAPIFactory()->getCMDBObject()->read($objectID);
 
                     if (count($result) === 0) {
                         IO::err('Unknown object');
@@ -270,7 +256,7 @@ class Read extends Command {
 
                         foreach ($objectTypes as $objectType) {
                             if ((int) $objectType['id'] === $object['type']) {
-                                $assignedCategories = $this->cache->getAssignedCategories($objectType['const']);
+                                $assignedCategories = $this->useCache()->getAssignedCategories($objectType['const']);
 
                                 $this->formatAssignedCategories($assignedCategories);
 
@@ -318,7 +304,7 @@ class Read extends Command {
                          * idoit read server/host.example.net/*
                          *
                          */
-                        $assignedCategories = $this->cache->getAssignedCategories($objectTypeConst);
+                        $assignedCategories = $this->useCache()->getAssignedCategories($objectTypeConst);
 
                         $this->formatAssignedCategories($assignedCategories);
                     } else {
@@ -476,7 +462,7 @@ class Read extends Command {
                 break;
         }
 
-        $categories = $this->cache->getCategories();
+        $categories = $this->useCache()->getCategories();
 
         $candidates = [];
 
@@ -518,8 +504,8 @@ class Read extends Command {
                 IO::err('');
             }
 
-            $objectTypeConstant = $this->cache->getObjectTypeConstantByTitle($object['type_title']);
-            $assignedCategories = $this->cache->getAssignedCategories($objectTypeConstant);
+            $objectTypeConstant = $this->useCache()->getObjectTypeConstantByTitle($object['type_title']);
+            $assignedCategories = $this->useCache()->getAssignedCategories($objectTypeConstant);
 
             foreach ($assignedCategories as $type => $assignedCategoriesByType) {
                 foreach ($assignedCategoriesByType as $assignedCategory) {
@@ -638,7 +624,7 @@ class Read extends Command {
                 break;
         }
 
-        $categories = $this->cache->getCategories();
+        $categories = $this->useCache()->getCategories();
 
         $identifiedCategory = [];
 
@@ -767,7 +753,7 @@ class Read extends Command {
         IO::err('Attributes in category "%s"', $categoryTitle);
         IO::err('');
 
-        $assignedCategories = $this->cache->getAssignedCategories($objectType);
+        $assignedCategories = $this->useCache()->getAssignedCategories($objectType);
 
         $categoryConst = '';
 
@@ -793,7 +779,7 @@ class Read extends Command {
             ));
         }
 
-        $cageoryInfo = $this->cache->getCategoryInfo($categoryConst);
+        $cageoryInfo = $this->useCache()->getCategoryInfo($categoryConst);
 
         foreach ($cageoryInfo['properties'] as $attribute) {
             IO::out($attribute['title']);
@@ -816,7 +802,7 @@ class Read extends Command {
         $limit = $this->config['limitBatchRequests'];
 
         if ($limit === 0) {
-            return $this->useIdoitAPI()->getCMDBCategory()->batchRead(
+            return $this->useIdoitAPIFactory()->getCMDBCategory()->batchRead(
                 $objectIDs,
                 [$categoryConst]
             );
@@ -839,7 +825,7 @@ class Read extends Command {
                 $limit
             );
 
-            $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(
+            $result = $this->useIdoitAPIFactory()->getCMDBCategory()->batchRead(
                 $slicedObjectIDs,
                 [$categoryConst]
             );

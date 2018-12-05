@@ -34,7 +34,7 @@ use \bheisig\cli\IO;
 class Call extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
@@ -71,18 +71,18 @@ class Call extends Command {
             $params = $request['params'];
         }
 
-        $this->useIdoitAPI()->getAPI()->request($request['method'], $params);
+        $this->useIdoitAPIFactory()->getAPI()->request($request['method'], $params);
 
         IO::out('');
         IO::out('Request:');
         IO::out('========');
-        IO::out($this->useIdoitAPI()->getAPI()->getLastRequestHeaders());
-        IO::out(json_encode($this->useIdoitAPI()->getAPI()->getLastRequestContent(), JSON_PRETTY_PRINT));
+        IO::out($this->useIdoitAPIFactory()->getAPI()->getLastRequestHeaders());
+        IO::out(json_encode($this->useIdoitAPIFactory()->getAPI()->getLastRequestContent(), JSON_PRETTY_PRINT));
         IO::out('');
         IO::out('Response:');
         IO::out('=========');
-        IO::out($this->useIdoitAPI()->getAPI()->getLastResponseHeaders());
-        IO::out(json_encode($this->useIdoitAPI()->getAPI()->getLastResponse(), JSON_PRETTY_PRINT));
+        IO::out($this->useIdoitAPIFactory()->getAPI()->getLastResponseHeaders());
+        IO::out(json_encode($this->useIdoitAPIFactory()->getAPI()->getLastResponse(), JSON_PRETTY_PRINT));
 
         return $this;
     }

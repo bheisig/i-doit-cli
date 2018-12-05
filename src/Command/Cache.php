@@ -32,7 +32,7 @@ namespace bheisig\idoitcli\Command;
 class Cache extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
@@ -57,7 +57,7 @@ class Cache extends Command {
      * @throws \Exception on error
      */
     protected function serialize(string $file, $value): self {
-        $filePath = $this->cache->getHostDir() . '/' . $file;
+        $filePath = $this->useCache()->getHostDir() . '/' . $file;
 
         $status = file_put_contents($filePath, serialize($value));
 
@@ -77,7 +77,7 @@ class Cache extends Command {
      * @throws \Exception on error
      */
     protected function clearCache(): self {
-        $hostDir = $this->cache->getHostDir();
+        $hostDir = $this->useCache()->getHostDir();
 
         if (!is_dir($hostDir)) {
             $this->log->info(
@@ -129,7 +129,7 @@ class Cache extends Command {
     protected function createCache(): self {
         $this->log->info('Fetch list of object types');
 
-        $objectTypes = $this->useIdoitAPI()->getCMDBObjectTypes()->read();
+        $objectTypes = $this->useIdoitAPIFactory()->getCMDBObjectTypes()->read();
 
         switch (count($objectTypes)) {
             case 0:
@@ -163,7 +163,10 @@ class Cache extends Command {
             $objectTypeIDs[] = (int) $objectType['id'];
         }
 
-        $batchedAssignedCategories = $this->useIdoitAPI()->getCMDBObjectTypeCategories()->batchReadByID($objectTypeIDs);
+        $batchedAssignedCategories = $this
+            ->useIdoitAPIFactory()
+            ->getCMDBObjectTypeCategories()
+            ->batchReadByID($objectTypeIDs);
 
         for ($i = 0; $i < count($objectTypes); $i++) {
             switch (count($batchedAssignedCategories[$i])) {
@@ -206,7 +209,10 @@ class Cache extends Command {
 
         $categories = [];
 
-        $blacklistedCategories = $this->useIdoitAPI()->getCMDBCategoryInfo()->getVirtualCategoryConstants();
+        $blacklistedCategories = $this
+            ->useIdoitAPIFactory()
+            ->getCMDBCategoryInfo()
+            ->getVirtualCategoryConstants();
 
         foreach ($batchedAssignedCategories as $assignedCategories) {
             foreach ($assignedCategories as $type => $categoryList) {
@@ -252,7 +258,10 @@ class Cache extends Command {
         $propertyCounter = 0;
 
         if (count($categoryConsts) > 0) {
-            $batchCategoryInfo = $this->useIdoitAPI()->getCMDBCategoryInfo()->batchRead($categoryConsts);
+            $batchCategoryInfo = $this
+                ->useIdoitAPIFactory()
+                ->getCMDBCategoryInfo()
+                ->batchRead($categoryConsts);
 
             $counter = 0;
 

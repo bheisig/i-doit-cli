@@ -34,31 +34,47 @@ class NextIP extends Command {
     protected $freeIPAddresses = [];
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $value = $this->getQuery();
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
-        if ($value === '') {
-            throw new \Exception('Missing SUBNET', 400);
+        switch (count($this->config['arguments'])) {
+            case 0:
+                if ($this->useUserInteraction()->isInteractive() === false) {
+                    throw new \BadMethodCallException(
+                        'No object, no IP'
+                    );
+                }
+
+                $object = $this->askForObject();
+                $objectID = (int) $object['id'];
+                break;
+            case 1:
+                $object = $this->useIdoitAPI()->identifyObject(
+                    $this->config['arguments'][0]
+                );
+
+                $objectID = (int) $object['id'];
+                break;
+            default:
+                throw new \BadMethodCallException(
+                    'Too many arguments; please provide only one object title or numeric identifier'
+                );
         }
 
-        if (is_numeric($value)) {
-            $objectID = (int) $value;
-        } else {
-            $objectID = $this->useIdoitAPI()->getCMDBObjects()->getID(
-                $value,
-                $this->config['types']['subnets']
-            );
-        }
+        $next = $this->useIdoitAPIFactory()->getSubnet()->load($objectID)->next();
 
-        $next = $this->useIdoitAPI()->getSubnet()->load($objectID)->next();
-
-        $this->log->info($next);
+        $this->log
+            ->printAsOutput()
+            ->info($next);
 
         return $this;
     }
@@ -70,16 +86,49 @@ class NextIP extends Command {
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS] SUBNET
+            <<< EOF
+%3\$s
 
-%3$s
+<strong>USAGE</strong>
+    \$ %1\$s %2\$s [OPTIONS] [SUBNET]
+    
+<strong>ARGUMENTS</strong>
+    SUBNET              <dim>Object title or numeric identifier</dim>
+                        <dim>Must be a "layer-3-net" object</dim>
+                        <dim>Only works for IPv4 subnets</dim>
 
-SUBNET may be an object title or an object identifier. IPv4 only.
+<strong>COMMON OPTIONS</strong>
+    -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
+    --config=<u>FILE</u>       <dim>configuration file FILE; repeat option for more</dim>
+                        <dim>than one FILE</dim>
+    -s <u>KEY=VALUE</u>,       <dim>Add runtime setting KEY with its VALUE; separate</dim>
+    --setting=<u>KEY=VALUE</u> <dim>nested keys with ".", for example "key1.key2=123";</dim>
+                        <dim>repeat option for more than one KEY</dim>
 
-Examples:
+    --no-colors         <dim>Do not print colored messages</dim>
+    -q, --quiet         <dim>Do not output messages, only errors</dim>
+    -v, --verbose       <dim>Be more verbose</dim>
 
-1) %1$s %2$s "Global v4"
-2) %1$s %2$s 20',
+    -h, --help          <dim>Print this help or information about a</dim>
+                        <dim>specific command</dim>
+    --version           <dim>Print version information</dim>
+
+    -y, --yes           <dim>No user interaction required; answer questions</dim>
+                        <dim>automatically with default values</dim>
+
+<strong>EXAMPLES</strong>
+    <dim># Print next IPv4 for subnet by its title:</dim>
+    \$ %1\$s %2\$s "Global v4"
+    \$ %1\$s %2\$s Global\\ v4
+
+    <dim># …or by its numeric identifier:</dim>
+    \$ %1\$s %2\$s 20
+
+    <dim># If argument SUBNET is omitted you'll be asked for it:</dim>
+    \$ %1\$s %2\$s
+    Object? Global v4
+EOF
+            ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()

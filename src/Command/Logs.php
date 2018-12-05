@@ -77,7 +77,10 @@ class Logs extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->info($this->getDescription());
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
         $this
             ->buildFilters($this->config['options'])
@@ -127,7 +130,7 @@ class Logs extends Command {
         }
 
         foreach ($ids as $id) {
-            if ($this->validate->isIDAsString($id) === false) {
+            if ($this->useValidate()->isIDAsString($id) === false) {
                 throw new \BadMethodCallException(sprintf(
                     'Invalid filter by id: %s',
                     $id
@@ -161,7 +164,7 @@ class Logs extends Command {
         }
 
         foreach ($titles as $title) {
-            if ($this->validate->isOneLiner($title) === false) {
+            if ($this->useValidate()->isOneLiner($title) === false) {
                 throw new \BadMethodCallException(sprintf(
                     'Invalid filter by title: %s',
                     $title
@@ -294,7 +297,7 @@ class Logs extends Command {
         $this->logs = [];
 
         if (!$this->hasAnyFilter()) {
-            $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read(null, $this->hardLimit);
+            $this->logs = $this->useIdoitAPIFactory()->getCMDBLogbook()->read(null, $this->hardLimit);
         } else {
             $since = null;
 
@@ -306,7 +309,7 @@ class Logs extends Command {
                 foreach ($this->filterByIDs as $objectID) {
                     $this->logs = array_merge(
                         $this->logs,
-                        $this->useIdoitAPI()->getCMDBLogbook()->readByObject(
+                        $this->useIdoitAPIFactory()->getCMDBLogbook()->readByObject(
                             $objectID,
                             $since,
                             $this->hardLimit
@@ -318,8 +321,10 @@ class Logs extends Command {
                     $this->logs,
                     [self::class, 'sortLogsByDate']
                 );
+            } elseif ($this->hasTitleFilter()) {
+                // @todo Fetch object IDs by titles, fetch log events and combine them!
             } else {
-                $this->logs = $this->useIdoitAPI()->getCMDBLogbook()->read(
+                $this->logs = $this->useIdoitAPIFactory()->getCMDBLogbook()->read(
                     $since,
                     $this->hardLimit
                 );
@@ -417,14 +422,16 @@ class Logs extends Command {
             $event = $log['event'];
         }
 
-        $this->log->printAsOutput()->info(
-            <<< EOF
+        $this->log
+            ->printAsOutput()
+            ->info(
+                <<< EOF
 <dim>#$id</dim> <green>$username</green> @ <yellow>$timestamp</yellow>
 <strong>$objectTitle</strong> [$objectID]
 $event
 
 EOF
-        );
+            );
     }
 
     /**

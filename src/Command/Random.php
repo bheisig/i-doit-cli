@@ -50,13 +50,18 @@ class Random extends Command {
     protected $licenseKeyIDs = [];
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
+
         $worked = false;
 
         $topics = [
@@ -108,7 +113,7 @@ class Random extends Command {
     public function tearDown(): self {
         $this->log->debug('Some statistics:');
 
-        $this->statistics['API calls'] = $this->useIdoitAPI()->getAPI()->countRequests();
+        $this->statistics['API calls'] = $this->useIdoitAPIFactory()->getAPI()->countRequests();
 
         $tabSize = 4;
 
@@ -475,7 +480,7 @@ class Random extends Command {
 
             $availableRackIDs = $rackIDs;
 
-            $roomObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
+            $roomObjects = $this->useIdoitAPIFactory()->getCMDBObjects()->readByType(
                 $this->config['types']['rooms']
             );
 
@@ -570,7 +575,7 @@ class Random extends Command {
                 'Do not how many IP addresses to create per server'
             );
 
-            $subnetObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
+            $subnetObjects = $this->useIdoitAPIFactory()->getCMDBObjects()->readByType(
                 $this->config['types']['subnets']
             );
 
@@ -649,7 +654,7 @@ class Random extends Command {
                 );
             }
 
-            $rackObjects = $this->useIdoitAPI()->getCMDBObjects()->readByType(
+            $rackObjects = $this->useIdoitAPIFactory()->getCMDBObjects()->readByType(
                 $this->config['types']['racks']
             );
 
@@ -1240,7 +1245,7 @@ class Random extends Command {
             }
 
             $results = $results +
-                $this->useIdoitAPI()->getAPI()->batchRequest($batchRequest);
+                $this->useIdoitAPIFactory()->getAPI()->batchRequest($batchRequest);
 
             if ($limit <= 0) {
                 break;
@@ -1324,7 +1329,7 @@ class Random extends Command {
                 throw new \Exception('No IP addresses left', 400);
             }
             $this->subnetID = array_shift($this->subnetIDs);
-            $this->subnet = new Subnet($this->useIdoitAPI()->getAPI());
+            $this->subnet = new Subnet($this->useIdoitAPIFactory()->getAPI());
             $this->subnet->load($this->subnetID);
         }
 
@@ -1384,7 +1389,7 @@ class Random extends Command {
 
             $this->rackID = array_shift($this->rackIDs);
 
-            $rack = $this->useIdoitAPI()->getCMDBCategory()->readFirst(
+            $rack = $this->useIdoitAPIFactory()->getCMDBCategory()->readFirst(
                 $this->rackID,
                 'C__CATG__FORMFACTOR'
             );
@@ -1394,7 +1399,7 @@ class Random extends Command {
             $this->rackPos = 0;
 
             // We need an empty rack:
-            $locallyAssignedObjects = $this->useIdoitAPI()->getCMDBCategory()->read(
+            $locallyAssignedObjects = $this->useIdoitAPIFactory()->getCMDBCategory()->read(
                 $this->rackID,
                 'C__CATG__OBJECT'
             );
@@ -1538,7 +1543,7 @@ class Random extends Command {
 
             $objectIDs = array_merge(
                 $objectIDs,
-                $this->useIdoitAPI()->getCMDBObjects()->create($chunk)
+                $this->useIdoitAPIFactory()->getCMDBObjects()->create($chunk)
             );
 
             if ($this->config['limitBatchRequests'] <= 0) {
@@ -1589,7 +1594,7 @@ class Random extends Command {
             $objectID
         );
 
-        $this->useIdoitAPI()->getCMDBCategory()->create($objectID, $categoryConst, $attributes);
+        $this->useIdoitAPIFactory()->getCMDBCategory()->create($objectID, $categoryConst, $attributes);
 
         $this->logStat('Created category entries', 1);
 
@@ -1649,7 +1654,7 @@ class Random extends Command {
                 }
             }
 
-            $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
+            $this->useIdoitAPIFactory()->getCMDBCategory()->batchCreate(
                 $chunk,
                 $categoryConst,
                 [$attributes]
@@ -1725,7 +1730,7 @@ class Random extends Command {
                 }
             }
 
-            $this->useIdoitAPI()->getCMDBCategory()->batchCreate(
+            $this->useIdoitAPIFactory()->getCMDBCategory()->batchCreate(
                 [$objectID],
                 $categoryConst,
                 $chunk
@@ -1832,11 +1837,11 @@ class Random extends Command {
                     }
                 }
 
-                $this->useIdoitAPI()->getAPI()->batchRequest($chunk);
+                $this->useIdoitAPIFactory()->getAPI()->batchRequest($chunk);
 
                 $index += $this->config['limitBatchRequests'];
             } else {
-                $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                $this->useIdoitAPIFactory()->getAPI()->batchRequest($requests);
                 break;
             }
         }

@@ -24,7 +24,7 @@
 
 declare(strict_types=1);
 
-namespace bheisig\idoitcli\API;
+namespace bheisig\idoitcli\Service;
 
 use bheisig\cli\Log;
 use bheisig\idoitapi\API;
@@ -37,20 +37,13 @@ use bheisig\idoitapi\CMDBObject;
 use bheisig\idoitapi\CMDBObjects;
 use bheisig\idoitapi\CMDBObjectTypeCategories;
 use bheisig\idoitapi\CMDBObjectTypes;
-use bheisig\idoitapi\Idoit as CMDB;
+use bheisig\idoitapi\Idoit;
 use bheisig\idoitapi\Subnet;
 
 /**
- * i-doit API calls
+ * i-doit API factory
  */
-class Idoit {
-
-    /**
-     * Configuration settings
-     *
-     * @var array Associative array
-     */
-    protected $config = [];
+class IdoitAPIFactory extends Service {
 
     /**
      * API
@@ -58,13 +51,6 @@ class Idoit {
      * @var \bheisig\idoitapi\API
      */
     protected $api;
-
-    /**
-     * Logger
-     *
-     * @var \bheisig\cli\Log
-     */
-    protected $log;
 
     /**
      * Factory
@@ -82,8 +68,7 @@ class Idoit {
      * @throws \Exception when configuration settings are missing
      */
     public function __construct(array $config, Log $log) {
-        $this->config = $config;
-        $this->log = $log;
+        parent::__construct($config, $log);
 
         try {
             $this->api = new API($this->config['api']);
@@ -129,9 +114,9 @@ class Idoit {
     /**
      * Factory for CMDB
      *
-     * @return CMDB
+     * @return Idoit
      */
-    public function getCMDB(): CMDB {
+    public function getCMDB(): Idoit {
         return $this->getInstanceOf(Idoit::class);
     }
 
@@ -214,117 +199,6 @@ class Idoit {
      */
     public function getSubnet(): Subnet {
         return $this->getInstanceOf(Subnet::class);
-    }
-
-    /**
-     * Fetches objects from i-doit
-     *
-     * @param array $filter Associative array, see CMDBObjects::read()
-     * @param array $categories List of category constants for more information
-     * @param int $objectCount How many objects will be fetched? Defaults to 0 (ignore it)
-     *
-     * @return array Keys: object identifiers; values: object attributes
-     *
-     * @throws \Exception on error
-     */
-    public function fetchObjects(array $filter, array $categories = [], int $objectCount = 0): array {
-        $limit = $this->config['limitBatchRequests'];
-
-        $objects = [];
-        $offset = 0;
-
-        if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
-            $readFilter = array_filter($filter, function ($key) {
-                return $key !== 'title';
-            }, \ARRAY_FILTER_USE_KEY);
-        } else {
-            $readFilter = $filter;
-        }
-
-        while (true) {
-            if ($limit > 0) {
-                $result = $this->getCMDBObjects()->read($readFilter, $limit, $offset);
-
-                if ($objectCount > 0 && $objectCount >= $limit) {
-                    if ($offset === 0) {
-                        $this->log->debug(
-                            'Fetch first %s objects from %s to %s',
-                            $limit,
-                            $offset + 1,
-                            $offset + $limit
-                        );
-                    } elseif (($objectCount - $offset) === 1) {
-                        $this->log->debug(
-                            'Fetch last object'
-                        );
-                    } elseif (($objectCount - $offset) > 1 && ($offset + $limit) > $objectCount) {
-                        $this->log->debug(
-                            'Fetch last %s objects',
-                            $objectCount - $offset
-                        );
-                    } elseif (($objectCount - $offset) > 1) {
-                        $this->log->debug(
-                            'Fetch next %s objects from %s to %s',
-                            $limit,
-                            $offset + 1,
-                            $offset + $limit
-                        );
-                    }
-                }
-
-                $offset += $limit;
-            } else {
-                $result = $this->getCMDBObjects()->read($readFilter);
-            }
-
-            if (count($result) === 0) {
-                break;
-            }
-
-            if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
-                $result = array_filter($result, function ($object) use ($filter) {
-                    return fnmatch($filter['title'], $object['title']);
-                });
-            }
-
-            $objectIDs = [];
-
-            foreach ($result as $object) {
-                $objectID = (int) $object['id'];
-
-                $objectIDs[] = $objectID;
-
-                $objects[$objectID] = [
-                    'id' => $objectID,
-                    'title' => $object['title'],
-                    'type' => (int) $object['type'],
-                    'type_title' => $object['type_title'],
-                ];
-            }
-
-            if (count($categories) > 0) {
-                foreach ($categories as $categoryConstant) {
-                    $categoryResults = $this->getCMDBCategory()->batchRead($objectIDs, [$categoryConstant]);
-
-                    $count = 0;
-                    foreach ($categoryResults as $categoryResult) {
-                        $objects[$objectIDs[$count]][$categoryConstant] = $categoryResult;
-
-                        $count++;
-                    }
-                }
-            }
-
-            if (count($result) < $limit) {
-                break;
-            }
-
-            if ($limit <= 0) {
-                break;
-            }
-        }
-
-        return $objects;
     }
 
 }

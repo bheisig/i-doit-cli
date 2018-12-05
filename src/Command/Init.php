@@ -48,13 +48,19 @@ class Init extends Command {
     }
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine()
+            ->printAsOutput();
+
         try {
             $baseInit = new BaseInit($this->config, $this->log);
             $baseInit->execute();

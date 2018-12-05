@@ -26,45 +26,46 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\cli\IO;
-
 /**
  * Command "status"
  */
 class Status extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $info = $this->useIdoitAPI()->getCMDB()->readVersion();
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
-        IO::out('About i-doit:');
-        IO::out('Version: i-doit %s %s', $info['type'], $info['version']);
-        IO::out('Tenant: %s', $info['login']['mandator']);
-        IO::out('Link: %s', str_replace('src/jsonrpc.php', '', $this->config['api']['url']));
-        IO::out('API entry point: %s', $this->config['api']['url']);
+        $info = $this->useIdoitAPIFactory()->getCMDB()->readVersion();
 
-        IO::out('');
-
-        IO::out('About this script:');
-        IO::out('Name: %s', $this->config['composer']['extra']['name']);
-        IO::out('Description: %s', $this->config['composer']['description']);
-        IO::out('Version: %s', $this->config['composer']['extra']['version']);
-        IO::out('Website: %s', $this->config['composer']['homepage']);
-        IO::out('License: %s', $this->config['composer']['license']);
-
-        IO::out('');
-
-        IO::out('About you:');
-        IO::out('Name: %s', $info['login']['name']);
-        IO::out('User name: %s', $info['login']['username']);
-        IO::out('E-mail: %s', $info['login']['mail']);
-        IO::out('Prefered language: %s', $info['login']['language']);
+        $this->log
+            ->printAsOutput()
+            ->info('<strong>About i-doit:</strong>')
+            ->info('Version: <strong>i-doit %s %s</strong>', $info['type'], $info['version'])
+            ->info('Tenant: <strong>%s</strong>', $info['login']['mandator'])
+            ->info('Link: <strong>%s</strong>', str_replace('src/jsonrpc.php', '', $this->config['api']['url']))
+            ->info('API entry point: <strong>%s</strong>', $this->config['api']['url'])
+            ->printEmptyLine()
+            ->info('<strong>About this script:</strong>')
+            ->info('Name: <strong>%s</strong>', $this->config['composer']['extra']['name'])
+            ->info('Description: <strong>%s</strong>', $this->config['composer']['description'])
+            ->info('Version: <strong>%s</strong>', $this->config['composer']['extra']['version'])
+            ->info('Website: <strong>%s</strong>', $this->config['composer']['homepage'])
+            ->info('License: <strong>%s</strong>', $this->config['composer']['license'])
+            ->printEmptyLine()
+            ->info('<strong>About you:</strong>')
+            ->info('Name: <strong>%s</strong>', $info['login']['name'])
+            ->info('User name: <strong>%s</strong>', $info['login']['username'])
+            ->info('E-mail: <strong>%s</strong>', $info['login']['mail'])
+            ->info('Prefered language: <strong>%s</strong>', $info['login']['language']);
 
         return $this;
     }

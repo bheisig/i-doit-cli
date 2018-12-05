@@ -34,26 +34,6 @@ use bheisig\idoitcli\Service\Attribute;
 class Show extends Command {
 
     /**
-     * Process some routines before executing command
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup(): Command {
-        parent::setup();
-
-        if ($this->cache->isCached() === false) {
-            throw new \Exception(sprintf(
-                'Unsufficient data. Please run "%s cache" first.',
-                $this->config['composer']['extra']['name']
-            ), 500);
-        }
-
-        return $this;
-    }
-
-    /**
      * Execute command
      *
      * @return self Returns itself
@@ -61,10 +41,9 @@ class Show extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->printAsMessage()
-            ->info(
-                $this->getDescription()
-            )
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
             ->printEmptyLine();
 
         $query = $this->getQuery();
@@ -80,7 +59,7 @@ class Show extends Command {
                 throw new \Exception('Invalid query. Please specify an object identifier');
             }
         } else {
-            $objects = $this->useIdoitAPI()->getCMDBObjects()->read(['title' => $query]);
+            $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read(['title' => $query]);
 
             switch (count($objects)) {
                 case 0:
@@ -105,7 +84,7 @@ class Show extends Command {
                     $this->log->printAsMessage()->printEmptyLine();
 
                     while (true) {
-                        $objectID = (int) $this->userInteraction->askQuestion('Object?');
+                        $objectID = (int) $this->useUserInteraction()->askQuestion('Object?');
 
                         if ($objectID <= 0) {
                             $this->log->printAsMessage()->warning('Please try again.');
@@ -117,7 +96,7 @@ class Show extends Command {
             }
         }
 
-        $object = $this->useIdoitAPI()->getCMDBObject()->load($objectID);
+        $object = $this->useIdoitAPIFactory()->getCMDBObject()->load($objectID);
 
         $this->log->printAsOutput()
             ->info('Title: %s', $object['title'])
@@ -131,7 +110,7 @@ class Show extends Command {
         $categoryTypes = ['catg', 'cats'];
 
         $blacklistedCategories = $this
-            ->useIdoitAPI()
+            ->useIdoitAPIFactory()
             ->getCMDBCategoryInfo()
             ->getVirtualCategoryConstants();
 
@@ -174,7 +153,7 @@ class Show extends Command {
                 }
 
                 try {
-                    $categoryInfo = $this->cache->getCategoryInfo($category['const']);
+                    $categoryInfo = $this->useCache()->getCategoryInfo($category['const']);
                 } catch (\Exception $e) {
                     $this->log->printAsMessage()->notice($e->getMessage());
                     continue;
@@ -189,10 +168,14 @@ class Show extends Command {
                         }
 
                         $value = (new Attribute($this->config, $this->log))
-                            ->setUp($categoryInfo['properties'][$attribute], $this->useIdoitAPI())
+                            ->setUp(
+                                $categoryInfo['properties'][$attribute],
+                                $this->useIdoitAPI(),
+                                $this->useIdoitAPIFactory()
+                            )
                             ->encode($value);
 
-                        if (!isset($value) || $value === '') {
+                        if ($value === '') {
                             $value = '-';
                         }
 

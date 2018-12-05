@@ -54,15 +54,32 @@ class Rack extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->info($this->getDescription());
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
         $this->log->debug('Collect data…');
 
         switch (count($this->config['arguments'])) {
             case 0:
+                if ($this->useUserInteraction()->isInteractive() === false) {
+                    throw new \BadMethodCallException(
+                        'No object, no visuals'
+                    );
+                }
+
+                $object = $this->askForObject();
+                $this->objectID = (int) $object['id'];
+                $this->objectTitle = $object['title'];
                 break;
             case 1:
-                $this->identifyObject($this->config['arguments'][0]);
+                $object = $this->useIdoitAPI()->identifyObject(
+                    $this->config['arguments'][0]
+                );
+
+                $this->objectID = (int) $object['id'];
+                $this->objectTitle = $object['title'];
                 break;
             default:
                 throw new \BadMethodCallException(
@@ -91,53 +108,6 @@ class Rack extends Command {
     }
 
     /**
-     * @param string $candidate
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function identifyObject(string $candidate): self {
-        if (is_numeric($candidate) && (int) $candidate > 0) {
-            $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
-
-            if (count($object) > 0) {
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
-            } else {
-                throw new \BadMethodCallException(sprintf(
-                    'Object not found by numeric identifier %s',
-                    $candidate
-                ));
-            }
-        } else {
-            $objects = $this->useIdoitAPI()->fetchObjects([
-                'title' => $candidate
-            ]);
-
-            switch (count($objects)) {
-                case 0:
-                    throw new \BadMethodCallException(sprintf(
-                        'Object not found by title "%s"',
-                        $candidate
-                    ));
-                case 1:
-                    $object = end($objects);
-                    $this->objectID = (int) $object['id'];
-                    $this->objectTitle = $object['title'];
-                    break;
-                default:
-                    throw new \RuntimeException(sprintf(
-                        'Object title "%s" is ambiguous',
-                        $candidate
-                    ));
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @param int $objectID Object identifier
      *
      * @return self Returns itself
@@ -146,7 +116,7 @@ class Rack extends Command {
      */
     protected function loadRack(int $objectID): self {
         try {
-            $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(
+            $result = $this->useIdoitAPIFactory()->getCMDBCategory()->batchRead(
                 [$objectID],
                 [
                     'C__CATG__LOCATION',
@@ -232,14 +202,14 @@ class Rack extends Command {
 
         foreach ($hosts as $host) {
             if (!array_key_exists('objID', $host) ||
-                !$this->validate->isIDAsString($host['objID'])) {
+                !$this->useValidate()->isIDAsString($host['objID'])) {
                 throw new \RuntimeException('Unknown host');
             }
 
             $objectIDs[] = (int) $host['objID'];
         }
 
-        $objects = $this->useIdoitAPI()->getCMDBObjects()->read(
+        $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read(
             ['ids' => $objectIDs],
             100,
             0,
@@ -255,7 +225,9 @@ class Rack extends Command {
     }
 
     protected function printHeader(): self {
-        $this->log->printEmptyLine();
+        $this->log
+            ->printAsMessage()
+            ->printEmptyLine();
 
         $title = sprintf(
             '%s > <strong>%s</strong>',
@@ -277,45 +249,55 @@ class Rack extends Command {
         $minDistance = 1;
 
         if ($titleLength + $minDistance + $idLength > $this->maxWidth) {
-            $this->log->info($title);
-            $this->log->info($id);
+            $this->log
+                ->printAsOutput()
+                ->info($title)
+                ->info($id);
         } else {
             $distance = $this->maxWidth - ($titleLength + $idLength);
 
-            $this->log->info(
-                '%s%s%s',
-                $title,
-                str_repeat(' ', $distance),
-                $id
-            );
+            $this->log
+                ->printAsOutput()
+                ->info(
+                    '%s%s%s',
+                    $title,
+                    str_repeat(' ', $distance),
+                    $id
+                );
         }
 
-        $this->log->printEmptyLine();
+        $this->log
+            ->printAsMessage()
+            ->printEmptyLine();
 
         return $this;
     }
 
     protected function printRackHeader(): self {
-        $this->log->info(
-            '%s<dim>╔%s╦%s╦%s╗</dim>',
-            str_repeat(' ', $this->marginLeft),
-            str_repeat('═', $this->digits),
-            str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
-            str_repeat('═', $this->digits)
-        );
+        $this->log
+            ->printAsOutput()
+            ->info(
+                '%s<dim>╔%s╦%s╦%s╗</dim>',
+                str_repeat(' ', $this->marginLeft),
+                str_repeat('═', $this->digits),
+                str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                str_repeat('═', $this->digits)
+            );
 
         return $this;
     }
 
     protected function printRackBody(): self {
         for ($i = $this->rackUnits; $i > 0; $i--) {
-            $this->log->info(
-                '%s<dim>╠%s╬%s╬%s╣</dim>',
-                str_repeat(' ', $this->marginLeft),
-                str_repeat('═', $this->digits),
-                str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
-                str_repeat('═', $this->digits)
-            );
+            $this->log
+                ->printAsOutput()
+                ->info(
+                    '%s<dim>╠%s╬%s╬%s╣</dim>',
+                    str_repeat(' ', $this->marginLeft),
+                    str_repeat('═', $this->digits),
+                    str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                    str_repeat('═', $this->digits)
+                );
 
             $digit = '' . $i;
 
@@ -323,34 +305,40 @@ class Rack extends Command {
                 $digit = '0' . $i;
             }
 
-            $this->log->info(
-                '%s<dim>║%s║%s║%s║</dim>',
-                str_repeat(' ', $this->marginLeft),
-                $digit,
-                str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
-                $digit
-            );
+            $this->log
+                ->printAsOutput()
+                ->info(
+                    '%s<dim>║%s║%s║%s║</dim>',
+                    str_repeat(' ', $this->marginLeft),
+                    $digit,
+                    str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                    $digit
+                );
         }
 
-        $this->log->info(
-            '%s<dim>╠%s╬%s╬%s╣</dim>',
-            str_repeat(' ', $this->marginLeft),
-            str_repeat('═', $this->digits),
-            str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
-            str_repeat('═', $this->digits)
-        );
+        $this->log
+            ->printAsOutput()
+            ->info(
+                '%s<dim>╠%s╬%s╬%s╣</dim>',
+                str_repeat(' ', $this->marginLeft),
+                str_repeat('═', $this->digits),
+                str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                str_repeat('═', $this->digits)
+            );
 
         return $this;
     }
 
     protected function printRackFooter(): self {
-        $this->log->info(
-            '%s<dim>╚%s╩%s╩%s╝</dim>',
-            str_repeat(' ', $this->marginLeft),
-            str_repeat('═', $this->digits),
-            str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
-            str_repeat('═', $this->digits)
-        );
+        $this->log
+            ->printAsOutput()
+            ->info(
+                '%s<dim>╚%s╩%s╩%s╝</dim>',
+                str_repeat(' ', $this->marginLeft),
+                str_repeat('═', $this->digits),
+                str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                str_repeat('═', $this->digits)
+            );
 
         return $this;
     }
@@ -366,7 +354,7 @@ class Rack extends Command {
 %3\$s
 
 <strong>USAGE</strong>
-    \$ %1\$s %2\$s [OBJECT]
+    \$ %1\$s %2\$s [OPTIONS] [OBJECT]
     
 <strong>ARGUMENTS</strong>
     OBJECT              <dim>Object title or numeric identifier</dim>
@@ -393,7 +381,8 @@ class Rack extends Command {
 <strong>EXAMPLES</strong>
     <dim># Select rack by its title:</dim>
     \$ %1\$s %2\$s "Colocation Rack A001"
-    
+    \$ %1\$s %2\$s Colocation\\ Rack\\ A001
+
     <dim># …or by its numeric identifier:</dim>
     \$ %1\$s %2\$s 123
 EOF

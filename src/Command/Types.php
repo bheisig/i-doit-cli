@@ -26,22 +26,25 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\cli\IO;
-
 /**
  * Command "types"
  */
 class Types extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $types = $this->cache->getObjectTypes();
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
+
+        $types = $this->useCache()->getObjectTypes();
 
         $types = array_filter($types, [$this, 'filterObjectTypes']);
 
@@ -55,7 +58,9 @@ class Types extends Command {
     }
 
     /**
-     * @param array $type
+     * Accept only object types with status "normal" [2]
+     *
+     * @param array $type Object type information
      *
      * @return bool
      */
@@ -64,7 +69,9 @@ class Types extends Command {
     }
 
     /**
-     * @param array $types
+     * Group object types by localized group names
+     *
+     * @param array $types Object type information
      *
      * @return array
      */
@@ -83,94 +90,99 @@ class Types extends Command {
     }
 
     /**
-     * @param array $groups
+     * Print object type groups
+     *
+     * @param array $groups Object type groups
      */
     protected function formatGroups(array $groups) {
         switch (count($groups)) {
             case 0:
-                IO::out('No groups found');
+                $this->log
+                    ->printAsMessage()
+                    ->debug('No groups found');
                 break;
             case 1:
-                IO::out('1 group type found');
+                $this->log
+                    ->printAsMessage()
+                    ->debug('1 group type found');
                 break;
             default:
-                IO::out('%s groups found', count($groups));
+                $this->log
+                    ->printAsMessage()
+                    ->debug('%s groups found', count($groups));
                 break;
         }
 
-        IO::out('');
-
         foreach ($groups as $group => $types) {
-            IO::out('%s:', $group);
-            IO::out('');
+            $this->log
+                ->info('<strong>%s:</strong>', $group);
 
             $this->formatList($types);
-            IO::out('');
+
+            $this->log
+                ->printAsMessage()
+                ->printEmptyLine();
         }
     }
 
     /**
-     * @param array $types
+     * Print object types
+     *
+     * @param array $types List of object types
      */
     protected function formatList(array $types) {
         switch (count($types)) {
             case 0:
-                IO::out('No object types found');
+                $this->log
+                    ->printAsMessage()
+                    ->debug('No object types found');
                 break;
             case 1:
-                IO::out('1 object type found');
+                $this->log
+                    ->printAsMessage()
+                    ->debug('1 object type found');
                 break;
             default:
-                IO::out('%s object types found', count($types));
+                $this->log
+                    ->printAsMessage()
+                    ->debug('%s object types found', count($types));
                 break;
         }
 
-        IO::out('');
+        $this->log->printEmptyLine();
 
-        array_map(function ($type) {
-            IO::out($this->format($type));
-        }, $types);
+        foreach ($types as $type) {
+            $this->log
+                ->printAsOutput()
+                ->info($this->format($type));
+        }
     }
 
     /**
-     * @param array $type
+     * Format object type
+     *
+     * @param array $type Object type information
      *
      * @return string
      */
     protected function format(array $type): string {
         return sprintf(
-            '%s [%s]',
+            '%s <dim>[%s]</dim>',
             $type['title'],
             $type['const']
         );
     }
 
     /**
-     * @param array $a
-     * @param array $b
+     * Sort object types in alphabetical order by their localized titles
+     *
+     * @param array $a Object type information
+     * @param array $b Object type information
      *
      * @return int
      */
     protected function sort(array $a, array $b): int {
         return strcmp($a['title'], $b['title']);
-    }
-
-    /**
-     * Print usage of command
-     *
-     * @return self Returns itself
-     */
-    public function printUsage(): self {
-        $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS]
-
-%3$s',
-            $this->config['composer']['extra']['name'],
-            $this->getName(),
-            $this->getDescription()
-        );
-
-        return $this;
     }
 
 }

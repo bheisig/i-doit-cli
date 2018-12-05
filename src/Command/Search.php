@@ -26,73 +26,125 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\cli\IO;
-
 /**
  * Command "search"
  */
 class Search extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $query = $this->getQuery();
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
+
+        switch (count($this->config['arguments'])) {
+            case 0:
+                if ($this->useUserInteraction()->isInteractive() === false) {
+                    throw new \BadMethodCallException(
+                        'No query, no search'
+                    );
+                }
+
+                $query = $this->useUserInteraction()->askQuestion('Query?');
+                break;
+            case 1:
+                $query = $this->config['arguments'][0];
+                break;
+            default:
+                throw new \BadMethodCallException(
+                    'Too many arguments; please provide only one query'
+                );
+        }
 
         if ($query === '') {
-            throw new \Exception(
-                'Bad request. A query string is required.',
-                400
+            throw new \BadMethodCallException(
+                'Query is required.'
             );
         }
 
-        $results = $this->useIdoitAPI()->getCMDB()->search($query);
+        $results = $this->useIdoitAPIFactory()->getCMDB()->search($query);
 
         switch (count($results)) {
             case 0:
-                IO::err('Nothing found');
+                $this->log
+                    ->printAsMessage()
+                    ->info('Nothing found');
                 break;
             case 1:
-                IO::err('Found 1 result');
+                $this->log
+                    ->printAsMessage()
+                    ->info('Found 1 result');
                 break;
             default:
-                IO::err('Found %s results', count($results));
+                $this->log
+                    ->printAsMessage()
+                    ->info('Found %s results', count($results));
                 break;
         }
 
         $baseLink = strstr($this->config['api']['url'], '/src/jsonrpc.php', true);
 
         foreach ($results as $result) {
-            IO::out('');
-            IO::out('%s', $result['value']);
-            IO::out('Source: %s [%s]', $result['key'], $result['type']);
-            IO::out('Link: %s', $baseLink . $result['link']);
+            $this->log
+                ->printAsOutput()
+                ->printEmptyLine()
+                ->info('<strong>%s</strong>', $result['value'])
+                ->info('Source: %s [%s]', $result['key'], $result['type'])
+                ->info('Link: %s', $baseLink . $result['link']);
         }
 
         return $this;
     }
 
     /**
-     * Shows usage of command
+     * Print usage of command
      *
      * @return self Returns itself
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS] [QUERY]
+            <<< EOF
+%3\$s
 
-%3$s
+<strong>USAGE</strong>
+    \$ %1\$s %2\$s [OPTIONS] QUERY
+    
+<strong>ARGUMENTS</strong>
+    QUERY               <dim>What are you looking for?</dim>
 
-QUERY could be any string.
+<strong>COMMON OPTIONS</strong>
+    -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
+    --config=<u>FILE</u>       <dim>configuration file FILE; repeat option for more</dim>
+                        <dim>than one FILE</dim>
+    -s <u>KEY=VALUE</u>,       <dim>Add runtime setting KEY with its VALUE; separate</dim>
+    --setting=<u>KEY=VALUE</u> <dim>nested keys with ".", for example "key1.key2=123";</dim>
+                        <dim>repeat option for more than one KEY</dim>
 
-Examples:
+    --no-colors         <dim>Do not print colored messages</dim>
+    -q, --quiet         <dim>Do not output messages, only errors</dim>
+    -v, --verbose       <dim>Be more verbose</dim>
 
-1) %1$s %2$s myserver
-2) %1$s %2$s "My Server"',
+    -h, --help          <dim>Print this help or information about a</dim>
+                        <dim>specific command</dim>
+    --version           <dim>Print version information</dim>
+
+    -y, --yes           <dim>No user interaction required; answer questions</dim>
+                        <dim>automatically with default values</dim>
+
+<strong>EXAMPLES</strong>
+    \$ %1\$s %2\$s mylittleserver
+    \$ %1\$s %2\$s "My little server"
+    \$ %1\$s %2\$s My\\ little\\ server
+    \$ %1\$s %2\$s 10.42.23.1
+EOF
+            ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()

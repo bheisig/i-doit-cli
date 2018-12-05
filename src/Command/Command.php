@@ -29,8 +29,9 @@ namespace bheisig\idoitcli\Command;
 use bheisig\cli\Command\Command as BaseCommand;
 use bheisig\cli\Config;
 use bheisig\cli\JSONFile;
-use bheisig\idoitcli\API\Idoit;
 use bheisig\idoitcli\Service\Cache;
+use bheisig\idoitcli\Service\IdoitAPI;
+use bheisig\idoitcli\Service\IdoitAPIFactory;
 use bheisig\idoitcli\Service\UserInteraction;
 use bheisig\idoitcli\Service\Validate;
 
@@ -40,11 +41,18 @@ use bheisig\idoitcli\Service\Validate;
 abstract class Command extends BaseCommand {
 
     /**
-     * i-doit API calls
+     * i-doit API
      *
-     * @var \bheisig\idoitcli\API\Idoit
+     * @var \bheisig\idoitcli\Service\IdoitAPI
      */
-    protected $idoit;
+    protected $idoitAPI;
+
+    /**
+     * i-doit API factory
+     *
+     * @var \bheisig\idoitcli\Service\IdoitAPIFactory
+     */
+    protected $idoitAPIFactory;
 
     /**
      * @var \bheisig\idoitcli\Service\Cache
@@ -62,18 +70,97 @@ abstract class Command extends BaseCommand {
     protected $validate;
 
     /**
-     * Factory for i-doit API calls
+     * Process some routines before executing command
      *
-     * @return \bheisig\idoitcli\API\Idoit
+     * @return self Returns itself
      *
      * @throws \Exception on error
      */
-    protected function useIdoitAPI(): Idoit {
-        if (!isset($this->idoit)) {
-            $this->idoit = new Idoit($this->config, $this->log);
+    public function setup(): self {
+        parent::setup();
+
+        $this->validateConfig();
+
+        return $this;
+    }
+
+    /**
+     * Load service for user interaction
+     *
+     * @return \bheisig\idoitcli\Service\Cache
+     *
+     * @throws \Exception when cache is out-dated
+     */
+    protected function useCache(): Cache {
+        if (!isset($this->cache)) {
+            $this->cache = new Cache($this->config, $this->log);
         }
 
-        return $this->idoit;
+        if ($this->cache->isCached() === false) {
+            throw new \RuntimeException(sprintf(
+                'Unsufficient data. Please run "%s cache" first.',
+                $this->config['composer']['extra']['name']
+            ), 500);
+        }
+
+        return $this->cache;
+    }
+
+    /**
+     * Load service for i-doit API
+     *
+     * @return \bheisig\idoitcli\Service\IdoitAPI
+     *
+     * @throws \Exception on error
+     */
+    protected function useIdoitAPI(): IdoitAPI {
+        if (!isset($this->idoitAPI)) {
+            $this->idoitAPI = new IdoitAPI($this->config, $this->log);
+            $this->idoitAPI->setUp($this->useIdoitAPIFactory());
+        }
+
+        return $this->idoitAPI;
+    }
+
+    /**
+     * Load service for i-doit API factory
+     *
+     * @return \bheisig\idoitcli\Service\IdoitAPIFactory
+     *
+     * @throws \Exception on error
+     */
+    protected function useIdoitAPIFactory(): IdoitAPIFactory {
+        if (!isset($this->idoitAPIFactory)) {
+            $this->idoitAPIFactory = new IdoitAPIFactory($this->config, $this->log);
+        }
+
+        return $this->idoitAPIFactory;
+    }
+
+    /**
+     * Load service for user interaction
+     *
+     * @return \bheisig\idoitcli\Service\UserInteraction
+     */
+    protected function useUserInteraction(): UserInteraction {
+        if (!isset($this->userInteraction)) {
+            $this->userInteraction = new UserInteraction($this->config, $this->log);
+        }
+
+        return $this->userInteraction;
+    }
+
+    /**
+     * Load service for validate data
+     *
+     * @return \bheisig\idoitcli\Service\Validate
+     */
+    protected function useValidate(): Validate {
+        if (!isset($this->validate)) {
+            $this->validate = new Validate($this->config, $this->log);
+        }
+
+        return $this->validate;
     }
 
     /**
@@ -117,22 +204,29 @@ abstract class Command extends BaseCommand {
     }
 
     /**
-     * Process some routines before executing command
+     * Ask user for object title or numeric identifier
      *
-     * @return self Returns itself
+     * …until object has been identified
+     *
+     * @return array Object information, otherwise \Exception is thrown
      *
      * @throws \Exception on error
      */
-    public function setup(): self {
-        parent::setup();
+    protected function askForObject(): array {
+        $answer = $this->useUserInteraction()->askQuestion('Object?');
 
-        $this->validateConfig();
+        if (strlen($answer) === 0) {
+            $this->log->warning('Please re-try');
+            return $this->askForObject();
+        }
 
-        $this->cache = new Cache($this->config, $this->log);
-        $this->userInteraction = new UserInteraction($this->config, $this->log);
-        $this->validate = new Validate($this->config, $this->log);
-
-        return $this;
+        try {
+            return $this->useIdoitAPI()->identifyObject($answer);
+        } catch (\BadMethodCallException $e) {
+            $this->log->warning($e->getMessage());
+            $this->log->warning('Please re-try');
+            return $this->askForObject();
+        }
     }
 
     /**

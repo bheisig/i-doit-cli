@@ -46,33 +46,18 @@ class FixIP extends Command {
     protected $blacklistedObjectTypes = [];
 
     /**
-     * Processes some routines before the execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup(): Command {
-        parent::setup();
-
-        if ($this->cache->isCached() === false) {
-            throw new \Exception(sprintf(
-                'Unsufficient data. Please run "%s cache" first.',
-                $this->config['composer']['extra']['name']
-            ), 500);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
+
         $dryRun = false;
 
         if (in_array('--dry-run', $this->config['args'])) {
@@ -80,17 +65,17 @@ class FixIP extends Command {
         }
 
         if ($dryRun === true) {
-            $this->log->info('We are performing a dry run. No data will be altered.');
+            $this->log->printAsOutput()->info('We are performing a dry run. No data will be altered.');
         }
 
-        $this->log->info('Fetch all nets');
+        $this->log->printAsOutput()->info('Fetch all nets');
 
         $nets = $this->fetchNets();
 
-        $this->log->info('Fetch all object types to use the configurable blacklist');
+        $this->log->printAsOutput()->info('Fetch all object types to use the configurable blacklist');
 
         $blacklistedObjectTypes = [];
-        $objectTypes = $this->cache->getObjectTypes();
+        $objectTypes = $this->useCache()->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
             if (!in_array($objectType['const'], $this->config['fixip']['blacklistedObjectTypes'])) {
@@ -100,15 +85,15 @@ class FixIP extends Command {
 
         unset($objectTypes);
 
-        $this->log->info('Fetch general information about all objects');
+        $this->log->printAsOutput()->info('Fetch general information about all objects');
 
         $offset = 0;
         $limit = $this->config['limitBatchRequests'];
 
         if ($limit === 1) {
-            $this->log->info('Process 1 object and its IP addresses at once', $limit);
+            $this->log->printAsOutput()->info('Process 1 object and its IP addresses at once', $limit);
         } elseif ($limit > 1) {
-            $this->log->info('Process %s objects and its IP addresses at once', $limit);
+            $this->log->printAsOutput()->info('Process %s objects and its IP addresses at once', $limit);
         }
 
         $stats = [
@@ -122,16 +107,24 @@ class FixIP extends Command {
         while (true) {
             if ($limit > 0) {
                 if ($offset === 0 && $limit === 1) {
-                    $this->log->info('Fetch first object');
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Fetch first object');
                 } elseif ($offset > 0 && $limit === 1) {
-                    $this->log->info('Fetch next object (%s)', ($offset + 1));
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Fetch next object (%s)', ($offset + 1));
                 } elseif ($offset === 0) {
-                    $this->log->info('Fetch first %s objects', $limit);
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Fetch first %s objects', $limit);
                 } else {
-                    $this->log->info('Fetch next %s objects (%s-%s)', $limit, ($offset + 1), ($limit + $offset));
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Fetch next %s objects (%s-%s)', $limit, ($offset + 1), ($limit + $offset));
                 }
 
-                $objects = $this->useIdoitAPI()->getCMDBObjects()->read([], $limit, $offset);
+                $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read([], $limit, $offset);
 
                 if (count($objects) < $limit) {
                     $hasNext = false;
@@ -139,7 +132,7 @@ class FixIP extends Command {
 
                 $offset += $limit;
             } else {
-                $objects = $this->useIdoitAPI()->getCMDBObjects()->read();
+                $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read();
             }
 
             if (count($objects) === 0) {
@@ -156,7 +149,7 @@ class FixIP extends Command {
                 }
             }
 
-            $this->log->info('Find objects with lost IP addresses');
+            $this->log->printAsOutput()->info('Find objects with lost IP addresses');
 
             $requests = [];
             $infos = [];
@@ -178,7 +171,7 @@ class FixIP extends Command {
                         case 'C__CATS_NET_TYPE__IPV4':
                             break;
                         case 'C__CATS_NET_TYPE__IPV6':
-                            $this->log->warning(
+                            $this->log->printAsMessage()->warning(
                                 '%s "%s" [%s] has IPv6 address %s which cannot be handled by this script.',
                                 ucfirst($object['type']),
                                 $object['title'],
@@ -190,7 +183,7 @@ class FixIP extends Command {
 
                             continue 2;
                         default:
-                            $this->log->warning(
+                            $this->log->printAsMessage()->warning(
                                 'Unknown subnet type "%s"',
                                 $ipAddress['net_type']['const']
                             );
@@ -201,7 +194,7 @@ class FixIP extends Command {
                     }
 
                     if ($ip2long === false) {
-                        $this->log->warning(
+                        $this->log->printAsMessage()->warning(
                             '%s "%s" [%s] has an unproper IPv4 address "%s".',
                             ucfirst($object['type']),
                             $object['title'],
@@ -215,7 +208,7 @@ class FixIP extends Command {
                     }
 
                     if ($net === null || empty($net)) {
-                        $this->log->warning(
+                        $this->log->printAsMessage()->warning(
                             '%s "%s" [%s] has %s address %s not assigned to any subnet.',
                             ucfirst($object['type']),
                             $object['title'],
@@ -224,7 +217,7 @@ class FixIP extends Command {
                             $ip
                         );
                     } elseif (array_key_exists($net, $this->unproperSubnets)) {
-                        $this->log->warning(
+                        $this->log->printAsMessage()->warning(
                             '%s "%s" [%s] has %s address %s assigned to unproper subnet "%s" [%s].',
                             ucfirst($object['type']),
                             $object['title'],
@@ -235,7 +228,7 @@ class FixIP extends Command {
                             $net
                         );
                     } elseif (!array_key_exists($net, $nets)) {
-                        $this->log->warning(
+                        $this->log->printAsMessage()->warning(
                             '%s "%s" [%s] has %s address %s assigned to a subnet [%s] which is not a layer-3-object.',
                             ucfirst($object['type']),
                             $object['title'],
@@ -247,7 +240,7 @@ class FixIP extends Command {
                     } elseif ($ip2long < ip2long($nets[$net]['firstIP']) ||
                         $ip2long > ip2long($nets[$net]['lastIP'])
                     ) {
-                        $this->log->warning(
+                        $this->log->printAsMessage()->warning(
                             '%s "%s" [%s] has %s address %s assigned to subnet "%s" [%s] which mask does not fit.',
                             ucfirst($object['type']),
                             $object['title'],
@@ -258,7 +251,7 @@ class FixIP extends Command {
                             $net
                         );
                     } else {
-//                        $this->log->info(
+//                        $this->log->printAsOutput()->info(
 //                            '%s "%s" [%s] has %s address %s assigned to subnet "%s" [%s].',
 //                            ucfirst($object['type']),
 //                            $object['title'],
@@ -274,7 +267,7 @@ class FixIP extends Command {
 
                     $stats['lost']++;
 
-                    $this->log->info('Find proper subnet for this lost IP address');
+                    $this->log->printAsOutput()->info('Find proper subnet for this lost IP address');
 
                     $netCandidates = [];
 
@@ -291,7 +284,7 @@ class FixIP extends Command {
                         $last = ip2long($net['lastIP']);
 
                         if ($ip2long >= $first && $ip2long <= $last) {
-                            $this->log->info(
+                            $this->log->printAsOutput()->info(
                                 'Net "%s" [%s] seems to be a candidate',
                                 $net['title'],
                                 $net['id']
@@ -303,17 +296,23 @@ class FixIP extends Command {
 
                     switch (count($netCandidates)) {
                         case 0:
-                            $this->log->warning('There is no subnet suitable for this IP address');
+                            $this->log
+                                ->printAsMessage()
+                                ->warning('There is no subnet suitable for this IP address');
                             continue 2;
                         case 1:
                             // Everything is fine.
                             break;
                         default:
-                            $this->log->warning('There is more than one subnet suitable for this IP address');
+                            $this->log
+                                ->printAsMessage()
+                                ->warning('There is more than one subnet suitable for this IP address');
                             continue 2;
                     }
 
-                    $this->log->info('Look for IP address conflicts within this net');
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Look for IP address conflicts within this net');
 
                     foreach ($objects as $anotherObject) {
                         foreach ($anotherObject['ips'] as $anotherIP) {
@@ -321,19 +320,21 @@ class FixIP extends Command {
                                 $ip === $anotherIP['hostaddress']['ref_title'] &&
                                 end($netCandidates) === (int)$anotherIP['net']['id']
                             ) {
-                                $this->log->warning(
-                                    'Conflict found: object "%s" [%s] with same address %s',
-                                    $anotherObject['title'],
-                                    $anotherObject['id'],
-                                    $anotherIP['hostaddress']['ref_title']
-                                );
+                                $this->log
+                                    ->printAsMessage()
+                                    ->warning(
+                                        'Conflict found: object "%s" [%s] with same address %s',
+                                        $anotherObject['title'],
+                                        $anotherObject['id'],
+                                        $anotherIP['hostaddress']['ref_title']
+                                    );
 
                                 break 3;
                             }
                         }
                     }
 
-                    $this->log->info('No conflicts found');
+                    $this->log->printAsOutput()->info('No conflicts found');
 
                     $data = [
                         'category_id' => (int)$ipAddress['id'],
@@ -438,17 +439,25 @@ class FixIP extends Command {
             $countedRequests = count($requests);
 
             if ($countedRequests === 0) {
-                $this->log->info('Nothing to do');
+                $this->log
+                    ->printAsOutput()
+                    ->info('Nothing to do');
             } elseif ($dryRun === true) {
-                $this->log->warning('We are performing a dry run. No data will be altered.');
+                $this->log
+                    ->printAsMessage()
+                    ->notice('We are performing a dry run. No data will be altered.');
             } else {
                 if ($countedRequests === 1) {
-                    $this->log->info('Assign 1 IP address to suitable net');
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Assign 1 IP address to suitable net');
                 } else {
-                    $this->log->info('Assign %s IP addresses to suitable nets', $countedRequests);
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Assign %s IP addresses to suitable nets', $countedRequests);
                 }
 
-                $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                $this->useIdoitAPIFactory()->getAPI()->batchRequest($requests);
 
                 $stats['fixed'] += $countedRequests;
             }
@@ -458,8 +467,10 @@ class FixIP extends Command {
             }
         }
 
-        $this->log->info('There are %s problem(s) found in IP addresses', $stats['broken']);
-        $this->log->info('%s out of %s lost IP addresses could be fixed', $stats['fixed'], $stats['lost']);
+        $this->log
+            ->printAsOutput()
+            ->info('There are %s problem(s) found in IP addresses', $stats['broken'])
+            ->info('%s out of %s lost IP addresses could be fixed', $stats['fixed'], $stats['lost']);
 
         return $this;
     }
@@ -505,21 +516,24 @@ class FixIP extends Command {
         if ($countedCandidates !== $countedObjects) {
             switch ($countedCandidates) {
                 case 0:
-                    $this->log->info('Reduced to 0 objects');
+                    $this->log->printAsOutput()->info('Reduced to 0 objects');
 
                     return [];
                 case 1:
-                    $this->log->info('Reduced to 1 object');
+                    $this->log->printAsOutput()->info('Reduced to 1 object');
                     break;
                 default:
-                    $this->log->info('Reduced to %s objects', $countedCandidates);
+                    $this->log->printAsOutput()->info('Reduced to %s objects', $countedCandidates);
                     break;
             }
         }
 
-        $this->log->info('Fetch IP addresses');
+        $this->log->printAsOutput()->info('Fetch IP addresses');
 
-        $batchResult = $this->useIdoitAPI()->getCMDBCategory()->batchRead(array_keys($candidates), ['C__CATG__IP']);
+        $batchResult = $this
+            ->useIdoitAPIFactory()
+            ->getCMDBCategory()
+            ->batchRead(array_keys($candidates), ['C__CATG__IP']);
 
         $result = [];
 
@@ -536,13 +550,13 @@ class FixIP extends Command {
 
         switch (count($result)) {
             case 0:
-                $this->log->info('Found no objects with IP addresses');
+                $this->log->printAsOutput()->info('Found no objects with IP addresses');
                 break;
             case 1:
-                $this->log->info('Found 1 object with IP addresses');
+                $this->log->printAsOutput()->info('Found 1 object with IP addresses');
                 break;
             default:
-                $this->log->info('Found %s objects with IP addresses', count($result));
+                $this->log->printAsOutput()->info('Found %s objects with IP addresses', count($result));
                 break;
         }
 
@@ -575,13 +589,19 @@ class FixIP extends Command {
         if ($countedResults !== count($objectCollection)) {
             switch (count($objectCollection)) {
                 case 0:
-                    $this->log->info('Reduced to none objects with IP addresses');
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Reduced to none objects with IP addresses');
                     break;
                 case 1:
-                    $this->log->info('Reduced to 1 object with IP addresses');
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Reduced to 1 object with IP addresses');
                     break;
                 default:
-                    $this->log->info('Reduced to %s objects with IP addresses', count($objectCollection));
+                    $this->log
+                        ->printAsOutput()
+                        ->info('Reduced to %s objects with IP addresses', count($objectCollection));
                     break;
             }
         }
@@ -597,7 +617,7 @@ class FixIP extends Command {
      * @throws \Exception on error
      */
     protected function fetchNets(): array {
-        $objects = $this->useIdoitAPI()->getCMDBObjects()->readByType('C__OBJTYPE__LAYER3_NET');
+        $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->readByType('C__OBJTYPE__LAYER3_NET');
 
         $objectCollection = [];
         $subnetCandidates = [];
@@ -620,7 +640,10 @@ class FixIP extends Command {
             $subnetCandidates[$objectID] = $object['title'];
         }
 
-        $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(array_keys($subnetCandidates), ['C__CATS__NET']);
+        $result = $this
+            ->useIdoitAPIFactory()
+            ->getCMDBCategory()
+            ->batchRead(array_keys($subnetCandidates), ['C__CATS__NET']);
 
         reset($subnetCandidates);
 
@@ -638,7 +661,7 @@ class FixIP extends Command {
             next($subnetCandidates);
 
             if (!is_array($subnet) || count($subnet) === 0 || !array_key_exists(0, $subnet)) {
-                $this->log->warning(
+                $this->log->printAsMessage()->warning(
                     'Category "Net" is not available for object "%s" [%s]',
                     $subnetCandidateTitle,
                     $subnetCandidateID
@@ -648,7 +671,7 @@ class FixIP extends Command {
             }
 
             if (!array_key_exists('objID', $subnet[0])) {
-                $this->log->info($subnet[0]);
+                $this->log->printAsOutput()->info($subnet[0]);
 
                 throw new \Exception(sprintf(
                     'API answered with a broken result for unknown object'
@@ -670,7 +693,7 @@ class FixIP extends Command {
             if (!array_key_exists('type', $subnet[0]) ||
                 !is_array($subnet[0]['type']) ||
                 !array_key_exists('const', $subnet[0]['type'])) {
-                $this->log->warning(
+                $this->log->printAsMessage()->warning(
                     'Net type not available for object "%s" [%s]',
                     $subnetCandidates[$objectID],
                     $objectID
@@ -687,7 +710,7 @@ class FixIP extends Command {
                     $type = 'IPv6';
                     break;
                 default:
-                    $this->log->warning(
+                    $this->log->printAsMessage()->warning(
                         'Unknown subnet type "%s" for object "%s" [%s]',
                         $subnet[0]['type']['const'],
                         $subnetCandidates[$objectID],
@@ -699,7 +722,7 @@ class FixIP extends Command {
 
             if (!array_key_exists('range_from', $subnet[0]) ||
                 !array_key_exists('range_to', $subnet[0])) {
-                $this->log->warning(
+                $this->log->printAsMessage()->warning(
                     'Unknown IP range for object "%s" [%s]',
                     $subnetCandidates[$objectID],
                     $objectID
@@ -717,7 +740,7 @@ class FixIP extends Command {
             ];
         }
 
-        $this->log->info('Found %s subnets', count($objectCollection));
+        $this->log->printAsOutput()->info('Found %s subnets', count($objectCollection));
 
         return $objectCollection;
     }
@@ -730,71 +753,90 @@ class FixIP extends Command {
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS] [--dry-run]
+            <<< EOF
+%3\$s
 
-%3$s
+<strong>USAGE</strong>
+    \$ %1\$s %2\$s [OPTIONS]
 
-This command searches for objects that have IP addresses in category
-"hostaddress" but those IP addresses are not assigned to a specific subnet. If
-the script finds such "lost" IP addresses it will try to find proper subnets
-and assign them.
+<strong>DESCRIPTION</strong>    
+    This command searches for objects that have IP addresses in category
+    "hostaddress" but those IP addresses are not assigned to a specific subnet.
+    If the script finds such "lost" IP addresses it will try to find proper
+    subnets and assign them.
 
-i-doit has two subnets "Global v4" and "Global v6". Both are not proper subnets
-because they contains the whole internet. Instead you should already use proper
-subnets. Each subnet is documented as a "layer-3-net" object.
+    i-doit has two subnets "Global v4" and "Global v6". Both are not proper
+    subnets because they contains the whole internet. Instead you should already
+    use proper subnets. Each subnet is documented as a "layer-3-net" object.
 
-Sometimes there is an IP address assigned to a subnet but the subnet mask does
-not fit or the subnet is not a "layer-3-net" object. In these cases the script
-looks for better alternatives.
+    Sometimes there is an IP address assigned to a subnet but the subnet mask
+    does not fit or the subnet is not a "layer-3-net" object. In these cases the
+    script looks for better alternatives.
 
-There could be some pitfalls:
+    There could be some pitfalls:
 
-    1) There is no proper subnet.
-    2) There is a proper subnet but the IP address in this subnet is already
-       taken.
-    3) There are more than one proper subnets.
-    4) The provided IP address is invalid.
+        1) There is no proper subnet.
+        2) There is a proper subnet but the IP address in this subnet is already
+           taken.
+        3) There are more than one proper subnets.
+        4) The provided IP address is invalid.
 
-In each case there will be a warning.
+    In each case there will be a warning.
 
-However, if there is a proper subnet with no conflicts at all the script will
-assign an IP address to this subnet.
+    However, if there is a proper subnet with no conflicts at all the script
+    will assign an IP address to this subnet.
 
-Objects and subnets must have the status "normal", otherwise they will be
-ignored. Archived objects will not be touched.
+  Objects and subnets must have the status "normal", otherwise they will be
+  ignored. Archived objects will not be touched.
 
-This command currently works IPv4-only.
+  <notice>This command currently works IPv4-only</notice>.
 
+<strong>COMMAND OPTIONS</strong>
+    --dry-run           <dim>Do not alter anything within i-doit</dim>
 
-Configuration:
+<strong>COMMON OPTIONS</strong>
+    -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
+    --config=<u>FILE</u>       <dim>configuration file FILE; repeat option for more</dim>
+                        <dim>than one FILE</dim>
+    -s <u>KEY=VALUE</u>,       <dim>Add runtime setting KEY with its VALUE; separate</dim>
+    --setting=<u>KEY=VALUE</u> <dim>nested keys with ".", for example "key1.key2=123";</dim>
+                        <dim>repeat option for more than one KEY</dim>
 
-    These settings are available within the configuration namespace "%2$s":
+    --no-colors         <dim>Do not print colored messages</dim>
+    -q, --quiet         <dim>Do not output messages, only errors</dim>
+    -v, --verbose       <dim>Be more verbose</dim>
 
-    blacklistedObjectTypes:
+    -h, --help          <dim>Print this help or information about a</dim>
+                        <dim>specific command</dim>
+    --version           <dim>Print version information</dim>
+
+    -y, --yes           <dim>No user interaction required; answer questions</dim>
+                        <dim>automatically with default values</dim>
+
+<strong>CONFIGURATION</strong>
+    These settings are available within the configuration namespace "%2\$s":
+
+    fixip.blacklistedObjectTypes:
         List of object types that will be ignored; only insert object type
         constants
 
-    unproperSubnets:
+    fixip.unproperSubnets:
         List of subnets ("layer-3-net" objects) which are not suitable, for
         example "Global v4" and "Global v6"
 
-
-Options:
-
-    --dry-run   Do not alter anything within i-doit
-
-
-Output:
-
+<strong>OUTPUT</strong>
     There will be a lot of ouput produced by this command:
 
         1) Information will be printed to standard output (STDOUT)
-        2) Notices, warnings and errors will be printed to standard error (STDERR)
+        2) Notices, warnings and errors will be printed to standard error
+           (STDERR)
 
     This difference is very useful to find unwanted behavior. For example, write
     logs containing only notices, etc.:
 
-        %1$s %2$s 2> /var/log/%2$s.log',
+        %1\$s %2\$s 2> /var/log/%2\$s.log
+EOF
+            ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()

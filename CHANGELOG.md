@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 -   `init`: Just create configuration file and do not cache files anymore
+-   `help`/`-h`/`--help`: Print more information about using each command
 -   Ignore categories which have no proper attributes
 
 

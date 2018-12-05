@@ -32,14 +32,17 @@ namespace bheisig\idoitcli\Command;
 class Dummy extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->info('Hello, world!');
+        $this->log
+            ->printAsMessage()
+            ->info('Hello, world!')
+            ->printEmptyLine();
 
         return $this;
     }

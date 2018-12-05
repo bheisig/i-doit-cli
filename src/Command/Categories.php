@@ -26,22 +26,25 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\cli\IO;
-
 /**
  * Command "categories"
  */
 class Categories extends Command {
 
     /**
-     * Executes the command
+     * Execute command
      *
      * @return self Returns itself
      *
      * @throws \Exception on error
      */
     public function execute(): self {
-        $categories = $this->cache->getCategories();
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
+
+        $categories = $this->useCache()->getCategories();
 
         $categories = $this->filterCategories($categories);
 
@@ -79,8 +82,15 @@ class Categories extends Command {
         foreach ($types as $typeDetails) {
             if ($typeDetails['active'] === true) {
                 // Type casting is necessary because phpstan unfortunately throws an error:
-                $this->formatList((string) $typeDetails['title'], (string) $typeDetails['type'], $categories);
-                IO::err('');
+                $this->formatList(
+                    (string) $typeDetails['title'],
+                    (string) $typeDetails['type'],
+                    $categories
+                );
+
+                $this->log
+                    ->printAsMessage()
+                    ->printEmptyLine();
             }
         }
 
@@ -122,7 +132,7 @@ class Categories extends Command {
     }
 
     /**
-     *
+     * Get list of categories which are assigned to one or more object types
      *
      * @return array
      *
@@ -131,10 +141,10 @@ class Categories extends Command {
     protected function getEnabledCategories(): array {
         $result = [];
 
-        $objectTypes = $this->cache->getObjectTypes();
+        $objectTypes = $this->useCache()->getObjectTypes();
 
         foreach ($objectTypes as $objectType) {
-            $assignedCategories = $this->cache->getAssignedCategories($objectType['const']);
+            $assignedCategories = $this->useCache()->getAssignedCategories($objectType['const']);
 
             foreach ($assignedCategories as $type => $categories) {
                 foreach ($categories as $category) {
@@ -154,29 +164,37 @@ class Categories extends Command {
      * @param array $categories
      */
     protected function formatList(string $title, string $type, array $categories) {
-        IO::err('%s [%s]:', $title, $type);
-        IO::err('');
+        $this->log
+            ->printAsMessage()
+            ->info('<strong>%s [%s]:</strong>', $title, $type)
+            ->printEmptyLine();
 
         $categories = $this->filterByType($categories, $type);
 
         switch (count($categories)) {
             case 0:
-                IO::err('No categories found');
+                $this->log
+                    ->printAsMessage()
+                    ->info('No categories found');
                 break;
             case 1:
-                IO::err('1 category found');
+                $this->log
+                    ->printAsMessage()
+                    ->info('1 category found');
                 break;
             default:
-                IO::err('%s categories found', count($categories));
+                $this->log
+                    ->printAsMessage()
+                    ->info('%s categories found', count($categories));
                 break;
         }
-
-        IO::err('');
 
         usort($categories, [$this, 'sortCategories']);
 
         foreach ($categories as $category) {
-            IO::out($this->formatCategory($category));
+            $this->log
+                ->printAsOutput()
+                ->info($this->formatCategory($category));
         }
     }
 
@@ -210,7 +228,7 @@ class Categories extends Command {
      */
     protected function formatCategory(array $category): string {
         return sprintf(
-            '%s [%s]',
+            '%s <dim>[%s]</dim>',
             $category['title'],
             $category['const']
         );
@@ -235,24 +253,48 @@ class Categories extends Command {
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS]
+            <<< EOF
+%3\$s
 
-%3$s
+<strong>USAGE</strong>
+    \$ %1\$s %2\$s [OPTIONS]
 
-Custom categories are currently not supported.
+<strong>COMMAND OPTIONS</strong>
+    --enabled           <dim>Only list categories which are assigned to object</dim>
+                        <dim>types</dim>
+    --disabled          <dim>Only list categories which are not assigned to any</dim>
+                        <dim>object type</dim>
 
-Options:
+    --global            <dim>Only list global categories</dim>
+    --specific          <dim>Only list specific categories</dim>
 
-    --enabled   Only list categories which are assigned to object types
-    --disabled  Only list categories which are not assigned to any object type
+<strong>COMMON OPTIONS</strong>
+    -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
+    --config=<u>FILE</u>       <dim>configuration file FILE; repeat option for more</dim>
+                        <dim>than one FILE</dim>
+    -s <u>KEY=VALUE</u>,       <dim>Add runtime setting KEY with its VALUE; separate</dim>
+    --setting=<u>KEY=VALUE</u> <dim>nested keys with ".", for example "key1.key2=123";</dim>
+                        <dim>repeat option for more than one KEY</dim>
+
+    --no-colors         <dim>Do not print colored messages</dim>
+    -q, --quiet         <dim>Do not output messages, only errors</dim>
+    -v, --verbose       <dim>Be more verbose</dim>
+
+    -h, --help          <dim>Print this help or information about a</dim>
+                        <dim>specific command</dim>
+    --version           <dim>Print version information</dim>
+
+    -y, --yes           <dim>No user interaction required; answer questions</dim>
+                        <dim>automatically with default values</dim>
+
+<strong>EXAMPLES</strong>
+    <dim># List all available categories:</dim>
+    \$ %1\$s %2\$s
     
-    --global    Include global categories (enabled by default)
-    --specific  Include specific categories (enabled by default)
-    
-Examples:
-
-    %1$s %2$s --global --enabled    Only list global categories which are assigned to object types
-    %1$s %2$s --specific            List all specific categories',
+    <dim># List global categories which are assigned to one or more object types:</dim>
+    \$ %1\$s %2\$s --enabled --global
+EOF
+            ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()

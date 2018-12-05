@@ -26,8 +26,6 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
 
-use bheisig\idoitcli\API\Idoit;
-
 /**
  * Attribute handling
  */
@@ -47,13 +45,32 @@ class Attribute extends Service {
     protected $type = '';
 
     /**
-     * @var \bheisig\idoitcli\API\Idoit
+     * i-doit API
+     *
+     * @var \bheisig\idoitcli\Service\IdoitAPI
      */
-    protected $api;
+    protected $idoitAPI;
 
-    public function setUp(array $definition, Idoit $api): self {
+    /**
+     * i-doit API factory
+     *
+     * @var IdoitAPIFactory
+     */
+    protected $idoitAPIFactory;
+
+    /**
+     * Setup service
+     *
+     * @param array $definition Attribute definition
+     * @param IdoitAPI $idoitAPI i-doit API
+     * @param IdoitAPIFactory $idoitAPIFactory i-doit API factory
+     *
+     * @return self Returns itself
+     */
+    public function setUp(array $definition, IdoitAPI $idoitAPI, IdoitAPIFactory $idoitAPIFactory): self {
         $this->definition = $definition;
-        $this->api = $api;
+        $this->idoitAPI = $idoitAPI;
+        $this->idoitAPIFactory = $idoitAPIFactory;
 
         $this->identifyType();
 
@@ -218,7 +235,7 @@ class Attribute extends Service {
                 break;
             case self::OBJECT_RELATION:
                 if (is_numeric($value) && (int) $value > 0) {
-                    $object = $this->api->getCMDBObject()->read((int) $value);
+                    $object = $this->idoitAPIFactory->getCMDBObject()->read((int) $value);
 
                     if (count($object) === 0) {
                         throw new \RuntimeException(sprintf(
@@ -229,7 +246,7 @@ class Attribute extends Service {
 
                     $decodedValue = (int) $object['id'];
                 } else {
-                    $objects = $this->api->fetchObjects([
+                    $objects = $this->idoitAPI->fetchObjects([
                         'title' => $value
                     ]);
 

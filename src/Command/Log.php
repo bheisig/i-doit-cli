@@ -43,13 +43,21 @@ class Log extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->info($this->getDescription());
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
-        switch (count($this->config['arguments'])) {#
+        switch (count($this->config['arguments'])) {
             case 0:
                 break;
             case 1:
-                $this->identifyObject($this->config['arguments'][0]);
+                $object = $this->useIdoitAPI()->identifyObject(
+                    $this->config['arguments'][0]
+                );
+
+                $this->objectID = (int) $object['id'];
+                $this->objectTitle = $object['title'];
                 break;
             default:
                 throw new \BadMethodCallException(
@@ -60,19 +68,21 @@ class Log extends Command {
         $this->identifyMessage($this->config['options']);
 
         if (!$this->hasObject()) {
-            if ($this->userInteraction->isInteractive() === false) {
+            if ($this->useUserInteraction()->isInteractive() === false) {
                 throw new \BadMethodCallException(
                     'No object, no log'
                 );
             }
 
-            $this->askForObject();
+            $object = $this->askForObject();
+            $this->objectID = (int) $object['id'];
+            $this->objectTitle = $object['title'];
         }
 
         $this->reportObject();
 
         if (!$this->hasMessage()) {
-            if ($this->userInteraction->isInteractive() === false) {
+            if ($this->useUserInteraction()->isInteractive() === false) {
                 throw new \BadMethodCallException(
                     'No message, no log'
                 );
@@ -84,53 +94,6 @@ class Log extends Command {
         $this->reportMessage();
 
         $this->save();
-
-        return $this;
-    }
-
-    /**
-     * @param string $candidate
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function identifyObject(string $candidate): self {
-        if (is_numeric($candidate) && (int) $candidate > 0) {
-            $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
-
-            if (count($object) > 0) {
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
-            } else {
-                throw new \BadMethodCallException(sprintf(
-                    'Object not found by numeric identifier %s',
-                    $candidate
-                ));
-            }
-        } else {
-            $objects = $this->useIdoitAPI()->fetchObjects([
-                'title' => $candidate
-            ]);
-
-            switch (count($objects)) {
-                case 0:
-                    throw new \BadMethodCallException(sprintf(
-                        'Object not found by title "%s"',
-                        $candidate
-                    ));
-                case 1:
-                    $object = end($objects);
-                    $this->objectID = (int) $object['id'];
-                    $this->objectTitle = $object['title'];
-                    break;
-                default:
-                    throw new \RuntimeException(sprintf(
-                        'Object title "%s" is ambiguous',
-                        $candidate
-                    ));
-            }
-        }
 
         return $this;
     }
@@ -177,30 +140,6 @@ class Log extends Command {
 
     protected function hasMessage(): bool {
         return isset($this->message);
-    }
-
-    /**
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    protected function askForObject(): self {
-        $object = $this->userInteraction->askQuestion('Object?');
-
-        if (strlen($object) === 0) {
-            $this->log->warning('Please re-try');
-            return $this->askForObject();
-        }
-
-        try {
-            $this->identifyObject($object);
-        } catch (\BadMethodCallException $e) {
-            $this->log->warning($e->getMessage());
-            $this->log->warning('Please re-try');
-            return $this->askForObject();
-        }
-
-        return $this;
     }
 
     /**
@@ -394,8 +333,11 @@ EOF
         return false;
     }
 
+    /**
+     * @return string
+     */
     protected function askForEditor(): string {
-        $editor = $this->userInteraction->askQuestion('Which editor do you prefer?');
+        $editor = $this->useUserInteraction()->askQuestion('Which editor do you prefer?');
 
         if (strlen($editor) === 0) {
             $this->log->warning('Excuse me, what do you mean?');
@@ -445,7 +387,7 @@ EOF
     protected function save(): self {
         $this->log->debug('Save…');
 
-        $this->useIdoitAPI()->getCMDBLogbook()->create(
+        $this->useIdoitAPIFactory()->getCMDBLogbook()->create(
             $this->objectID,
             $this->message
         );
@@ -505,7 +447,7 @@ EOF
     <dim># …or by its numeric identifier:</dim>
     \$ %1\$s %2\$s 42 -m "Reboot server for Kernel updates"
 
-    <dim># If object or message is omitted you'll be asked for it:</dim>
+    <dim># If argument OBJECT or message is omitted you'll be asked for it:</dim>
     \$ %1\$s %2\$s
     Object? host01.example.com
     <dim># Based on environment variable EDITOR</dim>

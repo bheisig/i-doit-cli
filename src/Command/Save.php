@@ -112,26 +112,6 @@ class Save extends Command {
     protected $template = [];
 
     /**
-     * Process some routines before execution
-     *
-     * @return self Returns itself
-     *
-     * @throws \Exception on error
-     */
-    public function setup(): Command {
-        parent::setup();
-
-        if ($this->cache->isCached() === false) {
-            throw new \RuntimeException(sprintf(
-                'Unsufficient data. Please run "%s cache" first.',
-                $this->config['composer']['extra']['name']
-            ), 500);
-        }
-
-        return $this;
-    }
-
-    /**
      * Execute command
      *
      * @return self Returns itself
@@ -139,7 +119,10 @@ class Save extends Command {
      * @throws \Exception on error
      */
     public function execute(): self {
-        $this->log->info($this->getDescription());
+        $this->log
+            ->printAsMessage()
+            ->info($this->getDescription())
+            ->printEmptyLine();
 
         if (array_key_exists(0, $this->config['arguments'])) {
             $this
@@ -154,14 +137,14 @@ class Save extends Command {
 
         if (!$this->hasCategory() &&
             $this->hasObjectType() &&
-            $this->userInteraction->isInteractive()) {
+            $this->useUserInteraction()->isInteractive()) {
             $this
                 ->loadTemplate()
                 ->preloadEntriesFromTemplate();
         }
 
         if ($this->hasTemplate()) {
-            $decision = $this->userInteraction->askYesNo(
+            $decision = $this->useUserInteraction()->askYesNo(
                 'Add more attributes?'
             );
 
@@ -365,13 +348,13 @@ class Save extends Command {
             return $this;
         }
 
-        $categoryInfo = $this->cache->getCategoryInfo($this->categoryConstant);
+        $categoryInfo = $this->useCache()->getCategoryInfo($this->categoryConstant);
 
         if ($categoryInfo['multi_value'] === '1') {
             return $this;
         }
 
-        $entry = $this->useIdoitAPI()->getCMDBCategory()->readFirst(
+        $entry = $this->useIdoitAPIFactory()->getCMDBCategory()->readFirst(
             $this->objectID,
             $this->categoryConstant
         );
@@ -547,7 +530,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function interviewUser(): self {
-        if (!$this->userInteraction->isInteractive()) {
+        if (!$this->useUserInteraction()->isInteractive()) {
             return $this;
         }
 
@@ -569,7 +552,7 @@ class Save extends Command {
      */
     protected function askForObjectType(): self {
         if (!$this->hasObjectType()) {
-            $objectType = $this->userInteraction->askQuestion('Object type?');
+            $objectType = $this->useUserInteraction()->askQuestion('Object type?');
 
             $this->identifyObjectType($objectType);
 
@@ -590,14 +573,14 @@ class Save extends Command {
         if (!$this->hasObject() &&
             isset($this->objectTitle) &&
             strlen($this->objectTitle) > 0) {
-            if ($this->validate->isOneLiner($this->objectTitle) === false) {
+            if ($this->useValidate()->isOneLiner($this->objectTitle) === false) {
                 $this->log->warning('Object title is invalid');
                 return $this->askForObjectTitle();
             }
         } elseif (!$this->hasObject()) {
-            $this->objectTitle = $this->userInteraction->askQuestion('Object title?');
+            $this->objectTitle = $this->useUserInteraction()->askQuestion('Object title?');
 
-            if ($this->validate->isOneLiner($this->objectTitle) === false) {
+            if ($this->useValidate()->isOneLiner($this->objectTitle) === false) {
                 $this->log->warning('Object title is invalid');
                 return $this->askForObjectTitle();
             }
@@ -624,7 +607,7 @@ class Save extends Command {
                         $object['id']
                     );
 
-                    $decision = $this->userInteraction->askYesNo(
+                    $decision = $this->useUserInteraction()->askYesNo(
                         'Do you like to update it instead of creating a new one?'
                     );
 
@@ -651,7 +634,7 @@ class Save extends Command {
 
                     $this->log->notice('Do you like to update one of these?');
 
-                    $decision = (int) $this->userInteraction->askQuestion(
+                    $decision = (int) $this->useUserInteraction()->askQuestion(
                         'Select object identifier or just enter to create new object'
                     );
 
@@ -678,7 +661,7 @@ class Save extends Command {
      */
     protected function askForCategory(): string {
         if ($this->hasObjectType()) {
-            $assignedCategories = $this->cache->getAssignedCategories($this->objectTypeConstant);
+            $assignedCategories = $this->useCache()->getAssignedCategories($this->objectTypeConstant);
 
             if (count($assignedCategories) === 0) {
                 throw new \BadMethodCallException(sprintf(
@@ -717,11 +700,11 @@ class Save extends Command {
                 }
             }
 
-            return $this->userInteraction->askQuestion(
+            return $this->useUserInteraction()->askQuestion(
                 'Please select a category:'
             );
         } else {
-            return $this->userInteraction->askQuestion(
+            return $this->useUserInteraction()->askQuestion(
                 'Please specify a category:'
             );
         }
@@ -735,7 +718,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function askForEntry(): string {
-        $entries = $this->useIdoitAPI()->getCMDBCategory()->read(
+        $entries = $this->useIdoitAPIFactory()->getCMDBCategory()->read(
             $this->objectID,
             $this->categoryConstant
         );
@@ -766,7 +749,7 @@ class Save extends Command {
                     );
                 }
 
-                $answer = $this->userInteraction->askYesNo(
+                $answer = $this->useUserInteraction()->askYesNo(
                     'Do you like to update this entry?'
                 );
 
@@ -790,7 +773,7 @@ class Save extends Command {
                     );
                 }
 
-                return $this->userInteraction->askQuestion(
+                return $this->useUserInteraction()->askQuestion(
                     'Please select an entry (leave empty to create a new one):'
                 );
         }
@@ -824,7 +807,7 @@ class Save extends Command {
             if ($this->hasEntry() &&
                 array_key_exists($attributeKey, $this->entry)) {
                 $defaultValue = (new Attribute($this->config, $this->log))
-                    ->setUp($attributeDefinition, $this->useIdoitAPI())
+                    ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory())
                     ->encode($this->entry[$attributeKey]);
             }
 
@@ -855,7 +838,7 @@ class Save extends Command {
      */
     protected function askForAttribute(string $categoryTitle, array $attributeDefinition, $defaultValue = '') {
         if (strlen($defaultValue) > 0) {
-            $value = $this->userInteraction->askQuestion(sprintf(
+            $value = $this->useUserInteraction()->askQuestion(sprintf(
                 '[%s] %s [%s]?',
                 $categoryTitle,
                 $attributeDefinition['title'],
@@ -866,7 +849,7 @@ class Save extends Command {
                 return null;
             }
         } else {
-            $value = $this->userInteraction->askQuestion(sprintf(
+            $value = $this->useUserInteraction()->askQuestion(sprintf(
                 '[%s] %s?',
                 $categoryTitle,
                 $attributeDefinition['title']
@@ -878,7 +861,7 @@ class Save extends Command {
         }
 
         return (new Attribute($this->config, $this->log))
-            ->setUp($attributeDefinition, $this->useIdoitAPI())
+            ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory())
             ->decode($value);
     }
 
@@ -901,7 +884,7 @@ class Save extends Command {
             return false;
         }
 
-        $objectTypes = $this->cache->getObjectTypes();
+        $objectTypes = $this->useCache()->getObjectTypes();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
             $candidateID = (int) $candidate;
@@ -958,7 +941,7 @@ class Save extends Command {
         $this->objectTitle = $candidate;
 
         if ($this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
-            $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
+            $object = $this->useIdoitAPIFactory()->getCMDBObject()->read((int) $candidate);
 
             if (count($object) > 0) {
                 $this->object = $object;
@@ -967,7 +950,7 @@ class Save extends Command {
                 return true;
             }
         } elseif (!$this->hasObjectType() && is_numeric($candidate) && (int) $candidate > 0) {
-            $object = $this->useIdoitAPI()->getCMDBObject()->read((int) $candidate);
+            $object = $this->useIdoitAPIFactory()->getCMDBObject()->read((int) $candidate);
 
             if (count($object) > 0) {
                 $this->object = $object;
@@ -1040,11 +1023,11 @@ class Save extends Command {
      */
     protected function identifyCategory(string $candidate): bool {
         if (strlen($candidate) === 0 &&
-            $this->userInteraction->isInteractive()) {
+            $this->useUserInteraction()->isInteractive()) {
             $candidate = $this->askForCategory();
         }
 
-        $categories = $this->cache->getCategories();
+        $categories = $this->useCache()->getCategories();
 
         if (is_numeric($candidate) && (int) $candidate > 0) {
             $candidateID = (int) $candidate;
@@ -1105,7 +1088,7 @@ class Save extends Command {
         }
 
         if (strlen($candidate) === 0 &&
-            $this->userInteraction->isInteractive()) {
+            $this->useUserInteraction()->isInteractive()) {
             $candidate = $this->askForEntry();
 
             if (strlen($candidate) === 0) {
@@ -1122,7 +1105,7 @@ class Save extends Command {
 
         $this->entryID = (int) $candidate;
 
-        $this->entry = $this->useIdoitAPI()->getCMDBCategory()->readOneByID(
+        $this->entry = $this->useIdoitAPIFactory()->getCMDBCategory()->readOneByID(
             $this->objectID,
             $this->categoryConstant,
             $this->entryID
@@ -1154,7 +1137,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function isCategoryAssignedToObjectType(string $objectTypeConstant, string $categoryConstant): bool {
-        $assignedCategories = $this->cache->getAssignedCategories($objectTypeConstant);
+        $assignedCategories = $this->useCache()->getAssignedCategories($objectTypeConstant);
 
         $types = ['catg', 'cats', 'custom'];
 
@@ -1287,7 +1270,7 @@ class Save extends Command {
 
             $this->template = [];
 
-            $categories = $this->cache->getCategories();
+            $categories = $this->useCache()->getCategories();
 
             foreach ($template as $index => $block) {
                 if (!is_array($block)) {
@@ -1353,7 +1336,7 @@ class Save extends Command {
                 $attributeTitle = '';
                 $attribute = [];
 
-                $categoryInfo = $this->cache->getCategoryInfo($categoryConstant);
+                $categoryInfo = $this->useCache()->getCategoryInfo($categoryConstant);
 
                 foreach ($categoryInfo['properties'] as $categoryAttributeKey => $categoryAttribute) {
                     if ($categoryAttributeKey === $block['attribute']) {
@@ -1428,7 +1411,7 @@ class Save extends Command {
                 continue;
             }
 
-            $categoryInfo = $this->cache->getCategoryInfo($block['categoryConstant']);
+            $categoryInfo = $this->useCache()->getCategoryInfo($block['categoryConstant']);
 
             if ($categoryInfo['multi_value'] === '1') {
                 continue;
@@ -1441,7 +1424,7 @@ class Save extends Command {
             return $this;
         }
 
-        $result = $this->useIdoitAPI()->getCMDBCategory()->batchRead(
+        $result = $this->useIdoitAPIFactory()->getCMDBCategory()->batchRead(
             [$this->objectID],
             $categoryConstants
         );
@@ -1476,7 +1459,7 @@ class Save extends Command {
             }
 
             $defaultValue = (new Attribute($this->config, $this->log))
-                ->setUp($block['attribute'], $this->useIdoitAPI())
+                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory())
                 ->encode($entries[$block['categoryConstant']][$block['attributeKey']]);
 
             $this->template[$index]['defaultValue'] = $defaultValue;
@@ -1504,7 +1487,7 @@ class Save extends Command {
             if (!isset($value) &&
                 array_key_exists('defaultValue', $block)) {
                 $value = (new Attribute($this->config, $this->log))
-                    ->setUp($block['attribute'], $this->useIdoitAPI())
+                    ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory())
                     ->decode($block['defaultValue']);
             }
 
@@ -1527,7 +1510,7 @@ class Save extends Command {
         if ($this->hasObject() && $this->hasAttributes() && $this->hasEntry() && !$this->hasTemplate()) {
             $this->log->info('Update 1 category entry');
 
-            $this->useIdoitAPI()->getCMDBCategory()->save(
+            $this->useIdoitAPIFactory()->getCMDBCategory()->save(
                 $this->objectID,
                 $this->categoryConstant,
                 $this->collectedAttributes,
@@ -1542,7 +1525,7 @@ class Save extends Command {
         } elseif ($this->hasObject() && $this->hasAttributes() && !$this->hasEntry() && !$this->hasTemplate()) {
             $this->log->info('Create 1 category entry');
 
-            $this->useIdoitAPI()->getCMDBCategory()->save(
+            $this->useIdoitAPIFactory()->getCMDBCategory()->save(
                 $this->objectID,
                 $this->categoryConstant,
                 $this->collectedAttributes
@@ -1556,7 +1539,7 @@ class Save extends Command {
         } elseif (!$this->hasObject() && $this->hasAttributes() && !$this->hasTemplate()) {
             $this->log->info('Create new object and save 1 category entry');
 
-            $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
+            $result = $this->useIdoitAPIFactory()->getCMDBObject()->createWithCategories(
                 $this->objectTypeConstant,
                 $this->objectTitle,
                 [
@@ -1572,7 +1555,7 @@ class Save extends Command {
         } elseif (!$this->hasObject() && !$this->hasAttributes() && !$this->hasTemplate()) {
             $this->log->info('Create object');
 
-            $this->objectID = $this->useIdoitAPI()->getCMDBObject()->create(
+            $this->objectID = $this->useIdoitAPIFactory()->getCMDBObject()->create(
                 $this->objectTypeConstant,
                 $this->objectTitle
             );
@@ -1617,7 +1600,7 @@ class Save extends Command {
                 case 1:
                     $this->log->info('Save 1 category entry');
 
-                    $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                    $this->useIdoitAPIFactory()->getAPI()->batchRequest($requests);
                     break;
                 default:
                     $this->log->info(
@@ -1625,7 +1608,7 @@ class Save extends Command {
                         count($requests)
                     );
 
-                    $this->useIdoitAPI()->getAPI()->batchRequest($requests);
+                    $this->useIdoitAPIFactory()->getAPI()->batchRequest($requests);
                     break;
             }
 
@@ -1664,7 +1647,7 @@ class Save extends Command {
                     break;
             }
 
-            $result = $this->useIdoitAPI()->getCMDBObject()->createWithCategories(
+            $result = $this->useIdoitAPIFactory()->getCMDBObject()->createWithCategories(
                 $this->objectTypeConstant,
                 $this->objectTitle,
                 $categories
