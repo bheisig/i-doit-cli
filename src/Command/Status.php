@@ -31,6 +31,9 @@ namespace bheisig\idoitcli\Command;
  */
 class Status extends Command {
 
+    protected $idoitInfo = [];
+    protected $apiInfo = [];
+
     /**
      * Execute command
      *
@@ -44,14 +47,60 @@ class Status extends Command {
             ->info($this->getDescription())
             ->printEmptyLine();
 
-        $info = $this->useIdoitAPIFactory()->getCMDB()->readVersion();
+        return $this
+            ->getIdoitInfo()
+            ->getAPIVersion()
+            ->printStatus();
+    }
 
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function getIdoitInfo(): self {
+        $this->idoitInfo = $this->useIdoitAPIFactory()->getCMDB()->readVersion();
+
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function getAPIVersion(): self {
+        try {
+            $addOns = $this->useIdoitAPIFactory()->getCMDB()->getAddOns();
+
+            foreach ($addOns as $addOn) {
+                if ($addOn['key'] === 'api') {
+                    $this->apiInfo = $addOn;
+                    break;
+                }
+            }
+        } catch (\Exception $e) {
+            // Suppress any exception…
+        }
+
+        return $this;
+    }
+
+    protected function printStatus(): self {
         $this->log
             ->printAsOutput()
             ->info('<strong>About i-doit:</strong>')
-            ->info('Version: <strong>i-doit %s %s</strong>', $info['type'], $info['version'])
-            ->info('Tenant: <strong>%s</strong>', $info['login']['mandator'])
-            ->info('Link: <strong>%s</strong>', str_replace('src/jsonrpc.php', '', $this->config['api']['url']))
+            ->info(
+                'Version: <strong>i-doit %s %s</strong>',
+                strtolower($this->idoitInfo['type']),
+                $this->idoitInfo['version']
+            )
+            ->info('Tenant: <strong>%s</strong>', $this->idoitInfo['login']['mandator'])
+            ->info(
+                'Link: <strong>%s</strong>',
+                str_replace('src/jsonrpc.php', '', $this->config['api']['url'])
+            )
+            ->info('API version: <strong>%s</strong>', $this->apiInfo['version'])
             ->info('API entry point: <strong>%s</strong>', $this->config['api']['url'])
             ->printEmptyLine()
             ->info('<strong>About this script:</strong>')
@@ -62,10 +111,10 @@ class Status extends Command {
             ->info('License: <strong>%s</strong>', $this->config['composer']['license'])
             ->printEmptyLine()
             ->info('<strong>About you:</strong>')
-            ->info('Name: <strong>%s</strong>', $info['login']['name'])
-            ->info('User name: <strong>%s</strong>', $info['login']['username'])
-            ->info('E-mail: <strong>%s</strong>', $info['login']['mail'])
-            ->info('Prefered language: <strong>%s</strong>', $info['login']['language']);
+            ->info('Name: <strong>%s</strong>', $this->idoitInfo['login']['name'])
+            ->info('User name: <strong>%s</strong>', $this->idoitInfo['login']['username'])
+            ->info('E-mail: <strong>%s</strong>', $this->idoitInfo['login']['mail'])
+            ->info('Language: <strong>%s</strong>', $this->idoitInfo['login']['language']);
 
         return $this;
     }
