@@ -216,11 +216,6 @@ class Cache extends Command {
 
         foreach ($batchedAssignedCategories as $assignedCategories) {
             foreach ($assignedCategories as $type => $categoryList) {
-                if ($type !== 'catg' && $type !== 'cats') {
-                    $this->log->notice('Ignore customized categories');
-                    continue;
-                }
-
                 foreach ($categoryList as $category) {
                     if (in_array($category['const'], $blacklistedCategories)) {
                         continue;
