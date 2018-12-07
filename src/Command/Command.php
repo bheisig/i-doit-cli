@@ -96,7 +96,8 @@ abstract class Command extends BaseCommand {
             $this->cache = new Cache($this->config, $this->log);
         }
 
-        if ($this->cache->isCached() === false) {
+        if ($this->cache->isCached() === false &&
+            $this->config['command'] !== 'cache') {
             throw new \RuntimeException(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
