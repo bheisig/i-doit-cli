@@ -81,7 +81,7 @@ try {
         ->addCommand(
             'logs',
             __NAMESPACE__ . '\\Command\\Logs',
-            'Print logs from i-doit'
+            'Print entries from i-doit logbook'
         )
         ->addCommand(
             'nextip',

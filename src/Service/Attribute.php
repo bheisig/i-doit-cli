@@ -33,12 +33,21 @@ class Attribute extends Service {
 
     const TEXT = 'text';
     const TEXT_AREA = 'text_area';
+    const DATE = 'date';
     const DIALOG = 'dialog';
     const DIALOG_PLUS = 'dialog_plus';
+    const DIALOG_PLUS_MULTI_SELECTION = 'dialog_plus_multi-selection';
     const YES_NO_DIALOG = 'yes_no_dialog';
     const OBJECT_RELATION = 'object_relation';
-    const COORDINATES = 'coordinates';
+    const OBJECT_RELATIONS = 'object_relations';
+    const GEO_COORDINATES = 'geo_coordinates';
     const IP_ADDRESS = 'ip_address';
+    const LINK = 'link';
+    const PASSWORD = 'password';
+    const FILE = 'file';
+    const HORIZONTAL_LINE = 'hr';
+    const EMBEDED_HTML = 'html';
+    const EMBEDED_JAVASCRIPT = 'js';
     const UNKNOWN = 'unknown';
 
     protected $definition = [];
@@ -78,6 +87,47 @@ class Attribute extends Service {
     }
 
     /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function ignore(): bool {
+        if (!$this->isLoaded()) {
+            throw new \BadMethodCallException('Missing attribute definition');
+        }
+
+        switch ($this->type) {
+            case self::TEXT:
+            case self::TEXT_AREA:
+            case self::DATE:
+            case self::DIALOG:
+            case self::DIALOG_PLUS:
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+            case self::YES_NO_DIALOG:
+            case self::OBJECT_RELATION:
+            case self::OBJECT_RELATIONS:
+            case self::IP_ADDRESS:
+            case self::GEO_COORDINATES:
+            case self::LINK:
+            case self::PASSWORD:
+                return false;
+            // @todo Add support for files!
+            case self::FILE:
+            case self::HORIZONTAL_LINE:
+            case self::EMBEDED_HTML:
+            case self::EMBEDED_JAVASCRIPT:
+            case self::UNKNOWN:
+                return true;
+            default:
+                throw new \Exception(sprintf(
+                    'Unknown ignore state for attribute "%s"',
+                    $this->definition['title']
+                ));
+        }
+    }
+
+    /**
+     * Translate value from i-doit to human-readable format
+     *
      * @param mixed $value Value from i-doit API
      *
      * @return string Encoded value, even if it's empty
@@ -89,8 +139,15 @@ class Attribute extends Service {
             throw new \BadMethodCallException('Missing attribute definition');
         }
 
-        if ($value === null) {
+        if ($this->hasValueForEncoding($value) === false) {
             return '';
+        }
+
+        if ($this->validateBeforeEncoding($value) === false) {
+            throw new \BadMethodCallException(sprintf(
+                'Invalid value for attribute "%s"',
+                $this->definition['title']
+            ));
         }
 
         switch ($this->type) {
@@ -99,9 +156,18 @@ class Attribute extends Service {
             case self::TEXT_AREA:
                 // Rich-text editor with HTML:
                 return strip_tags($value);
+            case self::DATE:
+                return $value['title'];
             case self::DIALOG:
             case self::DIALOG_PLUS:
                 return $value['title'];
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                $values = [];
+
+                foreach ($value as $block) {
+                    $values[] = $block['title'];
+                }
+                return implode(', ', $values);
             case self::YES_NO_DIALOG:
                 // @todo C__CATG__IP::use_standard_gateway always returns category entry identifier…
                 if (!array_key_exists('title', $value)) {
@@ -116,9 +182,16 @@ class Attribute extends Service {
                 return ($check) ? 'yes' : 'no';
             case self::OBJECT_RELATION:
                 return $value['title'];
+            case self::OBJECT_RELATIONS:
+                $values = [];
+
+                foreach ($value as $block) {
+                    $values[] = $block['title'];
+                }
+                return implode(', ', $values);
             case self::IP_ADDRESS:
                 return $value['ref_title'];
-            case self::COORDINATES:
+            case self::GEO_COORDINATES:
                 $longitude = '';
                 $latitude = '';
 
@@ -146,6 +219,13 @@ class Attribute extends Service {
                     return '';
                 }
                 break;
+            case self::LINK:
+                return $value;
+            case self::PASSWORD:
+                return $value;
+            case self::FILE:
+                // @todo Return file title with download link!
+                return $value;
             case self::UNKNOWN:
                 switch (gettype($value)) {
                     case 'array':
@@ -190,6 +270,8 @@ class Attribute extends Service {
     }
 
     /**
+     * Translate value from CLI to format parsable by i-doit
+     *
      * @param string $value
      *
      * @return mixed
@@ -201,14 +283,18 @@ class Attribute extends Service {
             throw new \BadMethodCallException('Missing attribute definition');
         }
 
-        if ($this->validateEncoded($value) === false) {
+        $decodedValue = null;
+
+        if ($this->hasValueForDecoding($value) === false) {
+            return $decodedValue;
+        }
+
+        if ($this->validateBeforeDecoding($value) === false) {
             throw new \BadMethodCallException(sprintf(
                 'Invalid value for attribute "%s"',
                 $this->definition['title']
             ));
         }
-
-        $decodedValue = null;
 
         switch ($this->type) {
             case self::TEXT:
@@ -216,12 +302,27 @@ class Attribute extends Service {
             case self::IP_ADDRESS:
                 $decodedValue = $value;
                 break;
+            case self::DATE:
+                $unixTimestamp = strtotime($value);
+                $decodedValue = date('Y-m-d', $unixTimestamp);
+                break;
             case self::DIALOG:
             case self::DIALOG_PLUS:
                 if (is_numeric($value) && (int) $value > 0) {
                     $decodedValue = (int) $value;
                 } else {
                     $decodedValue = $value;
+                }
+                break;
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                $values = array_map('trim', explode(',', $value));
+
+                foreach ($values as $rawValue) {
+                    if (is_numeric($rawValue) && (int) $rawValue > 0) {
+                        $decodedValue[] = (int) $rawValue;
+                    } else {
+                        $decodedValue[] = $rawValue;
+                    }
                 }
                 break;
             case self::YES_NO_DIALOG:
@@ -234,43 +335,23 @@ class Attribute extends Service {
                 $decodedValue = ($check) ? 1 : 0;
                 break;
             case self::OBJECT_RELATION:
-                if (is_numeric($value) && (int) $value > 0) {
-                    $object = $this->idoitAPIFactory->getCMDBObject()->read((int) $value);
-
-                    if (count($object) === 0) {
-                        throw new \RuntimeException(sprintf(
-                            'Unable to identify object by identifier "%s"',
-                            $value
-                        ));
-                    }
-
-                    $decodedValue = (int) $object['id'];
-                } else {
-                    $objects = $this->idoitAPI->fetchObjects([
-                        'title' => $value
-                    ]);
-
-                    switch (count($objects)) {
-                        case 0:
-                            throw new \RuntimeException(sprintf(
-                                'Unable to identify object by title "%s"',
-                                $value
-                            ));
-                            break;
-                        case 1:
-                            $object = end($objects);
-                            $decodedValue = (int) $object['id'];
-                            break;
-                        default:
-                            throw new \RuntimeException(sprintf(
-                                'Found %s objects. Unable to identify object by title "%s"',
-                                count($objects),
-                                $value
-                            ));
-                    }
-                }
+                $decodedValue = $this->identifyObject($value);
                 break;
-            case self::COORDINATES:
+            case self::OBJECT_RELATIONS:
+                $values = array_map('trim', explode(',', $value));
+
+                foreach ($values as $value) {
+                    $decodedValue[] = $this->identifyObject($value);
+                }
+
+                break;
+            case self::LINK:
+                $decodedValue = $value;
+                break;
+            case self::PASSWORD:
+                $decodedValue = $value;
+                break;
+            case self::GEO_COORDINATES:
                 // Ignore!
                 break;
             case self::UNKNOWN:
@@ -281,7 +362,7 @@ class Attribute extends Service {
                 ));
         }
 
-        if ($this->validateDecoded($decodedValue) === false) {
+        if ($this->validateAfterDecoding($decodedValue) === false) {
             throw new \BadMethodCallException(sprintf(
                 'Invalid value for attribute "%s"',
                 $this->definition['title']
@@ -291,7 +372,219 @@ class Attribute extends Service {
         return $decodedValue;
     }
 
-    public function validateEncoded(string $value): bool {
+    public function hasValueForDecoding($value): bool {
+        if (!$this->isLoaded()) {
+            throw new \BadMethodCallException('Missing attribute definition');
+        }
+
+        if ($value === null) {
+            return false;
+        }
+
+        switch ($this->type) {
+            // @todo Check whether value is set!
+            case self::TEXT:
+            case self::TEXT_AREA:
+            case self::DATE:
+            case self::DIALOG:
+            case self::DIALOG_PLUS:
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+            case self::YES_NO_DIALOG:
+            case self::OBJECT_RELATION:
+            case self::OBJECT_RELATIONS:
+            case self::IP_ADDRESS:
+            case self::GEO_COORDINATES:
+            case self::LINK:
+            case self::PASSWORD:
+                return true;
+            // @todo Add support for files!
+            case self::FILE:
+            case self::HORIZONTAL_LINE:
+            case self::EMBEDED_HTML:
+            case self::EMBEDED_JAVASCRIPT:
+            case self::UNKNOWN:
+            default:
+                return false;
+        }
+    }
+
+    public function hasValueForEncoding($value): bool {
+        if (!$this->isLoaded()) {
+            throw new \BadMethodCallException('Missing attribute definition');
+        }
+
+        if ($value === null) {
+            return false;
+        }
+
+        switch ($this->type) {
+            case self::TEXT:
+                return is_string($value) && strlen($value) > 0;
+            case self::TEXT_AREA:
+                return is_string($value) && strlen($value) > 0;
+            case self::DATE:
+                return is_string($value) && strlen($value) > 0;
+            case self::DIALOG:
+                return is_array($value) &&
+                    array_key_exists('title', $value);
+            case self::DIALOG_PLUS:
+                return is_array($value) &&
+                    array_key_exists('title', $value);
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                if (!is_array($value)) {
+                    return false;
+                }
+
+                foreach ($value as $block) {
+                    if (!array_key_exists('title', $block) ||
+                        is_string($block['title']) ||
+                        strlen($block['title']) === 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            case self::YES_NO_DIALOG:
+                return is_array($value) &&
+                    array_key_exists('title', $value);
+            case self::OBJECT_RELATION:
+                return is_array($value) &&
+                    array_key_exists('title', $value);
+            case self::OBJECT_RELATIONS:
+                if (!is_array($value)) {
+                    return false;
+                }
+
+                foreach ($value as $block) {
+                    if (!array_key_exists('title', $block) ||
+                        is_string($block['title']) ||
+                        strlen($block['title']) === 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            case self::IP_ADDRESS:
+                return is_array($value) &&
+                    array_key_exists('ref_title', $value);
+            case self::GEO_COORDINATES:
+                return is_array($value) &&
+                    array_key_exists('longitude', $value) &&
+                    is_string($value['longitude']) &&
+                    array_key_exists('latitude', $value) &&
+                    is_string($value['latitude']);
+            case self::LINK:
+                return is_string($value) && strlen($value) > 0;
+            case self::PASSWORD:
+                return is_string($value) && strlen($value) > 0;
+            case self::FILE:
+                // @todo Add support for files!
+                return false;
+            case self::HORIZONTAL_LINE:
+                return false;
+            case self::EMBEDED_HTML:
+                return false;
+            case self::EMBEDED_JAVASCRIPT:
+                return false;
+            case self::UNKNOWN:
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    public function validateBeforeEncoding($value): bool {
+        if (!$this->isLoaded()) {
+            throw new \BadMethodCallException('Missing attribute definition');
+        }
+
+        switch ($this->type) {
+            case self::TEXT:
+                return is_string($value);
+            case self::TEXT_AREA:
+                return is_string($value);
+            case self::DATE:
+                return is_array($value) &&
+                    array_key_exists('title', $value) &&
+                    is_string($value['title']) &&
+                    strtotime($value['title']) !== false;
+            case self::DIALOG:
+                return is_array($value) &&
+                    array_key_exists('title', $value) &&
+                    is_string($value['title']);
+            case self::DIALOG_PLUS:
+                return is_array($value) &&
+                    array_key_exists('title', $value) &&
+                    is_string($value['title']);
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                if (!is_array($value)) {
+                    return false;
+                }
+
+                foreach ($value as $block) {
+                    if (!array_key_exists('title', $block) ||
+                        is_string($block['title']) ||
+                        strlen($block['title']) === 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            case self::YES_NO_DIALOG:
+                return is_array($value) &&
+                    array_key_exists('title', $value) &&
+                    filter_var(
+                        $value['title'],
+                        FILTER_VALIDATE_BOOLEAN,
+                        FILTER_NULL_ON_FAILURE
+                    ) !== null;
+            case self::OBJECT_RELATION:
+                return is_array($value) &&
+                    array_key_exists('title', $value) &&
+                    is_string($value['title']);
+            case self::OBJECT_RELATIONS:
+                if (!is_array($value)) {
+                    return false;
+                }
+
+                foreach ($value as $block) {
+                    if (!array_key_exists('title', $block) ||
+                        is_string($block['title']) ||
+                        strlen($block['title']) === 0) {
+                        return false;
+                    }
+                }
+
+                return true;
+            case self::IP_ADDRESS:
+                return is_array($value) &&
+                    array_key_exists('ref_title', $value) &&
+                    is_string($value['ref_title']);
+            case self::GEO_COORDINATES:
+                return is_array($value) &&
+                    array_key_exists('longitude', $value) &&
+                    is_string($value['longitude']) &&
+                    array_key_exists('latitude', $value) &&
+                    is_string($value['latitude']);
+            case self::LINK:
+                return is_string($value);
+            case self::PASSWORD:
+                return is_string($value);
+            case self::UNKNOWN:
+            default:
+                throw new \RuntimeException(sprintf(
+                    'Unable to validate value for attribute "%s"',
+                    $this->definition['title']
+                ));
+        }
+    }
+
+    public function validateAfterEncoding(string $value): bool {
+        // @todo Implement me!
+        return true;
+    }
+
+    public function validateBeforeDecoding(string $value): bool {
         if (!$this->isLoaded()) {
             throw new \BadMethodCallException('Missing attribute definition');
         }
@@ -300,11 +593,22 @@ class Attribute extends Service {
             case self::TEXT_AREA:
                 return strlen($value) <= 65535;
             case self::TEXT:
+                return strlen($value) <= 255;
             case self::DIALOG:
+                return strlen($value) <= 255;
             case self::DIALOG_PLUS:
+                return strlen($value) <= 255;
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                return strlen($value) <= 65535;
             case self::OBJECT_RELATION:
+                return strlen($value) <= 255;
+            case self::OBJECT_RELATIONS:
+                return strlen($value) <= 65535;
             case self::IP_ADDRESS:
                 return strlen($value) <= 255;
+            case self::DATE:
+                $unixTimestamp = strtotime($value);
+                return is_integer($unixTimestamp) && $unixTimestamp > 0;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -314,8 +618,12 @@ class Attribute extends Service {
 
                 return is_bool($check);
             case self::UNKNOWN:
-            case self::COORDINATES:
+            case self::GEO_COORDINATES:
                 return true;
+            case self::LINK:
+                return strlen($value) <= 255;
+            case self::PASSWORD:
+                return strlen($value) <= 255;
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -324,27 +632,32 @@ class Attribute extends Service {
         }
     }
 
-    public function validateDecoded($value): bool {
+    public function validateAfterDecoding($value): bool {
         if (!$this->isLoaded()) {
             throw new \BadMethodCallException('Missing attribute definition');
         }
 
         switch ($this->type) {
             case self::TEXT:
+                return is_string($value) && strlen($value) <= 255;
             case self::IP_ADDRESS:
                 return is_string($value) && strlen($value) <= 255;
             case self::TEXT_AREA:
                 return is_string($value) && strlen($value) <= 65535;
             case self::DIALOG:
+                return (is_string($value) && strlen($value) <= 255) ||
+                    (is_integer($value) && $value > 0);
             case self::DIALOG_PLUS:
+                return (is_string($value) && strlen($value) <= 255) ||
+                    (is_integer($value) && $value > 0);
+            case self::DIALOG_PLUS_MULTI_SELECTION:
+                return is_array($value);
             case self::OBJECT_RELATION:
-                if (is_string($value) && strlen($value) <= 255) {
-                    return true;
-                } elseif (is_int($value) && $value > 0) {
-                    return true;
-                }
-
-                return false;
+                return is_int($value) && $value > 0;
+            case self::OBJECT_RELATIONS:
+                return is_array($value);
+            case self::DATE:
+                return is_string($value) && strlen($value) <= 255;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -354,8 +667,12 @@ class Attribute extends Service {
 
                 return is_bool($check);
             case self::UNKNOWN:
-            case self::COORDINATES:
+            case self::GEO_COORDINATES:
                 return true;
+            case self::LINK:
+                return is_string($value) && strlen($value) <= 255;
+            case self::PASSWORD:
+                return is_string($value) && strlen($value) <= 255;
             default:
                 throw new \RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -364,8 +681,18 @@ class Attribute extends Service {
         }
     }
 
+    /**
+     * Identify attribute type
+     *
+     * @return self Returns itself
+     */
     protected function identifyType(): self {
-        if (array_key_exists('ui', $this->definition) &&
+        if (array_key_exists('data', $this->definition) &&
+            is_array($this->definition['data']) &&
+            array_key_exists('type', $this->definition['data']) &&
+            $this->definition['data']['type'] === 'date') {
+            $this->type = self::DATE;
+        } elseif (array_key_exists('ui', $this->definition) &&
             is_array($this->definition['ui']) &&
             array_key_exists('type', $this->definition['ui']) &&
             $this->definition['ui']['type'] === 'text' &&
@@ -379,8 +706,41 @@ class Attribute extends Service {
         } elseif (array_key_exists('ui', $this->definition) &&
             is_array($this->definition['ui']) &&
             array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'link') {
+            $this->type = self::LINK;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
             $this->definition['ui']['type'] === 'textarea') {
             $this->type = self::TEXT_AREA;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'wysiwyg') {
+            $this->type = self::TEXT_AREA;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('p_strPopupType', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['p_strPopupType'] === 'dialog_plus' &&
+            array_key_exists('multiselection', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['multiselection'] === 1) {
+            $this->type = self::DIALOG_PLUS_MULTI_SELECTION;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('popup', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['popup'] === 'file') {
+            $this->type = self::FILE;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('popup', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['popup'] === 'dialog_plus') {
+            $this->type = self::DIALOG_PLUS;
         } elseif (array_key_exists('ui', $this->definition) &&
             is_array($this->definition['ui']) &&
             array_key_exists('params', $this->definition['ui']) &&
@@ -414,7 +774,42 @@ class Attribute extends Service {
             array_key_exists('callback', $this->definition['format']) &&
             is_array($this->definition['format']['callback']) &&
             array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'location') {
+            $this->type = self::OBJECT_RELATION;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('popup', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['popup'] === 'browser_object' &&
+            array_key_exists('multiselection', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['multiselection'] === false) {
+            $this->type = self::OBJECT_RELATION;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('popup', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['popup'] === 'browser_object' &&
+            array_key_exists('multiselection', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['multiselection'] === true) {
+            $this->type = self::OBJECT_RELATIONS;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'exportHostname') {
+            $this->type = self::TEXT;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            in_array(
+                $this->definition['format']['callback'][1],
+                ['property_callback_latitude', 'property_callback_longitude']
+            )) {
             $this->type = self::TEXT;
         } elseif (array_key_exists('format', $this->definition) &&
             is_array($this->definition['format']) &&
@@ -428,15 +823,33 @@ class Attribute extends Service {
             array_key_exists('callback', $this->definition['format']) &&
             is_array($this->definition['format']['callback']) &&
             array_key_exists(1, $this->definition['format']['callback']) &&
-            $this->definition['format']['callback'][1] === 'location') {
-            $this->type = self::OBJECT_RELATION;
-        } elseif (array_key_exists('format', $this->definition) &&
-            is_array($this->definition['format']) &&
-            array_key_exists('callback', $this->definition['format']) &&
-            is_array($this->definition['format']['callback']) &&
-            array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'property_callback_gps') {
-            $this->type = self::COORDINATES;
+            $this->type = self::GEO_COORDINATES;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'hr') {
+            $this->type = self::HORIZONTAL_LINE;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'html') {
+            $this->type = self::EMBEDED_HTML;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'script') {
+            $this->type = self::EMBEDED_JAVASCRIPT;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'password') {
+            $this->type = self::PASSWORD;
+        } elseif (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('type', $this->definition['ui']) &&
+            $this->definition['ui']['type'] === 'dialog') {
+            $this->type = self::DIALOG;
         } else {
             $this->type = self::UNKNOWN;
         }
@@ -444,8 +857,58 @@ class Attribute extends Service {
         return $this;
     }
 
+    /**
+     * Check whether attribute definition is set properly
+     *
+     * @return bool
+     */
     protected function isLoaded(): bool {
         return count($this->definition) > 0;
+    }
+
+    /**
+     * Try to identify object
+     *
+     * @param string $value Numeric identifier or title
+     *
+     * @return int Object identifier
+     * @throws \Exception
+     */
+    protected function identifyObject(string $value): int {
+        if (is_numeric($value) && (int) $value > 0) {
+            $object = $this->idoitAPIFactory->getCMDBObject()->read((int) $value);
+
+            if (count($object) === 0) {
+                throw new \RuntimeException(sprintf(
+                    'Unable to identify object by identifier "%s"',
+                    $value
+                ));
+            }
+
+            return (int) $object['id'];
+        } else {
+            $objects = $this->idoitAPI->fetchObjects([
+                'title' => $value
+            ]);
+
+            switch (count($objects)) {
+                case 0:
+                    throw new \RuntimeException(sprintf(
+                        'Unable to identify object by title "%s"',
+                        $value
+                    ));
+                    break;
+                case 1:
+                    $object = end($objects);
+                    return (int) $object['id'];
+                default:
+                    throw new \RuntimeException(sprintf(
+                        'Found %s objects. Unable to identify object by title "%s"',
+                        count($objects),
+                        $value
+                    ));
+            }
+        }
     }
 
 }

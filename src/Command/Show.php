@@ -107,7 +107,7 @@ class Show extends Command {
             ->info('Created: %s', $object['created'])
             ->info('Updated: %s', $object['updated']);
 
-        $categoryTypes = ['catg', 'cats'];
+        $categoryTypes = ['catg', 'cats', 'custom'];
 
         $blacklistedCategories = $this
             ->useIdoitAPIFactory()
@@ -167,12 +167,18 @@ class Show extends Command {
                             continue;
                         }
 
-                        $value = (new Attribute($this->config, $this->log))
+                        $attributeService = (new Attribute($this->config, $this->log))
                             ->setUp(
                                 $categoryInfo['properties'][$attribute],
                                 $this->useIdoitAPI(),
                                 $this->useIdoitAPIFactory()
-                            )
+                            );
+
+                        if ($attributeService->ignore()) {
+                            continue;
+                        }
+
+                        $value = $attributeService
                             ->encode($value);
 
                         if ($value === '') {

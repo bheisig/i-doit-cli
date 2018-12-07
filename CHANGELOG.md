@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+-   `save`: Create/update CMDB objects and their category entries
 -   `log`: Add entry to i-doit logbook
--   `logs`: Print logs from i-doit
+-   `logs`: Print entries from i-doit logbook
 -   `cache`: Create cache files needed for faster processing
+-   Add support for custom categories with user-defined attributes
 
 
 ### Changed

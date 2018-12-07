@@ -84,6 +84,11 @@ class Save extends Command {
     protected $categoryAttributes;
 
     /**
+     * @var bool
+     */
+    protected $multiValue = false;
+
+    /**
      * @var array Attribute key as key and its value as value
      */
     protected $collectedAttributes = [];
@@ -802,12 +807,18 @@ class Save extends Command {
         }
 
         foreach ($this->categoryAttributes as $attributeKey => $attributeDefinition) {
+            $attribute = (new Attribute($this->config, $this->log))
+                    ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+
+            if ($attribute->ignore()) {
+                continue;
+            }
+
             $defaultValue = '';
 
             if ($this->hasEntry() &&
                 array_key_exists($attributeKey, $this->entry)) {
-                $defaultValue = (new Attribute($this->config, $this->log))
-                    ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory())
+                $defaultValue = $attribute
                     ->encode($this->entry[$attributeKey]);
             }
 
@@ -1048,12 +1059,14 @@ class Save extends Command {
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
+                    $this->multiValue = ($category['multi_value'] === '0') ? false : true;
                     return true;
                 } elseif (strtolower($category['const']) === strtolower($candidate)) {
                     $this->categoryAttributes = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
+                    $this->multiValue = ($category['multi_value'] === '0') ? false : true;
                     return true;
                 }
             }
@@ -1203,6 +1216,10 @@ class Save extends Command {
 
     protected function hasTemplate(): bool {
         return count($this->template) > 0;
+    }
+
+    protected function isMultiValueCategory(): bool {
+        return $this->multiValue;
     }
 
     /**
@@ -1458,8 +1475,14 @@ class Save extends Command {
                 continue;
             }
 
-            $defaultValue = (new Attribute($this->config, $this->log))
-                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory())
+            $attribute = (new Attribute($this->config, $this->log))
+                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+
+            if ($attribute->ignore()) {
+                continue;
+            }
+
+            $defaultValue = $attribute
                 ->encode($entries[$block['categoryConstant']][$block['attributeKey']]);
 
             $this->template[$index]['defaultValue'] = $defaultValue;
@@ -1477,6 +1500,13 @@ class Save extends Command {
      */
     protected function applyTemplate() {
         foreach ($this->template as $index => $block) {
+            $attribute = (new Attribute($this->config, $this->log))
+                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+
+            if ($attribute->ignore()) {
+                continue;
+            }
+
             $value = $this->askForAttribute(
                 $block['categoryTitle'],
                 $block['attribute'],
@@ -1486,8 +1516,7 @@ class Save extends Command {
             // Use default value if user skipped it:
             if (!isset($value) &&
                 array_key_exists('defaultValue', $block)) {
-                $value = (new Attribute($this->config, $this->log))
-                    ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory())
+                $value = $attribute
                     ->decode($block['defaultValue']);
             }
 
@@ -1514,7 +1543,7 @@ class Save extends Command {
                 $this->objectID,
                 $this->categoryConstant,
                 $this->collectedAttributes,
-                $this->entryID
+                ($this->isMultiValueCategory()) ? $this->entryID : null
             );
 
             $this->log->info(
