@@ -34,6 +34,7 @@ class Attribute extends Service {
     const TEXT = 'text';
     const TEXT_AREA = 'text_area';
     const DATE = 'date';
+    const DATETIME = 'datetime';
     const DIALOG = 'dialog';
     const DIALOG_PLUS = 'dialog_plus';
     const DIALOG_PLUS_MULTI_SELECTION = 'dialog_plus_multi-selection';
@@ -99,6 +100,7 @@ class Attribute extends Service {
             case self::TEXT:
             case self::TEXT_AREA:
             case self::DATE:
+            case self::DATETIME:
             case self::DIALOG:
             case self::DIALOG_PLUS:
             case self::DIALOG_PLUS_MULTI_SELECTION:
@@ -157,6 +159,8 @@ class Attribute extends Service {
                 // Rich-text editor with HTML:
                 return strip_tags($value);
             case self::DATE:
+                return $value;
+            case self::DATETIME:
                 return $value['title'];
             case self::DIALOG:
             case self::DIALOG_PLUS:
@@ -306,6 +310,10 @@ class Attribute extends Service {
                 $unixTimestamp = strtotime($value);
                 $decodedValue = date('Y-m-d', $unixTimestamp);
                 break;
+            case self::DATETIME:
+                $unixTimestamp = strtotime($value);
+                $decodedValue = date('Y-m-d', $unixTimestamp);
+                break;
             case self::DIALOG:
             case self::DIALOG_PLUS:
                 if (is_numeric($value) && (int) $value > 0) {
@@ -386,6 +394,7 @@ class Attribute extends Service {
             case self::TEXT:
             case self::TEXT_AREA:
             case self::DATE:
+            case self::DATETIME:
             case self::DIALOG:
             case self::DIALOG_PLUS:
             case self::DIALOG_PLUS_MULTI_SELECTION:
@@ -424,6 +433,9 @@ class Attribute extends Service {
                 return is_string($value) && strlen($value) > 0;
             case self::DATE:
                 return is_string($value) && strlen($value) > 0;
+            case self::DATETIME:
+                return is_array($value) &&
+                    array_key_exists('title', $value);
             case self::DIALOG:
                 return is_array($value) &&
                     array_key_exists('title', $value);
@@ -504,6 +516,8 @@ class Attribute extends Service {
             case self::TEXT_AREA:
                 return is_string($value);
             case self::DATE:
+                return is_string($value);
+            case self::DATETIME:
                 return is_array($value) &&
                     array_key_exists('title', $value) &&
                     is_string($value['title']) &&
@@ -609,6 +623,9 @@ class Attribute extends Service {
             case self::DATE:
                 $unixTimestamp = strtotime($value);
                 return is_integer($unixTimestamp) && $unixTimestamp > 0;
+            case self::DATETIME:
+                $unixTimestamp = strtotime($value);
+                return is_integer($unixTimestamp) && $unixTimestamp > 0;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -658,6 +675,8 @@ class Attribute extends Service {
                 return is_array($value);
             case self::DATE:
                 return is_string($value) && strlen($value) <= 255;
+            case self::DATETIME:
+                return is_string($value) && strlen($value) <= 255;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -687,7 +706,12 @@ class Attribute extends Service {
      * @return self Returns itself
      */
     protected function identifyType(): self {
-        if (array_key_exists('data', $this->definition) &&
+        if (array_key_exists('info', $this->definition) &&
+            is_array($this->definition['info']) &&
+            array_key_exists('type', $this->definition['info']) &&
+            $this->definition['info']['type'] === 'datetime') {
+            $this->type = self::DATETIME;
+        } elseif (array_key_exists('data', $this->definition) &&
             is_array($this->definition['data']) &&
             array_key_exists('type', $this->definition['data']) &&
             $this->definition['data']['type'] === 'date') {
@@ -909,6 +933,19 @@ class Attribute extends Service {
                     ));
             }
         }
+    }
+
+    public function isReadonly(): bool {
+        if (array_key_exists('ui', $this->definition) &&
+            is_array($this->definition['ui']) &&
+            array_key_exists('params', $this->definition['ui']) &&
+            is_array($this->definition['ui']['params']) &&
+            array_key_exists('p_bReadonly', $this->definition['ui']['params']) &&
+            $this->definition['ui']['params']['p_bReadonly'] === true) {
+            return true;
+        }
+
+        return false;
     }
 
 }

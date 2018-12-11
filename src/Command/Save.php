@@ -810,7 +810,7 @@ class Save extends Command {
             $attribute = (new Attribute($this->config, $this->log))
                     ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory());
 
-            if ($attribute->ignore()) {
+            if ($attribute->ignore() || $attribute->isReadonly()) {
                 continue;
             }
 
@@ -1478,7 +1478,7 @@ class Save extends Command {
             $attribute = (new Attribute($this->config, $this->log))
                 ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
 
-            if ($attribute->ignore()) {
+            if ($attribute->ignore() || $attribute->isReadonly()) {
                 continue;
             }
 
@@ -1503,7 +1503,7 @@ class Save extends Command {
             $attribute = (new Attribute($this->config, $this->log))
                 ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
 
-            if ($attribute->ignore()) {
+            if ($attribute->ignore() || $attribute->isReadonly()) {
                 continue;
             }
 
