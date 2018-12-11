@@ -55,21 +55,6 @@ class PrintData extends Service {
     protected $idoitAPIFactory;
 
     /**
-     * Setup service
-     *
-     * @param IdoitAPI $idoitAPI i-doit API
-     * @param IdoitAPIFactory $idoitAPIFactory i-doit API factory
-     *
-     * @return self Returns itself
-     */
-    public function setUp(IdoitAPI $idoitAPI, IdoitAPIFactory $idoitAPIFactory): self {
-        $this->idoitAPI = $idoitAPI;
-        $this->idoitAPIFactory = $idoitAPIFactory;
-
-        return $this;
-    }
-
-    /**
      * Set offset
      *
      * @param int $offset Offset
@@ -93,7 +78,7 @@ class PrintData extends Service {
      *
      * @param array $entry Entry with key-value pairs of attribute/value
      * @param array $attributeDefinitions Attribute descriptions provided by API method "cmdb.category.info"
-     * @param Attribute $handleAttribute Attribute service
+     * @param HandleAttribute $handleAttribute Attribute service
      * @param int $level Log level; defaults to "info"
      * @param string $printAs Print log as output (default) or as message
      *
@@ -104,7 +89,7 @@ class PrintData extends Service {
     public function printEntry(
         array $entry,
         array $attributeDefinitions,
-        Attribute $handleAttribute,
+        HandleAttribute $handleAttribute,
         int $level = Log::INFO,
         string $printAs = Log::PRINT_AS_OUTPUT
     ): self {
@@ -125,11 +110,7 @@ class PrintData extends Service {
                 continue;
             }
 
-            $handleAttribute->setUp(
-                $attributeDefinitions[$attribute],
-                $this->idoitAPI,
-                $this->idoitAPIFactory
-            );
+            $handleAttribute->load($attributeDefinitions[$attribute]);
 
             if ($handleAttribute->ignore() || $handleAttribute->isReadonly()) {
                 continue;
@@ -165,6 +146,33 @@ class PrintData extends Service {
                 str_repeat(' ', $this->offset),
                 $attributeTitle,
                 $encodedValue
+            );
+        }
+
+        return $this;
+    }
+
+    public function printDialogEntries(
+        array $entries,
+        int $level = Log::INFO,
+        string $printAs = Log::PRINT_AS_OUTPUT
+    ): self {
+        switch ($printAs) {
+            case Log::PRINT_AS_OUTPUT:
+                $this->log->printAsOutput();
+                break;
+            case Log::PRINT_AS_MESSAGE:
+                $this->log->printAsMessage();
+                break;
+        }
+
+        foreach ($entries as $entry) {
+            $this->log->event(
+                $level,
+                '%s<strong>%s</strong> [%s]',
+                str_repeat(' ', $this->offset),
+                $entry['title'],
+                $entry['id']
             );
         }
 

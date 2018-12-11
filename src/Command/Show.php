@@ -26,8 +26,6 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Attribute;
-
 /**
  * Command "show"
  */
@@ -167,18 +165,14 @@ class Show extends Command {
                             continue;
                         }
 
-                        $attributeService = (new Attribute($this->config, $this->log))
-                            ->setUp(
-                                $categoryInfo['properties'][$attribute],
-                                $this->useIdoitAPI(),
-                                $this->useIdoitAPIFactory()
-                            );
+                        $this->handleAttribute()
+                            ->load($categoryInfo['properties'][$attribute]);
 
-                        if ($attributeService->ignore()) {
+                        if ($this->handleAttribute()->ignore() || $this->handleAttribute()->isReadonly()) {
                             continue;
                         }
 
-                        $value = $attributeService
+                        $value = $this->handleAttribute()
                             ->encode($value);
 
                         if ($value === '') {

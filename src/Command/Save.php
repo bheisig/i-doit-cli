@@ -26,8 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
-use bheisig\idoitcli\Service\Attribute;
-use bheisig\idoitcli\Service\PrintData;
+use bheisig\idoitcli\Service\HandleAttribute;
 use bheisig\cli\Log;
 
 /**
@@ -784,10 +783,7 @@ class Save extends Command {
      * @throws \Exception on error
      */
     protected function printEntries(array $entries): self {
-        $printData = (new PrintData($this->config, $this->log))
-            ->setUp($this->idoitAPI, $this->idoitAPIFactory)
-            ->setOffset(8);
-        $handleAttribute = new Attribute($this->config, $this->log);
+        $this->printData()->setOffset(8);
 
         foreach ($entries as $entry) {
             $this->log->info(
@@ -795,10 +791,10 @@ class Save extends Command {
                 $entry['id']
             );
 
-            $printData->printEntry(
+            $this->printData()->printEntry(
                 $entry,
                 $this->attributeDefinitions,
-                $handleAttribute,
+                $this->handleAttribute(),
                 Log::DEBUG,
                 Log::PRINT_AS_MESSAGE
             );
@@ -830,10 +826,9 @@ class Save extends Command {
         }
 
         foreach ($this->attributeDefinitions as $attributeKey => $attributeDefinition) {
-            $attribute = (new Attribute($this->config, $this->log))
-                    ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+            $this->handleAttribute()->load($attributeDefinition);
 
-            if ($attribute->ignore() || $attribute->isReadonly()) {
+            if ($this->handleAttribute()->ignore() || $this->handleAttribute()->isReadonly()) {
                 continue;
             }
 
@@ -841,15 +836,37 @@ class Save extends Command {
 
             if ($this->hasEntry() &&
                 array_key_exists($attributeKey, $this->entry)) {
-                $defaultValue = $attribute
+                $defaultValue = $this->handleAttribute()
                     ->encode($this->entry[$attributeKey]);
             }
 
-            $value = $this->askForAttribute(
+            $answer = $this->askForAttribute(
                 $this->categoryTitle,
                 $attributeDefinition,
                 $defaultValue
             );
+
+            if ($answer === '?') {
+                switch ($this->handleAttribute()->getType()) {
+                    case HandleAttribute::DIALOG:
+                    case HandleAttribute::DIALOG_PLUS:
+                    case HandleAttribute::DIALOG_PLUS_MULTI_SELECTION:
+                        $answer = $this->selectDialogEntry(
+                            $this->categoryConstant,
+                            $attributeKey
+                        );
+                        break;
+                    default:
+                        $this->log->warning('"?" is not supported for this attribute');
+                        $answer = $this->askForAttribute(
+                            $this->categoryTitle,
+                            $attributeDefinition,
+                            $defaultValue
+                        );
+                }
+            }
+
+            $value = $this->handleAttribute()->decode($answer);
 
             if (isset($value)) {
                 $this->collectedAttributes[$attributeKey] = $value;
@@ -866,11 +883,11 @@ class Save extends Command {
      * @param array $attributeDefinition Attribute definition
      * @param string $defaultValue Default value
      *
-     * @return mixed Value, otherwise null if skipped by user
+     * @return string Value, otherwise empty string if skipped by user
      *
      * @throws \Exception on error
      */
-    protected function askForAttribute(string $categoryTitle, array $attributeDefinition, $defaultValue = '') {
+    protected function askForAttribute(string $categoryTitle, array $attributeDefinition, $defaultValue = ''): string {
         if (strlen($defaultValue) > 0) {
             $value = $this->useUserInteraction()->askQuestion(sprintf(
                 '[%s] %s [%s]?',
@@ -879,8 +896,8 @@ class Save extends Command {
                 $defaultValue
             ));
 
-            if (strlen($value) === 0 || $value === $defaultValue) {
-                return null;
+            if (strlen($value) === 0) {
+                return $defaultValue;
             }
         } else {
             $value = $this->useUserInteraction()->askQuestion(sprintf(
@@ -888,15 +905,62 @@ class Save extends Command {
                 $categoryTitle,
                 $attributeDefinition['title']
             ));
-
-            if (strlen($value) === 0) {
-                return null;
-            }
         }
 
-        return (new Attribute($this->config, $this->log))
-            ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory())
-            ->decode($value);
+        return $value;
+    }
+
+    /**
+     * Select entry from dialog attribute
+     *
+     * @param string $categoryConstant
+     * @param string $attributeKey
+     *
+     * @return string Entry title or numeric identifier, otherwise empty string
+     *
+     * @throws \Exception on error
+     */
+    protected function selectDialogEntry(string $categoryConstant, string $attributeKey): string {
+        $this->log->debug('Load entries…');
+
+        $entries = $this
+            ->useIdoitAPIFactory()
+            ->getCMDBDialog()
+            ->read($categoryConstant, $attributeKey);
+
+        switch (count($entries)) {
+            case 0:
+                $this->log->notice('This dialog attribute has no entries');
+                return '';
+            case 1:
+                $this->log->debug('Found 1 entry:');
+
+                $this->printData()
+                    ->setOffset(4)
+                    ->printDialogEntries($entries, Log::INFO, Log::PRINT_AS_MESSAGE);
+
+                $answer = $this->useUserInteraction()->askYesNo(
+                    'Do you like to use this entry?'
+                );
+
+                if ($answer === true) {
+                    return $entries[0]['id'];
+                } else {
+                    $this->log->info('Attribute will be skipped');
+                }
+
+                return '';
+            default:
+                $this->log->debug('Found %s entries:', count($entries));
+
+                $this->printData()
+                    ->setOffset(4)
+                    ->printDialogEntries($entries, Log::INFO, Log::PRINT_AS_MESSAGE);
+
+                return $this->useUserInteraction()->askQuestion(
+                    'Please select an entry (otherwise attribute will be skipped):'
+                );
+        }
     }
 
     /**
@@ -1498,14 +1562,13 @@ class Save extends Command {
                 continue;
             }
 
-            $attribute = (new Attribute($this->config, $this->log))
-                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+            $this->handleAttribute()->load($block['attribute']);
 
-            if ($attribute->ignore() || $attribute->isReadonly()) {
+            if ($this->handleAttribute()->ignore() || $this->handleAttribute()->isReadonly()) {
                 continue;
             }
 
-            $defaultValue = $attribute
+            $defaultValue = $this->handleAttribute()
                 ->encode($entries[$block['categoryConstant']][$block['attributeKey']]);
 
             $this->template[$index]['defaultValue'] = $defaultValue;
@@ -1523,24 +1586,47 @@ class Save extends Command {
      */
     protected function applyTemplate() {
         foreach ($this->template as $index => $block) {
-            $attribute = (new Attribute($this->config, $this->log))
-                ->setUp($block['attribute'], $this->useIdoitAPI(), $this->useIdoitAPIFactory());
+            $this->handleAttribute()->load($block['attribute']);
 
-            if ($attribute->ignore() || $attribute->isReadonly()) {
+            if ($this->handleAttribute()->ignore() || $this->handleAttribute()->isReadonly()) {
                 continue;
             }
 
-            $value = $this->askForAttribute(
+            $answer = $this->askForAttribute(
                 $block['categoryTitle'],
                 $block['attribute'],
                 array_key_exists('defaultValue', $block) ? $block['defaultValue'] : ''
             );
 
+            if ($answer === '?') {
+                switch ($this->handleAttribute()->getType()) {
+                    case HandleAttribute::DIALOG:
+                    case HandleAttribute::DIALOG_PLUS:
+                    case HandleAttribute::DIALOG_PLUS_MULTI_SELECTION:
+                        $answer = $this->selectDialogEntry(
+                            $block['categoryConstant'],
+                            $block['attributeKey']
+                        );
+                        break;
+                    default:
+                        $this->log->warning('"?" is not supported for this attribute');
+
+                        $answer = $this->askForAttribute(
+                            $block['categoryTitle'],
+                            $block['attribute'],
+                            array_key_exists('defaultValue', $block) ? $block['defaultValue'] : ''
+                        );
+                }
+            }
+
             // Use default value if user skipped it:
-            if (!isset($value) &&
+            if (strlen($answer) === 0 &&
                 array_key_exists('defaultValue', $block)) {
-                $value = $attribute
+                $value = $this->handleAttribute()
                     ->decode($block['defaultValue']);
+            } else {
+                $value = $this->handleAttribute()
+                    ->decode($answer);
             }
 
             if (isset($value)) {
@@ -1558,7 +1644,7 @@ class Save extends Command {
      *
      * @throws \Exception on error
      */
-    protected function save() {
+    protected function save(): self {
         if ($this->hasObject() && $this->hasAttributes() && $this->hasEntry() && !$this->hasTemplate()) {
             $this->log->info('Update 1 category entry');
 
@@ -1771,7 +1857,7 @@ class Save extends Command {
 
     <dim># Create/update attributes in a single-value category:</dim>
     \$ %1\$s %2\$s server/mylittleserver/model \\
-        -a manufacturer=VendorA -a model=ModelA
+        -a manufacturer="Vendor A" -a model="Model A"
     <dim># Another one:</dim>
     \$ %1\$s %2\$s server/mylittleserver/location \\
         -a location="Data Center"
@@ -1827,13 +1913,21 @@ class Save extends Command {
     Type? server
     Title? mylittleserver
     Add more attributes? [Y/n] y
-    [Model] Manufacturer? VendorA
-    [Model] Model? ModelA
+    [Model] Manufacturer? Vendor A
+    [Model] Model? Model A
     [Host address] IPv4 address? 192.168.42.23
     [Host address] Hostname? mylittleserver
     [Host address] Domain? example.com
     [Location] Location? Data Center
     Link: http://cmdb.example.com/i-doit/?objID=42
+
+    <dim># In interactive mode type "?" for a list of selectable items:</dim>
+    \$ %1\$s %2\$s mylittleserver/model
+    [Model] Manufacturer? ?
+        Vendor A [1]
+        Vendor B [2]
+        Vendor C [3]
+    Please select an entry (otherwise attribute will be skipped): Vendor A 
 EOF
             ,
             $this->config['composer']['extra']['name'],

@@ -29,7 +29,7 @@ namespace bheisig\idoitcli\Service;
 /**
  * Attribute handling
  */
-class Attribute extends Service {
+class HandleAttribute extends Service {
 
     const TEXT = 'text';
     const TEXT_AREA = 'text_area';
@@ -71,16 +71,27 @@ class Attribute extends Service {
     /**
      * Setup service
      *
-     * @param array $definition Attribute definition
      * @param IdoitAPI $idoitAPI i-doit API
      * @param IdoitAPIFactory $idoitAPIFactory i-doit API factory
      *
      * @return self Returns itself
      */
-    public function setUp(array $definition, IdoitAPI $idoitAPI, IdoitAPIFactory $idoitAPIFactory): self {
-        $this->definition = $definition;
+    public function setUp(IdoitAPI $idoitAPI, IdoitAPIFactory $idoitAPIFactory): self {
         $this->idoitAPI = $idoitAPI;
         $this->idoitAPIFactory = $idoitAPIFactory;
+
+        return $this;
+    }
+
+    /**
+     * Load attribute definition
+     *
+     * @param array $definition Attribute definition
+     *
+     * @return self Returns itself
+     */
+    public function load(array $definition): self {
+        $this->definition = $definition;
 
         $this->identifyType();
 
@@ -390,7 +401,6 @@ class Attribute extends Service {
         }
 
         switch ($this->type) {
-            // @todo Check whether value is set!
             case self::TEXT:
             case self::TEXT_AREA:
             case self::DATE:
@@ -405,7 +415,7 @@ class Attribute extends Service {
             case self::GEO_COORDINATES:
             case self::LINK:
             case self::PASSWORD:
-                return true;
+                return is_string($value) && strlen($value) > 0;
             // @todo Add support for files!
             case self::FILE:
             case self::HORIZONTAL_LINE:
@@ -946,6 +956,15 @@ class Attribute extends Service {
         }
 
         return false;
+    }
+
+    /**
+     * Get attribute type
+     *
+     * @return string
+     */
+    public function getType(): string {
+        return $this->type;
     }
 
 }

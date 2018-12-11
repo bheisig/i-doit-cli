@@ -30,8 +30,10 @@ use bheisig\cli\Command\Command as BaseCommand;
 use bheisig\cli\Config;
 use bheisig\cli\JSONFile;
 use bheisig\idoitcli\Service\Cache;
+use bheisig\idoitcli\Service\HandleAttribute;
 use bheisig\idoitcli\Service\IdoitAPI;
 use bheisig\idoitcli\Service\IdoitAPIFactory;
+use bheisig\idoitcli\Service\PrintData;
 use bheisig\idoitcli\Service\UserInteraction;
 use bheisig\idoitcli\Service\Validate;
 
@@ -39,6 +41,11 @@ use bheisig\idoitcli\Service\Validate;
  * Base class for commands
  */
 abstract class Command extends BaseCommand {
+
+    /**
+     * @var \bheisig\idoitcli\Service\HandleAttribute
+     */
+    protected $handleAttribute;
 
     /**
      * i-doit API
@@ -58,6 +65,11 @@ abstract class Command extends BaseCommand {
      * @var \bheisig\idoitcli\Service\Cache
      */
     protected $cache;
+
+    /**
+     * @var \bheisig\idoitcli\Service\PrintData
+     */
+    protected $printData;
 
     /**
      * @var \bheisig\idoitcli\Service\UserInteraction
@@ -108,6 +120,22 @@ abstract class Command extends BaseCommand {
     }
 
     /**
+     * Load service for attribute handling
+     *
+     * @return \bheisig\idoitcli\Service\HandleAttribute
+     *
+     * @throws \Exception on error
+     */
+    protected function handleAttribute(): HandleAttribute {
+        if (!isset($this->handleAttribute)) {
+            $this->handleAttribute = (new HandleAttribute($this->config, $this->log))
+                ->setUp($this->useIdoitAPI(), $this->useIdoitAPIFactory());
+        }
+
+        return $this->handleAttribute;
+    }
+
+    /**
      * Load service for i-doit API
      *
      * @return \bheisig\idoitcli\Service\IdoitAPI
@@ -136,6 +164,21 @@ abstract class Command extends BaseCommand {
         }
 
         return $this->idoitAPIFactory;
+    }
+
+    /**
+     * Load service for attribute handling
+     *
+     * @return \bheisig\idoitcli\Service\PrintData
+     *
+     * @throws \Exception on error
+     */
+    protected function printData(): PrintData {
+        if (!isset($this->printData)) {
+            $this->printData = new PrintData($this->config, $this->log);
+        }
+
+        return $this->printData;
     }
 
     /**
