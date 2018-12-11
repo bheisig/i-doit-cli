@@ -27,6 +27,8 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use bheisig\idoitcli\Service\Attribute;
+use bheisig\idoitcli\Service\PrintData;
+use bheisig\cli\Log;
 
 /**
  * Command "save"
@@ -81,7 +83,7 @@ class Save extends Command {
     /**
      * @var array
      */
-    protected $categoryAttributes;
+    protected $attributeDefinitions;
 
     /**
      * @var bool
@@ -303,7 +305,7 @@ class Save extends Command {
 
                 $key = '';
 
-                foreach ($this->categoryAttributes as $categoryAttributeKey => $categoryAttribute) {
+                foreach ($this->attributeDefinitions as $categoryAttributeKey => $categoryAttribute) {
                     if ($categoryAttributeKey === $keyOrTitle) {
                         $key = $categoryAttributeKey;
                         break;
@@ -515,7 +517,7 @@ class Save extends Command {
             foreach ($this->collectedAttributes as $key => $value) {
                 $this->log->debug(
                     '    %s [%s]: %s',
-                    $this->categoryAttributes[$key]['title'],
+                    $this->attributeDefinitions[$key]['title'],
                     $key,
                     $value
                 );
@@ -747,12 +749,7 @@ class Save extends Command {
                     '1 entry found:'
                 );
 
-                foreach ($entries as $entry) {
-                    $this->log->info(
-                        '    %s',
-                        $entry['id']
-                    );
-                }
+                $this->printEntries($entries);
 
                 $answer = $this->useUserInteraction()->askYesNo(
                     'Do you like to update this entry?'
@@ -771,17 +768,43 @@ class Save extends Command {
                     count($entries)
                 );
 
-                foreach ($entries as $entry) {
-                    $this->log->info(
-                        '    %s',
-                        $entry['id']
-                    );
-                }
+                $this->printEntries($entries);
 
                 return $this->useUserInteraction()->askQuestion(
                     'Please select an entry (leave empty to create a new one):'
                 );
         }
+    }
+
+    /**
+     * @param array $entries
+     *
+     * @return self Returns itself
+     *
+     * @throws \Exception on error
+     */
+    protected function printEntries(array $entries): self {
+        $printData = (new PrintData($this->config, $this->log))
+            ->setUp($this->idoitAPI, $this->idoitAPIFactory)
+            ->setOffset(8);
+        $handleAttribute = new Attribute($this->config, $this->log);
+
+        foreach ($entries as $entry) {
+            $this->log->info(
+                '    %s',
+                $entry['id']
+            );
+
+            $printData->printEntry(
+                $entry,
+                $this->attributeDefinitions,
+                $handleAttribute,
+                Log::DEBUG,
+                Log::PRINT_AS_MESSAGE
+            );
+        }
+
+        return $this;
     }
 
     /**
@@ -806,7 +829,7 @@ class Save extends Command {
             return $this;
         }
 
-        foreach ($this->categoryAttributes as $attributeKey => $attributeDefinition) {
+        foreach ($this->attributeDefinitions as $attributeKey => $attributeDefinition) {
             $attribute = (new Attribute($this->config, $this->log))
                     ->setUp($attributeDefinition, $this->useIdoitAPI(), $this->useIdoitAPIFactory());
 
@@ -1045,7 +1068,7 @@ class Save extends Command {
 
             foreach ($categories as $category) {
                 if ((int) $category['id'] === $candidateID) {
-                    $this->categoryAttributes = $category['properties'];
+                    $this->attributeDefinitions = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
@@ -1055,14 +1078,14 @@ class Save extends Command {
         } else {
             foreach ($categories as $category) {
                 if (strtolower($category['title']) === strtolower($candidate)) {
-                    $this->categoryAttributes = $category['properties'];
+                    $this->attributeDefinitions = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
                     $this->multiValue = ($category['multi_value'] === '0') ? false : true;
                     return true;
                 } elseif (strtolower($category['const']) === strtolower($candidate)) {
-                    $this->categoryAttributes = $category['properties'];
+                    $this->attributeDefinitions = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
                     $this->categoryTitle = $category['title'];
