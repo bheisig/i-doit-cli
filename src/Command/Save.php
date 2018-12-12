@@ -270,62 +270,102 @@ class Save extends Command {
     protected function parseAttributes(array $options) {
         $lookFor = ['a', 'attribute'];
 
+        $candidates = [];
+
         foreach ($lookFor as $option) {
             if (!array_key_exists($option, $options)) {
                 continue;
             }
-
-            $candidates = [];
 
             if (is_array($options[$option])) {
                 $candidates = $options[$option];
             } elseif (is_string($options[$option])) {
                 $candidates = [$options[$option]];
             }
+        }
 
-            foreach ($candidates as $candidate) {
-                $parts = explode('=', $candidate);
+        $keyValuePairs = [];
 
-                if (count($parts) !== 2) {
-                    throw new \BadMethodCallException(sprintf(
-                        'Invalid attribute "%s" provided as option',
-                        $candidate
-                    ));
+        foreach ($candidates as $candidate) {
+            $parts = explode('=', $candidate);
+
+            if (count($parts) !== 2) {
+                throw new \BadMethodCallException(sprintf(
+                    'Invalid attribute "%s" provided as option',
+                    $candidate
+                ));
+            }
+
+            $keyOrTitle = strtolower(trim($parts[0]));
+            $answer = trim($parts[1]);
+
+            $keyValuePairs[$keyOrTitle] = $answer;
+        }
+
+        if (count($keyValuePairs) > 0 && !$this->hasCategory()) {
+            throw new \BadMethodCallException(
+                'You set one or more attributes for an unknown category'
+            );
+        }
+
+        foreach ($keyValuePairs as $keyOrTitle => $answer) {
+            $attributeKey = '';
+            $attributeDefinition = [];
+
+            foreach ($this->attributeDefinitions as $categoryAttributeKey => $attributeDefinition) {
+                if ($categoryAttributeKey === $keyOrTitle) {
+                    $attributeKey = $categoryAttributeKey;
+                    break;
                 }
 
-                $keyOrTitle = strtolower(trim($parts[0]));
-                $value = trim($parts[1]);
-
-                if (!$this->hasCategory()) {
-                    throw new \BadMethodCallException(
-                        'You set one or more attributes for an unknown category'
-                    );
+                if (strtolower($attributeDefinition['title']) === $keyOrTitle) {
+                    $attributeKey = $categoryAttributeKey;
+                    break;
                 }
+            }
 
-                $key = '';
+            if (strlen($attributeKey) === 0) {
+                throw new \BadMethodCallException(sprintf(
+                    'Category "%s" [%s] has no attribute "%s"',
+                    $this->categoryTitle,
+                    $this->categoryConstant,
+                    $keyOrTitle
+                ));
+            }
 
-                foreach ($this->attributeDefinitions as $categoryAttributeKey => $categoryAttribute) {
-                    if ($categoryAttributeKey === $keyOrTitle) {
-                        $key = $categoryAttributeKey;
+            $this->handleAttribute()->load($attributeDefinition);
+
+            if ($answer === '?' && $this->userInteraction->isInteractive() === true) {
+                switch ($this->handleAttribute()->getType()) {
+                    case HandleAttribute::DIALOG:
+                    case HandleAttribute::DIALOG_PLUS:
+                    case HandleAttribute::DIALOG_PLUS_MULTI_SELECTION:
+                        $this->log->notice(
+                            'You need to specify an value for attribute "%s":',
+                            $keyOrTitle
+                        );
+
+                        $answer = $this->selectDialogEntry(
+                            $this->categoryConstant,
+                            $attributeKey
+                        );
                         break;
-                    }
-
-                    if (strtolower($categoryAttribute['title']) === $keyOrTitle) {
-                        $key = $categoryAttributeKey;
-                        break;
-                    }
+                    default:
+                        $this->log->warning(
+                            '"?" is not supported for attribute "%s"',
+                            $keyOrTitle
+                        );
+                        $answer = $this->askForAttribute(
+                            $this->categoryTitle,
+                            $attributeDefinition
+                        );
                 }
+            }
 
-                if (strlen($key) === 0) {
-                    throw new \BadMethodCallException(sprintf(
-                        'Category "%s" [%s] has no attribute "%s"',
-                        $this->categoryTitle,
-                        $this->categoryConstant,
-                        $keyOrTitle
-                    ));
-                }
+            $value = $this->handleAttribute()->decode($answer);
 
-                $this->collectedAttributes[$key] = $value;
+            if (isset($value)) {
+                $this->collectedAttributes[$attributeKey] = $value;
             }
         }
 
