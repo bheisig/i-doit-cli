@@ -44,73 +44,166 @@ class Show extends Command {
             ->info($this->getDescription())
             ->printEmptyLine();
 
-        $query = $this->getQuery();
+        $object = $this->loadObject($this->config['arguments']);
 
-        $objectID = 0;
+        $this->printOutput($object);
 
-        if ($query === '') {
-            throw new \Exception('Empty query. Please specify an object title or identifier');
-        } elseif (is_numeric($query)) {
-            $objectID = (int) $query;
+        return $this;
+    }
 
-            if ($objectID <= 0) {
-                throw new \Exception('Invalid query. Please specify an object identifier');
-            }
-        } else {
-            $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read(['title' => $query]);
+    /**
+     * Load object based on CLI argument
+     *
+     * @param array $arguments CLI arguments
+     *
+     * @return array Everything about the object
+     *
+     * @throws \Exception on error
+     */
+    protected function loadObject(array $arguments): array {
+        switch (count($arguments)) {
+            case 0:
+                if ($this->useUserInteraction()->isInteractive() === false) {
+                    throw new \BadMethodCallException(
+                        'No object, no output'
+                    );
+                }
 
-            switch (count($objects)) {
-                case 0:
-                    throw new \Exception('No object found.');
-                    break;
-                case 1:
-                    $objectID = (int) $objects[0]['id'];
-                    break;
-                default:
-                    $this->log->printAsMessage()
-                        ->debug('Found %s objects', count($objects))
-                        ->printEmptyLine();
+                $object = $this->askForObject();
 
-                    foreach ($objects as $object) {
-                        $this->log->printAsOutput()->info(
-                            '%s: %s',
-                            $object['id'],
-                            $object['title']
+                $this->log->debug('Loading…');
+
+                return $this
+                    ->useIdoitAPIFactory()
+                    ->getCMDBObject()
+                    ->load((int) $object['id']);
+            case 1:
+                if (is_numeric($arguments[0])) {
+                    $objectID = (int) $arguments[0];
+
+                    if ($objectID <= 0) {
+                        throw new \Exception(
+                            'Invalid object. Please specify an numeric identifier'
                         );
                     }
 
-                    $this->log->printAsMessage()->printEmptyLine();
+                    $this->log->debug('Loading…');
 
-                    while (true) {
-                        $objectID = (int) $this->useUserInteraction()->askQuestion('Object?');
+                    return $this
+                        ->useIdoitAPIFactory()
+                        ->getCMDBObject()
+                        ->load($objectID);
+                } else {
+                    $objects = $this
+                        ->useIdoitAPIFactory()
+                        ->getCMDBObjects()
+                        ->read(['title' => $arguments[0]]);
 
-                        if ($objectID <= 0) {
-                            $this->log->printAsMessage()->warning('Please try again.');
-                        } else {
+                    switch (count($objects)) {
+                        case 0:
+                            $this->log->warning('Object not found');
+                            $object = $this->askForObject();
+
+                            $this->log->debug('Loading…');
+
+                            return $this
+                                ->useIdoitAPIFactory()
+                                ->getCMDBObject()
+                                ->load((int) $object['id']);
+                        case 1:
+                            $objectID = (int) $objects[0]['id'];
+
+                            $this->log->debug('Loading…');
+
+                            return $this
+                                ->useIdoitAPIFactory()
+                                ->getCMDBObject()
+                                ->load($objectID);
+                        default:
+                            $this->log
+                                ->debug('Found %s objects', count($objects))
+                                ->printEmptyLine();
+
+                            foreach ($objects as $object) {
+                                $this->log->info(
+                                    '%s: %s',
+                                    $object['id'],
+                                    $object['title']
+                                );
+                            }
+
+                            $this->log->printEmptyLine();
+
+                            while (true) {
+                                $answer = $this->useUserInteraction()->askQuestion(
+                                    'Select object by title or numeric identifier:'
+                                );
+
+                                foreach ($objects as $object) {
+                                    if (is_numeric($answer) &&
+                                        (int) $answer >= 0 &&
+                                        (int) $answer === (int) $object['id']) {
+                                        $this->log->debug('Loading…');
+
+                                        return $this
+                                            ->useIdoitAPIFactory()
+                                            ->getCMDBObject()
+                                            ->load((int) $answer);
+                                    } elseif ($answer === $object['title']) {
+                                        $this->log->debug('Loading…');
+
+                                        return $this
+                                            ->useIdoitAPIFactory()
+                                            ->getCMDBObject()
+                                            ->load((int) $object['id']);
+                                    }
+                                }
+
+                                $this->log->warning('Please try again.');
+                            }
                             break;
-                        }
                     }
-                    break;
-            }
+                }
+                break;
+            default:
+                throw new \BadMethodCallException(
+                    'Too many arguments; please provide only one object title or numeric identifier'
+                );
         }
 
-        $object = $this->useIdoitAPIFactory()->getCMDBObject()->load($objectID);
+        return [];
+    }
 
+    /**
+     * Print output
+     *
+     * @param array $object Everything about the object
+     *
+     * @throws \Exception on error
+     */
+    protected function printOutput(array $object) {
         $this->log->printAsOutput()
-            ->info('Title: %s', $object['title'])
-            ->info('ID: %s', $object['id'])
-            ->info('Type: %s', $object['type_title'])
-            ->info('SYS-ID: %s', $object['sysid'])
-            ->info('CMDB status: %s', $object['cmdb_status_title'])
-            ->info('Created: %s', $object['created'])
-            ->info('Updated: %s', $object['updated']);
+            ->info('Title: <strong>%s</strong>', $object['title'])
+            ->info('ID: <strong>%s</strong>', $object['id'])
+            ->info('Type: <strong>%s</strong>', $object['type_title'])
+            ->info('SYS-ID: <strong>%s</strong>', $object['sysid'])
+            ->info('CMDB status: <strong>%s</strong>', $object['cmdb_status_title'])
+            ->info('Created: <strong>%s</strong>', $object['created'])
+            ->info('Updated: <strong>%s</strong>', $object['updated']);
 
         $categoryTypes = ['catg', 'cats', 'custom'];
 
-        $blacklistedCategories = $this
-            ->useIdoitAPIFactory()
-            ->getCMDBCategoryInfo()
-            ->getVirtualCategoryConstants();
+        $blacklistedCategories = array_merge(
+            $this
+                ->useIdoitAPIFactory()
+                ->getCMDBCategoryInfo()
+                ->getVirtualCategoryConstants(),
+            [
+                'C__CATG__OVERVIEW',
+                'C__CATG__RELATION',
+                'C__CATG__LOGBOOK'
+            ]
+        );
 
         foreach ($categoryTypes as $categoryType) {
             if (!array_key_exists($categoryType, $object)) {
@@ -118,34 +211,34 @@ class Show extends Command {
             }
 
             foreach ($object[$categoryType] as $category) {
-                if (in_array($category['const'], ['C__CATG__RELATION', 'C__CATG__LOGBOOK'])) {
-                    continue;
-                }
-
                 if (in_array($category['const'], $blacklistedCategories)) {
                     continue;
                 }
 
-                $this->log->printAsMessage()->printEmptyLine();
+                $this->log
+                    ->printAsMessage()
+                    ->printEmptyLine()
+                    ->info(
+                        '<strong>%s</strong> [%s]',
+                        $category['title'],
+                        $category['const']
+                    );
 
                 switch (count($category['entries'])) {
                     case 0:
                         $this->log->printAsMessage()->info(
-                            'No entries in category "%s"',
-                            $category['title']
+                            'No entries found'
                         );
                         continue 2;
                     case 1:
                         $this->log->printAsMessage()->info(
-                            '1 entry in category "%s":',
-                            $category['title']
+                            '1 entry found:'
                         );
                         break;
                     default:
                         $this->log->printAsMessage()->info(
-                            '%s entries in category "%s":',
-                            count($category['entries']),
-                            $category['title']
+                            '%s entries found:',
+                            count($category['entries'])
                         );
                         break;
                 }
@@ -168,7 +261,7 @@ class Show extends Command {
                         $this->handleAttribute()
                             ->load($categoryInfo['properties'][$attribute]);
 
-                        if ($this->handleAttribute()->ignore() || $this->handleAttribute()->isReadonly()) {
+                        if ($this->handleAttribute()->ignore()) {
                             continue;
                         }
 
@@ -180,7 +273,7 @@ class Show extends Command {
                         }
 
                         $this->log->printAsOutput()->info(
-                            '%s: %s',
+                            '%s: <strong>%s</strong>',
                             $categoryInfo['properties'][$attribute]['title'],
                             $value
                         );
@@ -188,8 +281,6 @@ class Show extends Command {
                 }
             }
         }
-
-        return $this;
     }
 
     /**
@@ -198,23 +289,6 @@ class Show extends Command {
      * @return self Returns itself
      */
     public function printUsage(): self {
-        $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS] [QUERY]
-
-%3$s
-
-QUERY could be any object title or identifier.
-
-Examples:
-
-1) %1$s %2$s myserver
-2) %1$s %2$s "My Server"
-3) %1$s %2$s 42',
-            $this->config['composer']['extra']['name'],
-            $this->getName(),
-            $this->getDescription()
-        );
-
         $this->log->info(
             <<< EOF
 %3\$s

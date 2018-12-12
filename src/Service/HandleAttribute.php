@@ -810,6 +810,13 @@ class HandleAttribute extends Service {
             array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'location') {
             $this->type = self::OBJECT_RELATION;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('callback', $this->definition['format']) &&
+            is_array($this->definition['format']['callback']) &&
+            array_key_exists(1, $this->definition['format']['callback']) &&
+            $this->definition['format']['callback'][1] === 'exportContactAssignment') {
+            $this->type = self::OBJECT_RELATION;
         } elseif (array_key_exists('ui', $this->definition) &&
             is_array($this->definition['ui']) &&
             array_key_exists('params', $this->definition['ui']) &&
