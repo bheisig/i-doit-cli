@@ -877,71 +877,102 @@ class Read extends Command {
      */
     public function printUsage(): self {
         $this->log->info(
-            'Usage: %1$s %2$s [OPTIONS] [PATH]
+            <<< EOF
+%3\$s
 
-%3$s
+<strong>USAGE</strong>
+    \$ %1\$s %2\$s [OPTIONS] [QUERY]
 
-List object types:
+<strong>ARGUMENTS</strong>
+    QUERY   <dim>Combination of</dim> <u>type/object/category</u>
 
-    %1$s %2$s
-    %1$s %2$s /
+            <u>type</u>     <dim>is the localized name of an object type,</dim>
+                     <dim>its constant or its numeric identifier</dim>
+            <u>object</u>   <dim>title or numeric identifier</dim>
+            <u>category</u> <dim>is the localized name of the category,</dim>
+                     <dim>its contant or numeric identifier</dim>
 
-List objects:
+<strong>COMMON OPTIONS</strong>
+    -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
+    --config=<u>FILE</u>       <dim>configuration file FILE; repeat option for more</dim>
+                        <dim>than one FILE</dim>
+    -s <u>KEY=VALUE</u>,       <dim>Add runtime setting KEY with its VALUE; separate</dim>
+    --setting=<u>KEY=VALUE</u> <dim>nested keys with ".", for example "key1.key2=123";</dim>
+                        <dim>repeat option for more than one KEY</dim>
 
-    %1$s %2$s server
-    %1$s %2$s server/
-    %1$s %2$s server/*
-    %1$s %2$s server/host.example.net
-    %1$s %2$s server/*.example.net
-    %1$s %2$s server/host.*.net
-    %1$s %2$s server/*
-    %1$s %2$s server/*.*.net
-    %1$s %2$s server/srv*
+    --no-colors         <dim>Do not print colored messages</dim>
+    -q, --quiet         <dim>Do not output messages, only errors</dim>
+    -v, --verbose       <dim>Be more verbose</dim>
 
-Show common information about one or more objects by their titles:
+    -h, --help          <dim>Print this help or information about a</dim>
+                        <dim>specific command</dim>
+    --version           <dim>Print version information</dim>
 
-    %1$s %2$s host.example.net
-    %1$s %2$s *.example.net
-    %1$s %2$s host.*.net
-    %1$s %2$s *.*.net
-    %1$s %2$s host*
+    -y, --yes           <dim>No user interaction required; answer questions</dim>
+                        <dim>automatically with default values</dim>
 
-Show common information about an object by its identifier:
+<strong>EXAMPLES</strong>
+    <dim># List object types:</dim>
+    %1\$s %2\$s
+    %1\$s %2\$s /
 
-    %1$s %2$s 42
+    <dim># List objects:</dim>
+    %1\$s %2\$s server
+    %1\$s %2\$s server/
+    %1\$s %2\$s server/*
+    %1\$s %2\$s server/host.example.net
+    %1\$s %2\$s server/*.example.net
+    %1\$s %2\$s server/host.*.net
+    %1\$s %2\$s server/*
+    %1\$s %2\$s server/*.*.net
+    %1\$s %2\$s server/srv*
 
-List assigned categories:
+    <dim># Show common information about one or more objects by their titles:</dim>
+    %1\$s %2\$s host.example.net
+    %1\$s %2\$s *.example.net
+    %1\$s %2\$s host.*.net
+    %1\$s %2\$s *.*.net
+    %1\$s %2\$s host*
 
-    %1$s %2$s server/host.example.net/
-    %1$s %2$s server/host.example.net/*
-    %1$s %2$s host.example.net/
-    %1$s %2$s host.example.net/*
+    <dim># Show common information about an object by its numeric identifier:</dim>
+    %1\$s %2\$s 42
 
-List category attributes:
+    <dim># List assigned categories:</dim>
+    %1\$s %2\$s server/host.example.net/
+    %1\$s %2\$s server/host.example.net/*
+    %1\$s %2\$s host.example.net/
+    %1\$s %2\$s host.example.net/*
 
-    %1$s %2$s server/host.example.net/model/
-    %1$s %2$s server/host.example.net/model/*
-    %1$s %2$s host.example.net/model/
-    %1$s %2$s host.example.net/model/*
+    <dim># List assigned categories:</dim>
+    %1\$s %2\$s server/host.example.net/
+    %1\$s %2\$s server/host.example.net/*
+    %1\$s %2\$s host.example.net/
+    %1\$s %2\$s host.example.net/*
 
-Show category entries:
+    <dim># List category attributes:</dim>
+    %1\$s %2\$s server/host.example.net/model/
+    %1\$s %2\$s server/host.example.net/model/*
+    %1\$s %2\$s host.example.net/model/
+    %1\$s %2\$s host.example.net/model/*
 
-    %1$s %2$s host.example.net/model
-    %1$s %2$s server/host.example.net/model
-    %1$s %2$s server/*.example.net/model
-    %1$s %2$s server/host.*.net/model
-    %1$s %2$s server/*.*.net/model
-    %1$s %2$s server/host*/model
-    %1$s %2$s server/*/model
+    <dim># Show category entries:</dim>
+    %1\$s %2\$s host.example.net/model
+    %1\$s %2\$s server/host.example.net/model
+    %1\$s %2\$s server/*.example.net/model
+    %1\$s %2\$s server/host.*.net/model
+    %1\$s %2\$s server/*.*.net/model
+    %1\$s %2\$s server/host*/model
+    %1\$s %2\$s server/*/model
 
-Show atttribute value:
-
-    %1$s %2$s server/host.example.net/model/model
-    %1$s %2$s host.example.net/model/model
+    <dim># Show atttribute value:</dim>
+    %1\$s %2\$s server/host.example.net/model/model
+    %1\$s %2\$s host.example.net/model/model
 
 These examples work great with unique names. That is why it is common practice
 to give objects unique titles that are not in conflict with object types and
-categories.',
+categories.
+EOF
+            ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
             $this->getDescription()
