@@ -26,6 +26,8 @@ This application provides a simple, but powerful command line interface to acces
 
 Before using this app your system must meet the following requirements:
 
+*   Of course, i-doit pro/open, version 1.12 or higher
+*   i-doit API add-on, version 1.10 or higher
 *   Any POSIX operating system (GNU/Linux, *BSD, MacOS) or Windows
 *   PHP >= 7.0 (7.2 is recommended)
 *   PHP extensions `bzip2`, `calendar`, `cli`, `cURL`, `json` and `phar`
@@ -45,7 +47,7 @@ You have two good options to download and install this application:
 Download the latest stable version of the binary `idoitcli` [from the release site](https://github.com/bheisig/i-doit-cli/releases). Then install it system-wide:
 
 ~~~ {.bash}
-curl -OL https://github.com/bheisig/i-doit-cli/releases/download/0.6/idoitcli
+curl -OL https://github.com/bheisig/i-doit-cli/releases/download/0.7/idoitcli
 chmod 755 idoitcli
 sudo mv idoitcli /usr/local/bin/
 ~~~
@@ -234,13 +236,11 @@ There are some examples located under `docs/`.
 
 ##  Update the caches
 
-If your CMDB configuration has changed you need to re-create the cache files by running the `init` command:
+If your CMDB configuration has changed you need to re-create the cache files by running the `cache` command:
 
 ~~~ {.bash}
-idoitcli init
+idoitcli cache
 ~~~
-
-Just type `n` (no) if you want to keep your existing configuration settings.
 
 
 ##  Playground

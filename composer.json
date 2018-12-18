@@ -21,8 +21,8 @@
         "php": ">=7.0.0",
         "ext-bz2": "*",
         "ext-Phar": "*",
-        "bheisig/cli": "@DEV",
-        "bheisig/idoitapi": "@DEV"
+        "bheisig/cli": "^0.2",
+        "bheisig/idoitapi": "^0.7"
     },
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "^1.0",
@@ -30,10 +30,10 @@
         "phploc/phploc": "^4.0",
         "phpmd/phpmd" : "@stable",
         "phpstan/phpstan": "^0.9.2",
+        "phpunit/phpunit": "^7",
         "sebastian/phpcpd": ">=3.0.1",
         "sensiolabs/security-checker": "^4.1",
-        "squizlabs/php_codesniffer": "*",
-        "theseer/phpdox": "^0.11.0"
+        "squizlabs/php_codesniffer": "*"
     },
     "autoload": {
         "psr-4": {
@@ -105,6 +105,7 @@
         "phploc": "./vendor/bin/phploc --exclude=vendor --exclude=docs .",
         "phpmd": "./vendor/bin/phpmd src text cleancode,codesize,controversial,design,naming,unusedcode",
         "phpstan": "./vendor/bin/phpstan analyze -l max src",
+        "phpunit": "./vendor/bin/phpunit --configuration ./phpunit.xml --testdox",
         "security-checker": "./vendor/bin/security-checker security:check ./composer.lock",
         "syntax-check": "./vendor/bin/parallel-lint --exclude vendor --blame .",
         "system-check": [
@@ -159,6 +160,7 @@
         "phploc": "Print source code statistics",
         "phpmd": "Detect mess in source code",
         "phpstan": "Analyze source code",
+        "phpunit": "Perform unit tests",
         "security-checker": "Look for dependencies with known security vulnerabilities",
         "syntax-check": "Check syntax of source code",
         "system-check": "Run some system checks",
@@ -166,7 +168,7 @@
     },
     "extra": {
         "name": "idoitcli",
-        "version": "0.7-dev",
+        "version": "0.7",
         "phar-builder": {
             "skip-shebang": false,
             "include-dev": false,
