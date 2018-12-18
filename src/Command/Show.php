@@ -254,7 +254,14 @@ class Show extends Command {
                     $this->log->printAsMessage()->printEmptyLine();
 
                     foreach ($entry as $attribute => $value) {
-                        if (in_array($attribute, ['id', 'objID'])) {
+                        if ($attribute === 'objID') {
+                            continue;
+                        }
+
+                        if ($attribute === 'id') {
+                            $this->log
+                                ->printAsOutput()
+                                ->debug('#%s', $value);
                             continue;
                         }
 
