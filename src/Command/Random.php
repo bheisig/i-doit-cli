@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,12 +26,16 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
 use bheisig\idoitapi\Subnet;
 
 /**
  * Command "random"
  */
 class Random extends Command {
+
+    const WARN_AT_HIGH_NUMBER_OF_REQUESTS = 1000;
 
     protected $statistics = [];
 
@@ -54,7 +58,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -97,7 +101,7 @@ class Random extends Command {
         }
 
         if ($worked === false) {
-            throw new \Exception('Nothing to do', 400);
+            throw new Exception('Nothing to do', 400);
         }
 
         return $this;
@@ -108,7 +112,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function tearDown(): self {
         $this->log->debug('Some statistics:');
@@ -165,7 +169,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createCountries(): self {
         $this->log->info('Create countries');
@@ -291,7 +295,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createSubnets(): self {
         $this->log->info('Create subnets');
@@ -346,7 +350,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createRacks(): self {
         $this->log->info('Create racks');
@@ -354,7 +358,7 @@ class Random extends Command {
         if (!array_key_exists('amount', $this->config['racks']) ||
             !is_int($this->config['racks']['amount']) ||
             $this->config['racks']['amount'] <= 0) {
-            throw new \Exception(
+            throw new Exception(
                 'Do not know how many racks to create',
                 400
             );
@@ -386,7 +390,7 @@ class Random extends Command {
 
             if (!is_int($amount) ||
                 $amount <= 0) {
-                throw new \Exception(
+                throw new Exception(
                     'Invalid number of rack units',
                     400
                 );
@@ -422,7 +426,7 @@ class Random extends Command {
 
             if (!is_int($amount) ||
                 $amount <= 0) {
-                throw new \Exception(
+                throw new Exception(
                     'Invalid number of vertical slots',
                     400
                 );
@@ -459,7 +463,7 @@ class Random extends Command {
             if (!is_array($this->config['density']['racksPerRoom']) ||
                 !array_key_exists('min', $this->config['density']['racksPerRoom']) ||
                 !array_key_exists('max', $this->config['density']['racksPerRoom'])) {
-                throw new \Exception(
+                throw new Exception(
                     'Missing mininum and maximum amount of racks per room',
                     400
                 );
@@ -472,7 +476,7 @@ class Random extends Command {
                 $min < 1 ||
                 !is_int($max) ||
                 $max < $min) {
-                throw new \Exception(
+                throw new Exception(
                     'Invalid minimum and maximum amount of racks per room',
                     400
                 );
@@ -485,7 +489,7 @@ class Random extends Command {
             );
 
             if (count($roomObjects) === 0) {
-                throw new \Exception(
+                throw new Exception(
                     'No rooms left'
                 );
             }
@@ -532,7 +536,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createServers(): self {
         $this->log->info('Create servers');
@@ -593,7 +597,7 @@ class Random extends Command {
             unset($subnetObjects);
 
             if (count($this->subnetIDs) === 0) {
-                throw new \Exception(
+                throw new Exception(
                     'There are no proper subnets'
                 );
             }
@@ -635,7 +639,7 @@ class Random extends Command {
             if (!is_array($this->config['servers']['rackUnits']) ||
                 !array_key_exists('min', $this->config['servers']['rackUnits']) ||
                 !array_key_exists('max', $this->config['servers']['rackUnits'])) {
-                throw new \Exception(
+                throw new Exception(
                     'Missing mininum and maximum rack units per server',
                     400
                 );
@@ -648,7 +652,7 @@ class Random extends Command {
                 $min < 1 ||
                 !is_int($max) ||
                 $max < $min) {
-                throw new \Exception(
+                throw new Exception(
                     'Invalid minimum and maximum rack units per server',
                     400
                 );
@@ -665,7 +669,7 @@ class Random extends Command {
             }
 
             if (count($this->rackIDs) === 0) {
-                throw new \Exception(
+                throw new Exception(
                     'There are no racks'
                 );
             }
@@ -835,7 +839,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createPersons(): self {
         $this->assertInteger(
@@ -985,7 +989,7 @@ class Random extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createLaptops(): self {
         $this->laptopIDs = $this->generateObjects('laptops');
@@ -996,7 +1000,7 @@ class Random extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createApplications(): self {
         $this->applicationIDs = $this->generateObjects('applications');
@@ -1007,7 +1011,7 @@ class Random extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createLicenses(): self {
         $this->licenseIDs = $this->generateObjects('licenses');
@@ -1045,12 +1049,12 @@ class Random extends Command {
     }
 
     /**
-     * @throws \Exception on error
+     * @throws Exception on error
      * @return self Returns itself
      */
     protected function installApplications(): self {
         if (count($this->laptopIDs) === 0) {
-            throw new \BadMethodCallException('There are no laptops');
+            throw new BadMethodCallException('There are no laptops');
         }
 
         $requiredSettings = [
@@ -1061,7 +1065,7 @@ class Random extends Command {
 
         foreach ($requiredSettings as $requiredSetting) {
             if (!array_key_exists($requiredSetting, $this->config['installApplications'])) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Setting "installApplications.%s" missing',
                     $requiredSetting
                 ));
@@ -1070,7 +1074,7 @@ class Random extends Command {
 
         switch (count($this->applicationIDs)) {
             case 0:
-                throw new \BadMethodCallException('There are no applications');
+                throw new BadMethodCallException('There are no applications');
             case 1:
                 $this->log->info('Install 1 application…');
                 break;
@@ -1081,7 +1085,7 @@ class Random extends Command {
 
         switch (count($this->laptopIDs)) {
             case 0:
-                throw new \BadMethodCallException('There are no laptops');
+                throw new BadMethodCallException('There are no laptops');
             case 1:
                 $this->log->info('…on 1 laptop…');
                 break;
@@ -1135,7 +1139,7 @@ class Random extends Command {
      * @param array $requests
      *
      * @return array Results
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function processRequests(array $requests): array {
         $requestCounter = count($requests);
@@ -1155,7 +1159,7 @@ class Random extends Command {
 
         switch ($requestCounter) {
             case 0:
-                throw new \BadMethodCallException('Nothing to do');
+                throw new BadMethodCallException('Nothing to do');
             case 1:
                 $this->log->debug('Process 1 request');
                 break;
@@ -1185,7 +1189,7 @@ class Random extends Command {
                 break;
         }
 
-        if ($requestCounter > 1000) {
+        if ($requestCounter > self::WARN_AT_HIGH_NUMBER_OF_REQUESTS) {
             $this->log->debug('This could take a while…');
         }
 
@@ -1196,7 +1200,7 @@ class Random extends Command {
         while ($offset < $requestCounter) {
             $batchRequest = array_slice(
                 $requests,
-                $offset,
+                (int) $offset,
                 ($limit > 0) ? $limit : null,
                 true
             );
@@ -1262,7 +1266,7 @@ class Random extends Command {
      * @param string $topic
      *
      * @return int[]
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function generateObjects(string $topic): array {
         $this->log->info('Create %s', $topic);
@@ -1308,7 +1312,7 @@ class Random extends Command {
 
     protected function pickRandomElement(array $haystack) {
         if (count($haystack) === 0) {
-            throw new \BadMethodCallException('Empty array');
+            throw new BadMethodCallException('Empty array');
         }
 
         $index = mt_rand(0, (count($haystack) - 1));
@@ -1321,12 +1325,12 @@ class Random extends Command {
      *
      * @return string
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function nextIP(): string {
         if (!isset($this->subnet)) {
             if (count($this->subnetIDs) === 0) {
-                throw new \Exception('No IP addresses left', 400);
+                throw new Exception('No IP addresses left', 400);
             }
             $this->subnetID = array_shift($this->subnetIDs);
             $this->subnet = new Subnet($this->useIdoitAPIFactory()->getAPI());
@@ -1346,7 +1350,7 @@ class Random extends Command {
             if (!is_float($this->config['density']['subnets']) ||
                 $this->config['density']['subnets'] <= 0 ||
                 $this->config['density']['subnets'] > 1) {
-                throw new \Exception(
+                throw new Exception(
                     'Subnet density must be a float between greater than 0 and lower equal 1',
                     400
                 );
@@ -1376,13 +1380,13 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      * @todo Parameter $neededRUs currently unused!?!
      */
     protected function assignHostToRack(int $objectID, int $neededRUs): self {
         if (!isset($this->rackID)) {
             if (count($this->rackIDs) === 0) {
-                throw new \Exception(
+                throw new Exception(
                     'No space left in racks'
                 );
             }
@@ -1430,7 +1434,7 @@ class Random extends Command {
             if (!is_float($this->config['density']['rackUnits']) ||
                 $this->config['density']['rackUnits'] <= 0 ||
                 $this->config['density']['rackUnits'] > 1) {
-                throw new \Exception(
+                throw new Exception(
                     'Rack unit density must be a float between greater than 0 and lower equal 1',
                     400
                 );
@@ -1499,7 +1503,7 @@ class Random extends Command {
      *
      * @return int[] Object identifiers
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      *
      * @deprecated
      */
@@ -1527,7 +1531,7 @@ class Random extends Command {
 
             $chunk = array_slice(
                 $objects,
-                $index,
+                (int) $index,
                 $length,
                 true
             );
@@ -1564,7 +1568,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function assignObjectsToLocation(array $objectIDs, int $locationID): self {
         return $this->createCategoryEntries(
@@ -1585,7 +1589,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createCategoryEntry(int $objectID, string $categoryConst, array $attributes): self {
         $this->log->debug(
@@ -1610,7 +1614,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createCategoryEntries(array $objectIDs, string $categoryConst, array $attributes): self {
         $count = count($objectIDs);
@@ -1640,7 +1644,7 @@ class Random extends Command {
 
             $chunk = array_slice(
                 $objectIDs,
-                $index,
+                (int) $index,
                 $length,
                 true
             );
@@ -1681,7 +1685,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createMultipleCategoryEntriesPerObject(
         int $objectID,
@@ -1716,7 +1720,7 @@ class Random extends Command {
 
             $chunk = array_slice(
                 $attributes,
-                $index,
+                (int) $index,
                 $length,
                 true
             );
@@ -1755,7 +1759,7 @@ class Random extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function sendBatchRequest(array $requests): self {
         $count = count($requests);
@@ -1789,7 +1793,7 @@ class Random extends Command {
             if ($this->config['limitBatchRequests'] > 0) {
                 $chunk = array_slice(
                     $requests,
-                    $index,
+                    (int) $index,
                     $this->config['limitBatchRequests'],
                     true
                 );
@@ -1895,13 +1899,13 @@ class Random extends Command {
      * @param string $error
      * @param int $min
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function assertArray(string $needle, array $haystack, string $error, int $min = 1) {
         if (!array_key_exists($needle, $haystack) ||
             !is_array($haystack[$needle]) ||
             count($haystack[$needle]) < $min) {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );
@@ -1915,13 +1919,13 @@ class Random extends Command {
      * @param array $haystack
      * @param string $error
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function assertString(string $needle, array $haystack, string $error) {
         if (!array_key_exists($needle, $haystack) ||
             !is_string($haystack[$needle]) ||
             $haystack[$needle] === '') {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );
@@ -1936,19 +1940,19 @@ class Random extends Command {
      * @param string $error
      * @param bool $isPositive
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function assertInteger(string $needle, array $haystack, string $error, bool $isPositive = true) {
         if (!array_key_exists($needle, $haystack) ||
             !is_int($haystack[$needle])) {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );
         }
 
         if ($isPositive && $haystack[$needle] <= 0) {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );
@@ -1963,19 +1967,19 @@ class Random extends Command {
      * @param string $error
      * @param bool $isPositive
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function assertFloat(string $needle, array $haystack, string $error, bool $isPositive = true) {
         if (!array_key_exists($needle, $haystack) ||
             !is_float($haystack[$needle])) {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );
         }
 
         if ($isPositive && $haystack[$needle] <= 0) {
-            throw new \Exception(
+            throw new Exception(
                 $error,
                 400
             );

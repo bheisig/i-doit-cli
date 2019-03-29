@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,9 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+
 /**
  * Command "nextip"
  */
@@ -38,7 +41,7 @@ class NextIP extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -49,7 +52,7 @@ class NextIP extends Command {
         switch (count($this->config['arguments'])) {
             case 0:
                 if ($this->useUserInteraction()->isInteractive() === false) {
-                    throw new \BadMethodCallException(
+                    throw new BadMethodCallException(
                         'No object, no IP'
                     );
                 }
@@ -65,7 +68,7 @@ class NextIP extends Command {
                 $objectID = (int) $object['id'];
                 break;
             default:
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Too many arguments; please provide only one object title or numeric identifier'
                 );
         }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+use \DomainException;
+use \RuntimeException;
 use bheisig\idoitcli\Service\HandleAttribute;
 use bheisig\cli\Log;
 
@@ -122,7 +126,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -171,7 +175,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function parseQuery(string $query): self {
         $queryParts = explode('/', $query);
@@ -240,7 +244,7 @@ class Save extends Command {
                  * $ idoitcli server/mylittleserver/hostaddress/1
                  */
                 if ($this->identifyObjectType($queryParts[0]) === false) {
-                    throw new \BadMethodCallException(sprintf(
+                    throw new BadMethodCallException(sprintf(
                         'Unknown object type "%s"',
                         $queryParts[0]
                     ));
@@ -251,7 +255,7 @@ class Save extends Command {
                 $this->identifyEntry($queryParts[3]);
                 break;
             default:
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Query "%s" is invalid',
                     $query
                 ));
@@ -265,7 +269,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function parseAttributes(array $options) {
         $lookFor = ['a', 'attribute'];
@@ -290,7 +294,7 @@ class Save extends Command {
             $parts = explode('=', $candidate);
 
             if (count($parts) !== 2) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Invalid attribute "%s" provided as option',
                     $candidate
                 ));
@@ -303,7 +307,7 @@ class Save extends Command {
         }
 
         if (count($keyValuePairs) > 0 && !$this->hasCategory()) {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'You set one or more attributes for an unknown category'
             );
         }
@@ -324,8 +328,8 @@ class Save extends Command {
                 }
             }
 
-            if (strlen($attributeKey) === 0) {
-                throw new \BadMethodCallException(sprintf(
+            if (!is_string($attributeKey) || strlen($attributeKey) === 0) {
+                throw new BadMethodCallException(sprintf(
                     'Category "%s" [%s] has no attribute "%s"',
                     $this->categoryTitle,
                     $this->categoryConstant,
@@ -379,7 +383,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function preloadEntry(): self {
         if (!$this->hasObject()) {
@@ -418,7 +422,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function analyzeCollectedData(): self {
         $this
@@ -451,7 +455,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function reportObject(): self {
         if ($this->hasObject()) {
@@ -472,7 +476,7 @@ class Save extends Command {
 
         if ($this->hasObjectType() && $this->hasObject()) {
             if ($this->isObjectToType($this->object, $this->objectTypeID) === false) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Object "%s" [%s] has type "%s" [%s], but "%s" [%s] is given',
                     $this->object['title'],
                     $this->object['id'],
@@ -490,7 +494,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function reportCategory(): self {
         if ($this->hasCategory()) {
@@ -505,7 +509,7 @@ class Save extends Command {
 
         if ($this->hasObjectType() && $this->hasCategory()) {
             if ($this->isCategoryAssignedToObjectType($this->objectTypeConstant, $this->categoryConstant) === false) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Category "%s" [%s] is not assigned to object type "%s" [%s]',
                     $this->categoryTitle,
                     $this->categoryConstant,
@@ -537,7 +541,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function reportAttributes(): self {
         if ($this->hasAttributes()) {
@@ -573,7 +577,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function interviewUser(): self {
         if (!$this->useUserInteraction()->isInteractive()) {
@@ -594,7 +598,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForObjectType(): self {
         if (!$this->hasObjectType()) {
@@ -613,7 +617,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForObjectTitle(): self {
         if (!$this->hasObject() &&
@@ -703,14 +707,14 @@ class Save extends Command {
      *
      * @return string
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForCategory(): string {
         if ($this->hasObjectType()) {
             $assignedCategories = $this->useCache()->getAssignedCategories($this->objectTypeConstant);
 
             if (count($assignedCategories) === 0) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Object type "%s" [%s] has no categories assigned',
                     $this->objectTypeTitle,
                     $this->objectTypeConstant
@@ -761,7 +765,7 @@ class Save extends Command {
      *
      * @return string Category identifier as string
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForEntry(): string {
         $entries = $this->useIdoitAPIFactory()->getCMDBCategory()->read(
@@ -820,7 +824,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function printEntries(array $entries): self {
         $this->printData()->setOffset(8);
@@ -854,7 +858,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForAttributes(): self {
         if (!$this->hasCategory()) {
@@ -925,7 +929,7 @@ class Save extends Command {
      *
      * @return string Value, otherwise empty string if skipped by user
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForAttribute(string $categoryTitle, array $attributeDefinition, $defaultValue = ''): string {
         if (strlen($defaultValue) > 0) {
@@ -958,7 +962,7 @@ class Save extends Command {
      *
      * @return string Entry title or numeric identifier, otherwise empty string
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function selectDialogEntry(string $categoryConstant, string $attributeKey): string {
         $this->log->debug('Load entries…');
@@ -1015,7 +1019,7 @@ class Save extends Command {
      *
      * @return bool Returns true if found, otherwise false
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function identifyObjectType(string $candidate): bool {
         if (strlen($candidate) === 0) {
@@ -1069,7 +1073,7 @@ class Save extends Command {
      *
      * @return bool Returns true if found, otherwise false
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function identifyObject(string $candidate): bool {
         if (strlen($candidate) === 0) {
@@ -1113,7 +1117,7 @@ class Save extends Command {
                     $this->objectTitle = $this->object['title'];
                     return true;
                 default:
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         'Object title "%s" is ambiguous',
                         $candidate
                     ));
@@ -1134,7 +1138,7 @@ class Save extends Command {
                     $this->identifyObjectType((string) $this->object['type']);
                     return true;
                 default:
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         'Object title "%s" is ambiguous',
                         $candidate
                     ));
@@ -1157,7 +1161,7 @@ class Save extends Command {
      *
      * @return bool Returns true if found, otherwise \Exception is thrown
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function identifyCategory(string $candidate): bool {
         if (strlen($candidate) === 0 &&
@@ -1199,7 +1203,7 @@ class Save extends Command {
             }
         }
 
-        throw new \BadMethodCallException(sprintf(
+        throw new BadMethodCallException(sprintf(
             'Unknown category "%s"',
             $candidate
         ));
@@ -1212,17 +1216,17 @@ class Save extends Command {
      *
      * @return bool Returns true, otherwise false
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function identifyEntry(string $candidate): bool {
         if (!$this->hasObject()) {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'Unknown objects cannot have category entries'
             );
         }
 
         if (!$this->hasCategory()) {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'Unknown categories cannot have entries'
             );
         }
@@ -1237,7 +1241,7 @@ class Save extends Command {
         }
 
         if (!is_numeric($candidate) && (int) $candidate <= 0) {
-            throw new \BadMethodCallException(sprintf(
+            throw new BadMethodCallException(sprintf(
                 'Category entry "%s" is not a valid numeric identifier',
                 $candidate
             ));
@@ -1274,7 +1278,7 @@ class Save extends Command {
      *
      * @return bool Returns true if found, otherwise false
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function isCategoryAssignedToObjectType(string $objectTypeConstant, string $categoryConstant): bool {
         $assignedCategories = $this->useCache()->getAssignedCategories($objectTypeConstant);
@@ -1352,7 +1356,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function loadTemplate() {
         try {
@@ -1391,7 +1395,7 @@ class Save extends Command {
             }
 
             if (!is_array($template)) {
-                throw new \DomainException(
+                throw new DomainException(
                     'Invalid data type'
                 );
             }
@@ -1418,21 +1422,21 @@ class Save extends Command {
 
             foreach ($template as $index => $block) {
                 if (!is_array($block)) {
-                    throw new \DomainException(sprintf(
+                    throw new DomainException(sprintf(
                         'Block %s has wrong data type',
                         $index
                     ));
                 }
 
                 if (!array_key_exists('category', $block)) {
-                    throw new \DomainException(sprintf(
+                    throw new DomainException(sprintf(
                         'Block %s needs a category name, constant or numeric identifier',
                         $index
                     ));
                 }
 
                 if (!array_key_exists('attribute', $block)) {
-                    throw new \DomainException(sprintf(
+                    throw new DomainException(sprintf(
                         'Block %s needs an attribute key or name',
                         $index
                     ));
@@ -1470,7 +1474,7 @@ class Save extends Command {
                 }
 
                 if (strlen($categoryConstant) === 0) {
-                    throw new \DomainException(sprintf(
+                    throw new DomainException(sprintf(
                         'Unknown category in block #%s',
                         $index
                     ));
@@ -1499,7 +1503,7 @@ class Save extends Command {
                 }
 
                 if (strlen($attributeKey) === 0) {
-                    throw new \DomainException(sprintf(
+                    throw new DomainException(sprintf(
                         'Unknown attribute for category "%s" [%s] in block #%s',
                         $categoryTitle,
                         $categoryConstant,
@@ -1524,8 +1528,8 @@ class Save extends Command {
 
                 $this->template[] = $data;
             }
-        } catch (\Exception $e) {
-            throw new \DomainException(sprintf(
+        } catch (Exception $e) {
+            throw new DomainException(sprintf(
                 'Template for object type "%s" [%s] is invalid: %s',
                 $this->objectTypeTitle,
                 $this->objectTypeConstant,
@@ -1541,7 +1545,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function preloadEntriesFromTemplate(): self {
         if (!$this->hasObject()) {
@@ -1622,7 +1626,7 @@ class Save extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function applyTemplate() {
         foreach ($this->template as $index => $block) {
@@ -1682,7 +1686,7 @@ class Save extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function save(): self {
         if ($this->hasObject() && $this->hasAttributes() && $this->hasEntry() && !$this->hasTemplate()) {

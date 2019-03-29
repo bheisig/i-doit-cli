@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
 use \bheisig\cli\IO;
 
 /**
@@ -38,7 +39,7 @@ class Call extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $query = $this->getQuery();
@@ -58,11 +59,11 @@ class Call extends Command {
         $request = json_decode(trim($query), true);
 
         if (!is_array($request)) {
-            throw new \Exception('No valid JSON input');
+            throw new Exception('No valid JSON input');
         }
 
         if (!array_key_exists('method', $request)) {
-            throw new \Exception('No RPC method specified');
+            throw new Exception('No RPC method specified');
         }
 
         $params = null;

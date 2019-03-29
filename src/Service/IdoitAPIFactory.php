@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
 
+use \Exception;
+use \RuntimeException;
 use bheisig\cli\Log;
 use bheisig\idoitapi\API;
 use bheisig\idoitapi\Request;
@@ -48,7 +50,7 @@ class IdoitAPIFactory extends Service {
     /**
      * API
      *
-     * @var \bheisig\idoitapi\API
+     * @var API
      */
     protected $api;
 
@@ -65,7 +67,7 @@ class IdoitAPIFactory extends Service {
      * @param array $config Configuration settings
      * @param Log $log Logger
      *
-     * @throws \Exception when configuration settings are missing
+     * @throws Exception when configuration settings are missing
      */
     public function __construct(array $config, Log $log) {
         parent::__construct($config, $log);
@@ -73,8 +75,8 @@ class IdoitAPIFactory extends Service {
         try {
             $this->api = new API($this->config['api']);
             $this->api->login();
-        } catch (\Exception $e) {
-            throw new \Exception(
+        } catch (Exception $e) {
+            throw new Exception(
                 'No proper configuration for i-doit API calls: ' . $e->getMessage()
             );
         }
@@ -99,7 +101,7 @@ class IdoitAPIFactory extends Service {
     protected function getInstanceOf($class) {
         if (!array_key_exists($class, $this->instances)) {
             if (is_a($class, Request::class, true) === false) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     '%s is not an API request class',
                     $class
                 ));

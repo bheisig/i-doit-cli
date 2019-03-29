@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,10 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
+
 /**
  * Command "log"
  */
@@ -40,7 +44,7 @@ class Log extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -60,7 +64,7 @@ class Log extends Command {
                 $this->objectTitle = $object['title'];
                 break;
             default:
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Too many arguments; please provide only one object title or numeric identifier'
                 );
         }
@@ -69,7 +73,7 @@ class Log extends Command {
 
         if (!$this->hasObject()) {
             if ($this->useUserInteraction()->isInteractive() === false) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'No object, no log'
                 );
             }
@@ -83,7 +87,7 @@ class Log extends Command {
 
         if (!$this->hasMessage()) {
             if ($this->useUserInteraction()->isInteractive() === false) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'No message, no log'
                 );
             }
@@ -103,7 +107,7 @@ class Log extends Command {
 
         if (array_key_exists('m', $options)) {
             if (is_array($options['m'])) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use option -m only once'
                 );
             }
@@ -113,13 +117,13 @@ class Log extends Command {
 
         if (array_key_exists('message', $options)) {
             if (isset($message)) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use either option -m or --message, not both'
                 );
             }
 
             if (is_array($options['message'])) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use option --message only once'
                 );
             }
@@ -145,12 +149,12 @@ class Log extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForMessage(): self {
         try {
             if (function_exists('exec') === false) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     'Executing external commands via shell is not allowed; probably function "exec" is disabled'
                 );
             }
@@ -169,8 +173,8 @@ class Log extends Command {
                 $this->config['composer']['extra']['name'] . '_'
             );
 
-            if (!is_writable($tmpFile)) {
-                throw new \RuntimeException(sprintf(
+            if (!is_string($tmpFile) || !is_writable($tmpFile)) {
+                throw new RuntimeException(sprintf(
                     'Permission denied to write file "%s"',
                     $tmpFile
                 ));
@@ -192,7 +196,7 @@ EOF
             );
 
             if ($status === false) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to write to temporary file "%s"',
                     $tmpFile
                 ));
@@ -208,7 +212,7 @@ EOF
                     $this->log->warning($line);
                 }
 
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Editor closed with exit code %s',
                     $exitCode
                 ));
@@ -217,7 +221,7 @@ EOF
             $content = file_get_contents($tmpFile);
 
             if ($content === false) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to read from temporary file "%s"',
                     $tmpFile
                 ));
@@ -226,7 +230,7 @@ EOF
             $status = unlink($tmpFile);
 
             if ($status === false) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to remove temporary file "%s"',
                     $tmpFile
                 ));
@@ -247,12 +251,12 @@ EOF
             $this->message = trim(implode(PHP_EOL, $messageLines));
 
             if (strlen($this->message) === 0) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     'Your message is empty'
                 );
             }
-        } catch (\Exception $e) {
-            throw new \RuntimeException(sprintf(
+        } catch (Exception $e) {
+            throw new RuntimeException(sprintf(
                 'Asking for a message resulted in an error: %s',
                 $e->getMessage()
             ));
@@ -382,7 +386,7 @@ EOF
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function save(): self {
         $this->log->debug('Save…');

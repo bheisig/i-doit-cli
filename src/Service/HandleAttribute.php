@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
+
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
 
 /**
  * Attribute handling
@@ -51,13 +55,16 @@ class HandleAttribute extends Service {
     const EMBEDED_JAVASCRIPT = 'js';
     const UNKNOWN = 'unknown';
 
+    const SHORT_TEXT_LENGTH = 255;
+    const LONG_TEXT_LENGTH = 65535;
+
     protected $definition = [];
     protected $type = '';
 
     /**
      * i-doit API
      *
-     * @var \bheisig\idoitcli\Service\IdoitAPI
+     * @var IdoitAPI
      */
     protected $idoitAPI;
 
@@ -100,11 +107,11 @@ class HandleAttribute extends Service {
 
     /**
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function ignore(): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         switch ($this->type) {
@@ -131,7 +138,7 @@ class HandleAttribute extends Service {
             case self::UNKNOWN:
                 return true;
             default:
-                throw new \Exception(sprintf(
+                throw new Exception(sprintf(
                     'Unknown ignore state for attribute "%s"',
                     $this->definition['title']
                 ));
@@ -145,11 +152,11 @@ class HandleAttribute extends Service {
      *
      * @return string Encoded value, even if it's empty
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function encode($value): string {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         if ($this->hasValueForEncoding($value) === false) {
@@ -157,7 +164,7 @@ class HandleAttribute extends Service {
         }
 
         if ($this->validateBeforeEncoding($value) === false) {
-            throw new \BadMethodCallException(sprintf(
+            throw new BadMethodCallException(sprintf(
                 'Invalid value for attribute "%s"',
                 $this->definition['title']
             ));
@@ -277,7 +284,7 @@ class HandleAttribute extends Service {
                 }
                 break;
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to encode value for attribute "%s"',
                     $this->definition['title']
                 ));
@@ -291,11 +298,11 @@ class HandleAttribute extends Service {
      *
      * @return mixed
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function decode(string $value) {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         $decodedValue = null;
@@ -305,7 +312,7 @@ class HandleAttribute extends Service {
         }
 
         if ($this->validateBeforeDecoding($value) === false) {
-            throw new \BadMethodCallException(sprintf(
+            throw new BadMethodCallException(sprintf(
                 'Invalid value for attribute "%s"',
                 $this->definition['title']
             ));
@@ -319,11 +326,15 @@ class HandleAttribute extends Service {
                 break;
             case self::DATE:
                 $unixTimestamp = strtotime($value);
-                $decodedValue = date('Y-m-d', $unixTimestamp);
+                if (is_int($unixTimestamp)) {
+                    $decodedValue = date('Y-m-d', $unixTimestamp);
+                }
                 break;
             case self::DATETIME:
                 $unixTimestamp = strtotime($value);
-                $decodedValue = date('Y-m-d', $unixTimestamp);
+                if (is_int($unixTimestamp)) {
+                    $decodedValue = date('Y-m-d', $unixTimestamp);
+                }
                 break;
             case self::DIALOG:
             case self::DIALOG_PLUS:
@@ -375,14 +386,14 @@ class HandleAttribute extends Service {
                 break;
             case self::UNKNOWN:
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to encode value for attribute "%s"',
                     $this->definition['title']
                 ));
         }
 
         if ($this->validateAfterDecoding($decodedValue) === false) {
-            throw new \BadMethodCallException(sprintf(
+            throw new BadMethodCallException(sprintf(
                 'Invalid value for attribute "%s"',
                 $this->definition['title']
             ));
@@ -393,7 +404,7 @@ class HandleAttribute extends Service {
 
     public function hasValueForDecoding($value): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         if ($value === null) {
@@ -429,7 +440,7 @@ class HandleAttribute extends Service {
 
     public function hasValueForEncoding($value): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         if ($value === null) {
@@ -517,7 +528,7 @@ class HandleAttribute extends Service {
 
     public function validateBeforeEncoding($value): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         switch ($this->type) {
@@ -596,7 +607,7 @@ class HandleAttribute extends Service {
                 return is_string($value);
             case self::UNKNOWN:
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
                     $this->definition['title']
                 ));
@@ -610,26 +621,26 @@ class HandleAttribute extends Service {
 
     public function validateBeforeDecoding(string $value): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         switch ($this->type) {
             case self::TEXT_AREA:
-                return strlen($value) <= 65535;
+                return strlen($value) <= self::LONG_TEXT_LENGTH;
             case self::TEXT:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DIALOG:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DIALOG_PLUS:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DIALOG_PLUS_MULTI_SELECTION:
-                return strlen($value) <= 65535;
+                return strlen($value) <= self::LONG_TEXT_LENGTH;
             case self::OBJECT_RELATION:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::OBJECT_RELATIONS:
-                return strlen($value) <= 65535;
+                return strlen($value) <= self::LONG_TEXT_LENGTH;
             case self::IP_ADDRESS:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DATE:
                 $unixTimestamp = strtotime($value);
                 return is_integer($unixTimestamp) && $unixTimestamp > 0;
@@ -648,11 +659,11 @@ class HandleAttribute extends Service {
             case self::GEO_COORDINATES:
                 return true;
             case self::LINK:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::PASSWORD:
-                return strlen($value) <= 255;
+                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
                     $this->definition['title']
                 ));
@@ -661,21 +672,21 @@ class HandleAttribute extends Service {
 
     public function validateAfterDecoding($value): bool {
         if (!$this->isLoaded()) {
-            throw new \BadMethodCallException('Missing attribute definition');
+            throw new BadMethodCallException('Missing attribute definition');
         }
 
         switch ($this->type) {
             case self::TEXT:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::IP_ADDRESS:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::TEXT_AREA:
-                return is_string($value) && strlen($value) <= 65535;
+                return is_string($value) && strlen($value) <= self::LONG_TEXT_LENGTH;
             case self::DIALOG:
-                return (is_string($value) && strlen($value) <= 255) ||
+                return (is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH) ||
                     (is_integer($value) && $value > 0);
             case self::DIALOG_PLUS:
-                return (is_string($value) && strlen($value) <= 255) ||
+                return (is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH) ||
                     (is_integer($value) && $value > 0);
             case self::DIALOG_PLUS_MULTI_SELECTION:
                 return is_array($value);
@@ -684,9 +695,9 @@ class HandleAttribute extends Service {
             case self::OBJECT_RELATIONS:
                 return is_array($value);
             case self::DATE:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DATETIME:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -699,11 +710,11 @@ class HandleAttribute extends Service {
             case self::GEO_COORDINATES:
                 return true;
             case self::LINK:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::PASSWORD:
-                return is_string($value) && strlen($value) <= 255;
+                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
                     $this->definition['title']
                 ));
@@ -913,14 +924,14 @@ class HandleAttribute extends Service {
      * @param string $value Numeric identifier or title
      *
      * @return int Object identifier
-     * @throws \Exception
+     * @throws Exception
      */
     protected function identifyObject(string $value): int {
         if (is_numeric($value) && (int) $value > 0) {
             $object = $this->idoitAPIFactory->getCMDBObject()->read((int) $value);
 
             if (count($object) === 0) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Unable to identify object by identifier "%s"',
                     $value
                 ));
@@ -934,7 +945,7 @@ class HandleAttribute extends Service {
 
             switch (count($objects)) {
                 case 0:
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         'Unable to identify object by title "%s"',
                         $value
                     ));
@@ -943,7 +954,7 @@ class HandleAttribute extends Service {
                     $object = end($objects);
                     return (int) $object['id'];
                 default:
-                    throw new \RuntimeException(sprintf(
+                    throw new RuntimeException(sprintf(
                         'Found %s objects. Unable to identify object by title "%s"',
                         count($objects),
                         $value

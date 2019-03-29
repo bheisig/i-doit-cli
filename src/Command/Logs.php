@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,17 +26,42 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+
 /**
  * Command "logs"
  */
 class Logs extends Command {
 
+    /**
+     * @var array
+     */
     protected $filterByIDs = [];
+
+    /**
+     * @var array
+     */
     protected $filterByTitles = [];
+
+    /**
+     * @var string
+     */
     protected $filterByDateTime = '';
+
+    /**
+     * @var int
+     */
     protected $limit = 0;
+
+    /**
+     * @var int
+     */
     protected $hardLimit = 10000;
 
+    /**
+     * @var array
+     */
     protected $events = [
         'C__LOGBOOK_EVENT__OBJECTTYPE_PURGED' => 'Object type purged',
         'C__LOGBOOK_EVENT__OBJECTTYPE_ARCHIVED' => 'Object type archived',
@@ -67,6 +92,9 @@ class Logs extends Command {
         'C__LOGBOOK_EVENT__CATEGORY_DELETED' => 'Category entry deleted'
     ];
 
+    /**
+     * @var array
+     */
     protected $logs = [];
 
     /**
@@ -74,7 +102,7 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -100,7 +128,7 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function buildFilters(array $options): self {
         return $this
@@ -115,7 +143,7 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function buildIDFilter(array $options): self {
         if (!array_key_exists('id', $options)) {
@@ -132,7 +160,7 @@ class Logs extends Command {
 
         foreach ($ids as $id) {
             if ($this->useValidate()->isIDAsString($id) === false) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Invalid filter by id: %s',
                     $id
                 ));
@@ -149,7 +177,7 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function buildTitleFilter(array $options): self {
         if (!array_key_exists('title', $options)) {
@@ -166,7 +194,7 @@ class Logs extends Command {
 
         foreach ($titles as $title) {
             if ($this->useValidate()->isOneLiner($title) === false) {
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Invalid filter by title: %s',
                     $title
                 ));
@@ -183,19 +211,19 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function buildLimitFilter(array $options): self {
         if (array_key_exists('n', $options)) {
             if (is_array($options['n'])) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use option -n only once'
                 );
             }
 
             if (!is_numeric($options['n']) ||
                 (int) $options['n'] <= 0) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Option -n is not a positive integer'
                 );
             }
@@ -205,20 +233,20 @@ class Logs extends Command {
 
         if (array_key_exists('number', $options)) {
             if ($this->limit > 0) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use either option -n or --number, not both'
                 );
             }
 
             if (is_array($options['number'])) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Use option --number only once'
                 );
             }
 
             if (!is_numeric($options['number']) ||
                 (int) $options['number'] <= 0) {
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Option --number is not a positive integer'
                 );
             }
@@ -234,7 +262,7 @@ class Logs extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function buildDateTimeFilter(array $options): self {
         if (!array_key_exists('since', $options)) {
@@ -242,13 +270,13 @@ class Logs extends Command {
         }
 
         if (is_array($options['since'])) {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'Use option --since only once'
             );
         }
 
         if (strtotime($options['since']) === false) {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'Option --since is not a valid date/time'
             );
         }
@@ -292,7 +320,7 @@ class Logs extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function fetchObjectIDsByTitles(): self {
         if ($this->hasTitleFilter()) {
@@ -306,7 +334,7 @@ class Logs extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function readLogs(): self {
         $this->logs = [];
@@ -357,7 +385,7 @@ class Logs extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function printLogs(): self {
         switch (count($this->logs)) {
@@ -431,7 +459,7 @@ EOF
     }
 
     /**
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function keepFollowing() {
         $this->filterByDateTime = date('c');

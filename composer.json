@@ -49,7 +49,6 @@
             "@composer find-forbidden",
             "@composer security-checker",
             "@composer phpcpd",
-            "@composer phpmnd",
             "@composer phpcs",
             "@composer phpstan",
             "@composer build",

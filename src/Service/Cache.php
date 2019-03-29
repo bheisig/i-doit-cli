@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
+
+use \DirectoryIterator;
+use \Exception;
+use \RuntimeException;
 
 /**
  * Cache files
@@ -64,7 +68,7 @@ class Cache extends Service {
      *
      * @return bool
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function isCached(): bool {
         $hostDir = $this->getHostDir();
@@ -73,7 +77,7 @@ class Cache extends Service {
             return false;
         }
 
-        $dir = new \DirectoryIterator($hostDir);
+        $dir = new DirectoryIterator($hostDir);
 
         foreach ($dir as $file) {
             if ($file->isDot() || $file->isDir()) {
@@ -101,12 +105,12 @@ class Cache extends Service {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function getObjectTypes(): array {
         $hostDir = $this->getHostDir();
-
-        return unserialize(file_get_contents($hostDir . '/object_types'));
+        $filePath = $hostDir . '/object_types';
+        return $this->unserializeFromFile($filePath);
     }
 
     /**
@@ -116,7 +120,7 @@ class Cache extends Service {
      *
      * @return string Object type constant, otherwise \Exception is thrown
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function getObjectTypeConstantByTitle(string $title) {
         $objectTypes = $this->getObjectTypes();
@@ -127,7 +131,7 @@ class Cache extends Service {
             }
         }
 
-        throw new \RuntimeException(sprintf(
+        throw new RuntimeException(sprintf(
             'Unable to find constant for object type "%s"',
             $title
         ));
@@ -140,22 +144,12 @@ class Cache extends Service {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function getCategoryInfo(string $categoryConst): array {
         $hostDir = $this->getHostDir();
-
-        $file = $hostDir . '/category__' . $categoryConst;
-
-        if (!is_readable($file)) {
-            throw new \Exception(sprintf(
-                'Category "%s" has no cache file at "%s"',
-                $categoryConst,
-                $file
-            ));
-        }
-
-        return unserialize(file_get_contents($file));
+        $filePath = $hostDir . '/category__' . $categoryConst;
+        return $this->unserializeFromFile($filePath);
     }
 
     /**
@@ -165,22 +159,12 @@ class Cache extends Service {
      *
      * @return array ['catg' => [['id' => 1, …], ['id' => 1, …]], 'cats' => …]
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function getAssignedCategories(string $type): array {
         $hostDir = $this->getHostDir();
-
-        $file = $hostDir . '/object_type__' . $type;
-
-        if (!is_readable($file)) {
-            throw new \Exception(sprintf(
-                'Object type "%s" has no cache file at "%s"',
-                $type,
-                $file
-            ));
-        }
-
-        return unserialize(file_get_contents($hostDir . '/object_type__' . $type));
+        $filePath = $hostDir . '/object_type__' . $type;
+        return $this->unserializeFromFile($filePath);
     }
 
     /**
@@ -188,13 +172,13 @@ class Cache extends Service {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function getCategories(): array {
         $categories = [];
         $hostDir = $this->getHostDir();
 
-        $dir = new \DirectoryIterator($hostDir);
+        $dir = new DirectoryIterator($hostDir);
 
         foreach ($dir as $file) {
             if ($file->isFile() === false) {
@@ -205,9 +189,9 @@ class Cache extends Service {
                 continue;
             }
 
-            $categories[] = unserialize(
-                file_get_contents($hostDir . '/' . $file->getFilename())
-            );
+            $filePath = $hostDir . '/' . $file->getFilename();
+
+            $categories[] = $this->unserializeFromFile($filePath);
         }
 
         return $categories;
@@ -218,12 +202,12 @@ class Cache extends Service {
      *
      * @return string
      *
-     * @throws \Exception when configuration settings are missing
+     * @throws Exception when configuration settings are missing
      */
     public function getHostDir(): string {
         if (!array_key_exists('api', $this->config) ||
             !array_key_exists('url', $this->config['api'])) {
-            throw new \Exception(sprintf(
+            throw new Exception(sprintf(
                 'No proper configuration found' . PHP_EOL .
                 'Run "%s init" to create configuration settings',
                 $this->config['composer']['extra']['name']
@@ -236,6 +220,35 @@ class Cache extends Service {
         }
 
         return $this->hostDir;
+    }
+
+    /**
+     * Read file and create PHP code out of it
+     *
+     * @param string $filePath Path to file
+     *
+     * @return mixed
+     *
+     * @throws RuntimeException on error
+     */
+    protected function unserializeFromFile(string $filePath) {
+        if (!is_readable($filePath)) {
+            throw new RuntimeException(sprintf(
+                'File "%s" not found or not accessible',
+                $filePath
+            ));
+        }
+
+        $fileContent = file_get_contents($filePath);
+
+        if (!is_string($fileContent)) {
+            throw new RuntimeException(sprintf(
+                'Unable to read file "%s"',
+                $filePath
+            ));
+        }
+
+        return unserialize($fileContent);
     }
 
 }

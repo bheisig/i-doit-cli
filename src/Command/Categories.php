@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+
 /**
  * Command "categories"
  */
@@ -36,7 +38,7 @@ class Categories extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -103,7 +105,7 @@ class Categories extends Command {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function filterCategories(array $categories): array {
         $result = [];
@@ -136,7 +138,7 @@ class Categories extends Command {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function getEnabledCategories(): array {
         $result = [];

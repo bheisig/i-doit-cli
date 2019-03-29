@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,8 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
+
+use \Exception;
 
 /**
  * Command "create"
@@ -50,7 +52,7 @@ class Create extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function setup(): Command {
         parent::setup();
@@ -76,12 +78,12 @@ class Create extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         switch (count($this->path)) {
             case 1:
-                throw new \Exception('Path has only 1 part');
+                throw new Exception('Path has only 1 part');
             case 2:
                 if (isset($this->objectTypeConst)) {
                     $objectID = $this->useIdoitAPIFactory()->getCMDBObject()->create(
@@ -105,7 +107,7 @@ class Create extends Command {
                 $this->createCategoryEntries($objects, $this->getCategoryConst($this->path[2]));
                 break;
             default:
-                throw new \Exception('Path has too many parts');
+                throw new Exception('Path has too many parts');
         }
 
         return $this;
@@ -117,12 +119,12 @@ class Create extends Command {
      * @param array $objects
      * @param string $category
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createCategoryEntries(array $objects, string $category) {
         switch (count($objects)) {
             case 0:
-                throw new \Exception('No object found');
+                throw new Exception('No object found');
         }
 
         $attributes = $this->getAttributes();
@@ -154,7 +156,7 @@ class Create extends Command {
      *
      * @return string
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function getCategoryConst(string $category): string {
         $categories = $this->useCache()->getCategories();
@@ -173,7 +175,7 @@ class Create extends Command {
 
         switch (count($candidates)) {
             case 0:
-                throw new \Exception(sprintf(
+                throw new Exception(sprintf(
                     'Unknown category "%s"',
                     $category
                 ));
@@ -190,7 +192,7 @@ class Create extends Command {
                     );
                 }
 
-                throw new \Exception('Unable to create one or more category entries');
+                throw new Exception('Unable to create one or more category entries');
         }
     }
 

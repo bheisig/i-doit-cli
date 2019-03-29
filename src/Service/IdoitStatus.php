@@ -17,36 +17,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author Benjamin Heisig <https://benjamin.heisig.name/>
- * @copyright Copyright (C) 2016-19 Benjamin Heisig
+ * @copyright Copyright (C) 2016-17 Benjamin Heisig
  * @license http://www.gnu.org/licenses/agpl-3.0 GNU Affero General Public License (AGPL)
  * @link https://github.com/bheisig/i-doit-cli
  */
 
 declare(strict_types=1);
 
-namespace bheisig\idoitcli\Command;
-
-use \Exception;
+namespace bheisig\idoitcli\Service;
 
 /**
- * Command "dummy"
+ * i-doit status
  */
-class Dummy extends Command {
+class IdoitStatus extends Service {
 
-    /**
-     * Execute command
-     *
-     * @return self Returns itself
-     *
-     * @throws Exception on error
-     */
-    public function execute(): self {
-        $this->log
-            ->printAsMessage()
-            ->info('Hello, world!')
-            ->printEmptyLine();
-
-        return $this;
-    }
+    const STATUS_NORMAL = 2;
+    const STATUS_ARCHIVED = 3;
+    const STATUS_DELETED = 4;
 
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
 use bheisig\cli\Command\Init as BaseInit;
 
 /**
@@ -38,7 +39,7 @@ class Init extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function setup(): Command {
         // Restore basic setup to skip validation of configuration settings:
@@ -52,7 +53,7 @@ class Init extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -72,14 +73,14 @@ class Init extends Command {
                     '    %s cache',
                     $this->config['composer']['extra']['name']
                 );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $code = $e->getCode();
 
             if ($code === 0) {
                 $code = 500;
             }
 
-            throw new \Exception(
+            throw new Exception(
                 sprintf(
                     'Unable to initiate "%s": ' . $e->getMessage(),
                     $this->config['composer']['extra']['name']

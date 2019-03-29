@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,9 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
 
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
 use bheisig\cli\Log;
 
 /**
@@ -43,7 +46,7 @@ class PrintData extends Service {
     /**
      * i-doit API
      *
-     * @var \bheisig\idoitcli\Service\IdoitAPI
+     * @var IdoitAPI
      */
     protected $idoitAPI;
 
@@ -61,11 +64,11 @@ class PrintData extends Service {
      *
      * @return self Returns itself
      *
-     * @throws \BadMethodCallException on invalid parameter
+     * @throws BadMethodCallException on invalid parameter
      */
     public function setOffset(int $offset): self {
         if ($offset < 0) {
-            throw new \BadMethodCallException('Offset must be greater or equal zero');
+            throw new BadMethodCallException('Offset must be greater or equal zero');
         }
 
         $this->offset = $offset;
@@ -84,7 +87,7 @@ class PrintData extends Service {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function printEntry(
         array $entry,
@@ -94,11 +97,11 @@ class PrintData extends Service {
         string $printAs = Log::PRINT_AS_OUTPUT
     ): self {
         if (count($entry) === 0) {
-            throw new \BadMethodCallException('Entry is empty');
+            throw new BadMethodCallException('Entry is empty');
         }
 
         if (count($attributeDefinitions) === 0) {
-            throw new \BadMethodCallException('Empty attribute definitions');
+            throw new BadMethodCallException('Empty attribute definitions');
         }
 
         foreach ($entry as $attribute => $value) {
@@ -123,7 +126,7 @@ class PrintData extends Service {
             }
 
             if (!array_key_exists('title', $attributeDefinitions[$attribute])) {
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'No localized title found for attribute "%s"',
                     $attribute
                 ));

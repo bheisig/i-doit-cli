@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,9 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
+
+use \Exception;
+use bheisig\idoitcli\Service\IdoitStatus;
 
 /**
  * Command "fixip"
@@ -50,7 +53,7 @@ class FixIP extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -124,7 +127,7 @@ class FixIP extends Command {
                         ->info('Fetch next %s objects (%s-%s)', $limit, ($offset + 1), ($limit + $offset));
                 }
 
-                $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read([], $limit, $offset);
+                $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read([], $limit, (int) $offset);
 
                 if (count($objects) < $limit) {
                     $hasNext = false;
@@ -480,7 +483,7 @@ class FixIP extends Command {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function qualifyObjects(array $objects): array {
         $candidates = [];
@@ -493,9 +496,7 @@ class FixIP extends Command {
             }
 
             // Ignore objects without status 'normal' [2]:
-            $status = (int) $object['status'];
-
-            if ($status !== 2) {
+            if ((int) $object['status'] !== IdoitStatus::STATUS_NORMAL) {
                 continue;
             }
 
@@ -614,7 +615,7 @@ class FixIP extends Command {
      *
      * @return array
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function fetchNets(): array {
         $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->readByType('C__OBJTYPE__LAYER3_NET');
@@ -624,9 +625,7 @@ class FixIP extends Command {
 
         foreach ($objects as $object) {
             // Ignore objects without status 'normal' [2]:
-            $status = (int) $object['status'];
-
-            if ($status !== 2) {
+            if ((int) $object['status'] !== IdoitStatus::STATUS_NORMAL) {
                 continue;
             }
 
@@ -648,7 +647,7 @@ class FixIP extends Command {
         reset($subnetCandidates);
 
         if (count($result) !== count($subnetCandidates)) {
-            throw new \Exception(sprintf(
+            throw new Exception(sprintf(
                 'We asked i-doit for %s subnet(s) but got results for %s one(s)',
                 count($subnetCandidates),
                 count($result)
@@ -673,7 +672,7 @@ class FixIP extends Command {
             if (!array_key_exists('objID', $subnet[0])) {
                 $this->log->printAsOutput()->info($subnet[0]);
 
-                throw new \Exception(sprintf(
+                throw new Exception(sprintf(
                     'API answered with a broken result for unknown object'
                 ));
             }
@@ -681,7 +680,7 @@ class FixIP extends Command {
             $objectID = (int) $subnet[0]['objID'];
 
             if (!array_key_exists($objectID, $subnetCandidates)) {
-                throw new \Exception(sprintf(
+                throw new Exception(sprintf(
                     'API answered with a result for unwanted object "%s" [%s]',
                     $subnetCandidates[$objectID],
                     $objectID

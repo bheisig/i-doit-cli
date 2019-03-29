@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Service;
+
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
 
 /**
  * i-doit API
@@ -58,7 +62,7 @@ class IdoitAPI extends Service {
      *
      * @return array Keys: object identifiers; values: object attributes
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function fetchObjects(array $filter, array $categories = [], int $objectCount = 0): array {
         $limit = $this->config['limitBatchRequests'];
@@ -69,14 +73,14 @@ class IdoitAPI extends Service {
         if (array_key_exists('title', $filter) && strpos($filter['title'], '*') !== false) {
             $readFilter = array_filter($filter, function ($key) {
                 return $key !== 'title';
-            }, \ARRAY_FILTER_USE_KEY);
+            }, ARRAY_FILTER_USE_KEY);
         } else {
             $readFilter = $filter;
         }
 
         while (true) {
             if ($limit > 0) {
-                $result = $this->idoitAPIFactory->getCMDBObjects()->read($readFilter, $limit, $offset);
+                $result = $this->idoitAPIFactory->getCMDBObjects()->read($readFilter, $limit, (int) $offset);
 
                 if ($objectCount > 0 && $objectCount >= $limit) {
                     if ($offset === 0) {
@@ -170,7 +174,7 @@ class IdoitAPI extends Service {
      * - id (numeric indentifier as string)
      * - title (string)
      *
-     * @throws \Exception when object not found
+     * @throws Exception when object not found
      */
     public function identifyObject(string $candidate): array {
         if (is_numeric($candidate) && (int) $candidate > 0) {
@@ -180,7 +184,7 @@ class IdoitAPI extends Service {
                 return $object;
             }
 
-            throw new \BadMethodCallException(sprintf(
+            throw new BadMethodCallException(sprintf(
                 'Object not found by numeric identifier %s',
                 $candidate
             ));
@@ -192,7 +196,7 @@ class IdoitAPI extends Service {
 
         switch (count($objects)) {
             case 0:
-                throw new \BadMethodCallException(sprintf(
+                throw new BadMethodCallException(sprintf(
                     'Object not found by title "%s"',
                     $candidate
                 ));
@@ -200,7 +204,7 @@ class IdoitAPI extends Service {
                 $object = end($objects);
                 return $object;
             default:
-                throw new \RuntimeException(sprintf(
+                throw new RuntimeException(sprintf(
                     'Object title "%s" is ambiguous',
                     $candidate
                 ));
@@ -221,14 +225,14 @@ class IdoitAPI extends Service {
      *
      * @return array List of object identifiers
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function fetchObjectIDsByTitles(array $titles): array {
         $objectdIDs = [];
 
         switch (count($titles)) {
             case 0:
-                throw new \BadMethodCallException('Empty list of object titles');
+                throw new BadMethodCallException('Empty list of object titles');
             case 1:
                 $title = end($titles);
 

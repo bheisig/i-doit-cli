@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,9 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \DirectoryIterator;
+use \Exception;
+
 /**
  * Command "cache"
  */
@@ -36,7 +39,7 @@ class Cache extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log->info($this->getDescription());
@@ -54,7 +57,7 @@ class Cache extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function serialize(string $file, $value): self {
         $filePath = $this->useCache()->getHostDir() . '/' . $file;
@@ -62,7 +65,7 @@ class Cache extends Command {
         $status = file_put_contents($filePath, serialize($value));
 
         if ($status === false) {
-            throw new \Exception(sprintf(
+            throw new Exception(sprintf(
                 'Unable to write to cache file "%s"',
                 $filePath
             ));
@@ -74,7 +77,7 @@ class Cache extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function clearCache(): self {
         $hostDir = $this->useCache()->getHostDir();
@@ -88,7 +91,7 @@ class Cache extends Command {
             $status = mkdir($hostDir, 0775, true);
 
             if ($status === false) {
-                throw new \Exception(sprintf(
+                throw new Exception(sprintf(
                     'Unable to create data directory "%s"',
                     $hostDir
                 ));
@@ -96,14 +99,14 @@ class Cache extends Command {
         } else {
             $this->log->info('Clear cache files');
 
-            $files = new \DirectoryIterator($hostDir);
+            $files = new DirectoryIterator($hostDir);
 
             foreach ($files as $file) {
                 if ($file->isFile()) {
                     $status = @unlink($file->getPathname());
 
                     if ($status === false) {
-                        throw new \Exception(sprintf(
+                        throw new Exception(sprintf(
                             'Unable to clear data in "%s". Unable to delete file "%s"',
                             $hostDir,
                             $file->getPathname()
@@ -124,7 +127,7 @@ class Cache extends Command {
     /**
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function createCache(): self {
         $this->log->info('Fetch list of object types');

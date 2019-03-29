@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ class Validate extends Service {
             return false;
         }
 
-        if ($length > 255) {
+        if ($length > HandleAttribute::SHORT_TEXT_LENGTH) {
             return false;
         }
 

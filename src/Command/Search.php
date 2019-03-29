@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,9 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+
 /**
  * Command "search"
  */
@@ -36,7 +39,7 @@ class Search extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -47,7 +50,7 @@ class Search extends Command {
         switch (count($this->config['arguments'])) {
             case 0:
                 if ($this->useUserInteraction()->isInteractive() === false) {
-                    throw new \BadMethodCallException(
+                    throw new BadMethodCallException(
                         'No query, no search'
                     );
                 }
@@ -58,13 +61,13 @@ class Search extends Command {
                 $query = $this->config['arguments'][0];
                 break;
             default:
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Too many arguments; please provide only one query'
                 );
         }
 
         if ($query === '') {
-            throw new \BadMethodCallException(
+            throw new BadMethodCallException(
                 'Query is required.'
             );
         }
@@ -95,9 +98,9 @@ class Search extends Command {
             $this->log
                 ->printAsOutput()
                 ->printEmptyLine()
-                ->info('<strong>%s</strong>', $result['value'])
-                ->info('Source: %s [%s]', $result['key'], $result['type'])
-                ->info('Link: %s', $baseLink . $result['link']);
+                ->info('<strong>%s</strong>', trim($result['value']))
+                ->info('<dim>Source:</dim> %s [%s]', $result['key'], $result['type'])
+                ->info('<dim>Link:</dim> %s', $baseLink . $result['link']);
         }
 
         return $this;

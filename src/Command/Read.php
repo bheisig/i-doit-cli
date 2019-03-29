@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
 use bheisig\cli\IO;
 
 /**
@@ -38,7 +39,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -120,7 +121,7 @@ class Read extends Command {
                     $objectID = (int) $parts[0];
 
                     if ($objectID === 0) {
-                        throw new \Exception(sprintf(
+                        throw new Exception(sprintf(
                             'Unable to find object by "%s". Please specify a valid object identifier',
                             $parts[0]
                         ));
@@ -240,13 +241,13 @@ class Read extends Command {
                          */
                         switch (count($objects)) {
                             case 0:
-                                throw new \Exception('Unknown object');
+                                throw new Exception('Unknown object');
                             case 1:
                                 IO::err('Assigned categories');
                                 IO::err('');
                                 break;
                             default:
-                                throw new \Exception('Found %s objects', count($objects));
+                                throw new Exception('Found %s objects', count($objects));
                                 break;
                         }
 
@@ -274,7 +275,7 @@ class Read extends Command {
                                 $object['type']
                             );
 
-                            throw new \Exception(sprintf(
+                            throw new Exception(sprintf(
                                 'Unsufficient data. Please run "%s cache" first.',
                                 $this->config['composer']['extra']['name']
                             ));
@@ -340,11 +341,11 @@ class Read extends Command {
                          */
                         switch (count($objects)) {
                             case 0:
-                                throw new \Exception('Unknown object');
+                                throw new Exception('Unknown object');
                             case 1:
                                 break;
                             default:
-                                throw new \Exception('Found %s objects', count($objects));
+                                throw new Exception('Found %s objects', count($objects));
                                 break;
                         }
 
@@ -370,7 +371,7 @@ class Read extends Command {
                                 $object['type']
                             );
 
-                            throw new \Exception(sprintf(
+                            throw new Exception(sprintf(
                                 'Unsufficient data. Please run "%s cache" first.',
                                 $this->config['composer']['extra']['name']
                             ));
@@ -414,11 +415,11 @@ class Read extends Command {
                         $this->formatAttribute($objects, $parts[2], $parts[3]);
                     }
                 } else {
-                    throw new \Exception('Bad request');
+                    throw new Exception('Bad request');
                 }
                 break;
             default:
-                throw new \Exception('Bad request');
+                throw new Exception('Bad request');
         }
 
         return $this;
@@ -447,7 +448,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function formatCategory(array $objects, string $category): self {
         switch (count($objects)) {
@@ -609,7 +610,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function formatAttribute(array $objects, string $category, string $attribute): self {
         switch (count($objects)) {
@@ -747,7 +748,7 @@ class Read extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function formatAttributes(string $objectType, string $categoryTitle): self {
         IO::err('Attributes in category "%s"', $categoryTitle);
@@ -773,7 +774,7 @@ class Read extends Command {
                 $categoryTitle
             );
 
-            throw new \Exception(sprintf(
+            throw new Exception(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
             ));
@@ -796,7 +797,7 @@ class Read extends Command {
      *
      * @return array Indexed array of associative arrays
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function fetchCategoryEntries(array $objectIDs, string $categoryConst): array {
         $limit = $this->config['limitBatchRequests'];
@@ -821,7 +822,7 @@ class Read extends Command {
 
             $slicedObjectIDs = array_slice(
                 $objectIDs,
-                $offset,
+                (int) $offset,
                 $limit
             );
 

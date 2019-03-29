@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,9 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
 
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
 use bheisig\cli\Command\Command as BaseCommand;
 use bheisig\cli\Config;
 use bheisig\cli\JSONFile;
@@ -43,41 +46,41 @@ use bheisig\idoitcli\Service\Validate;
 abstract class Command extends BaseCommand {
 
     /**
-     * @var \bheisig\idoitcli\Service\HandleAttribute
+     * @var HandleAttribute
      */
     protected $handleAttribute;
 
     /**
      * i-doit API
      *
-     * @var \bheisig\idoitcli\Service\IdoitAPI
+     * @var IdoitAPI
      */
     protected $idoitAPI;
 
     /**
      * i-doit API factory
      *
-     * @var \bheisig\idoitcli\Service\IdoitAPIFactory
+     * @var IdoitAPIFactory
      */
     protected $idoitAPIFactory;
 
     /**
-     * @var \bheisig\idoitcli\Service\Cache
+     * @var Cache
      */
     protected $cache;
 
     /**
-     * @var \bheisig\idoitcli\Service\PrintData
+     * @var PrintData
      */
     protected $printData;
 
     /**
-     * @var \bheisig\idoitcli\Service\UserInteraction
+     * @var UserInteraction
      */
     protected $userInteraction;
 
     /**
-     * @var \bheisig\idoitcli\Service\Validate
+     * @var Validate
      */
     protected $validate;
 
@@ -86,7 +89,7 @@ abstract class Command extends BaseCommand {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function setup(): self {
         parent::setup();
@@ -99,9 +102,9 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for user interaction
      *
-     * @return \bheisig\idoitcli\Service\Cache
+     * @return Cache
      *
-     * @throws \Exception when cache is out-dated
+     * @throws Exception when cache is out-dated
      */
     protected function useCache(): Cache {
         if (!isset($this->cache)) {
@@ -110,7 +113,7 @@ abstract class Command extends BaseCommand {
 
         if ($this->cache->isCached() === false &&
             $this->config['command'] !== 'cache') {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 'Unsufficient data. Please run "%s cache" first.',
                 $this->config['composer']['extra']['name']
             ), 500);
@@ -122,9 +125,9 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for attribute handling
      *
-     * @return \bheisig\idoitcli\Service\HandleAttribute
+     * @return HandleAttribute
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function handleAttribute(): HandleAttribute {
         if (!isset($this->handleAttribute)) {
@@ -138,9 +141,9 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for i-doit API
      *
-     * @return \bheisig\idoitcli\Service\IdoitAPI
+     * @return IdoitAPI
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function useIdoitAPI(): IdoitAPI {
         if (!isset($this->idoitAPI)) {
@@ -154,9 +157,9 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for i-doit API factory
      *
-     * @return \bheisig\idoitcli\Service\IdoitAPIFactory
+     * @return IdoitAPIFactory
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function useIdoitAPIFactory(): IdoitAPIFactory {
         if (!isset($this->idoitAPIFactory)) {
@@ -169,9 +172,9 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for attribute handling
      *
-     * @return \bheisig\idoitcli\Service\PrintData
+     * @return PrintData
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function printData(): PrintData {
         if (!isset($this->printData)) {
@@ -184,7 +187,7 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for user interaction
      *
-     * @return \bheisig\idoitcli\Service\UserInteraction
+     * @return UserInteraction
      */
     protected function useUserInteraction(): UserInteraction {
         if (!isset($this->userInteraction)) {
@@ -197,7 +200,7 @@ abstract class Command extends BaseCommand {
     /**
      * Load service for validate data
      *
-     * @return \bheisig\idoitcli\Service\Validate
+     * @return Validate
      */
     protected function useValidate(): Validate {
         if (!isset($this->validate)) {
@@ -254,7 +257,7 @@ abstract class Command extends BaseCommand {
      *
      * @return array Object information, otherwise \Exception is thrown
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function askForObject(): array {
         $answer = $this->useUserInteraction()->askQuestion('Object?');
@@ -266,7 +269,7 @@ abstract class Command extends BaseCommand {
 
         try {
             return $this->useIdoitAPI()->identifyObject($answer);
-        } catch (\BadMethodCallException $e) {
+        } catch (BadMethodCallException $e) {
             $this->log->warning($e->getMessage());
             $this->log->warning('Please re-try');
             return $this->askForObject();
@@ -278,7 +281,7 @@ abstract class Command extends BaseCommand {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function validateConfig(): self {
         $file = $this->config['appDir'] . '/config/schema.json';
@@ -293,7 +296,7 @@ abstract class Command extends BaseCommand {
                 $this->log->warning($error);
             }
 
-            throw new \Exception('Cannot proceed unless you fix your configuration');
+            throw new Exception('Cannot proceed unless you fix your configuration');
         }
 
         return $this;

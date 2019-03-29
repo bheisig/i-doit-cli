@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2016-18 Benjamin Heisig
+ * Copyright (C) 2016-19 Benjamin Heisig
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,10 @@
 declare(strict_types=1);
 
 namespace bheisig\idoitcli\Command;
+
+use \Exception;
+use \BadMethodCallException;
+use \RuntimeException;
 
 /**
  * Command "rack"
@@ -51,7 +55,7 @@ class Rack extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     public function execute(): self {
         $this->log
@@ -64,7 +68,7 @@ class Rack extends Command {
         switch (count($this->config['arguments'])) {
             case 0:
                 if ($this->useUserInteraction()->isInteractive() === false) {
-                    throw new \BadMethodCallException(
+                    throw new BadMethodCallException(
                         'No object, no visuals'
                     );
                 }
@@ -82,7 +86,7 @@ class Rack extends Command {
                 $this->objectTitle = $object['title'];
                 break;
             default:
-                throw new \BadMethodCallException(
+                throw new BadMethodCallException(
                     'Too many arguments; please provide only one object title or numeric identifier'
                 );
         }
@@ -112,28 +116,30 @@ class Rack extends Command {
      *
      * @return self Returns itself
      *
-     * @throws \Exception on error
+     * @throws Exception on error
      */
     protected function loadRack(int $objectID): self {
         try {
+            $categoryConstants = [
+                'C__CATG__LOCATION',
+                'C__CATG__FORMFACTOR',
+                'C__CATG__OBJECT'
+            ];
+
             $result = $this->useIdoitAPIFactory()->getCMDBCategory()->batchRead(
                 [$objectID],
-                [
-                    'C__CATG__LOCATION',
-                    'C__CATG__FORMFACTOR',
-                    'C__CATG__OBJECT'
-                ]
+                $categoryConstants
             );
 
-            if (count($result) !== 3) {
-                throw new \RuntimeException('Unexpected result');
+            if (count($result) !== count($categoryConstants)) {
+                throw new RuntimeException('Unexpected result');
             }
 
             if (!array_key_exists(0, $result) ||
                 !is_array($result[0]) ||
                 !array_key_exists(0, $result[0]) ||
                 !is_array($result[0][0])) {
-                throw new \RuntimeException('Rack is not located anywhere');
+                throw new RuntimeException('Rack is not located anywhere');
             }
 
             $this->locationPath = $this->identifyLocationPath($result[0][0]);
@@ -142,7 +148,7 @@ class Rack extends Command {
                 !is_array($result[1]) ||
                 !array_key_exists(0, $result[1]) ||
                 !is_array($result[1][0])) {
-                throw new \RuntimeException('Rack has no units');
+                throw new RuntimeException('Rack has no units');
             }
 
             $this->rackUnits = $this->identifyRackUnits($result[1][0]);
@@ -156,8 +162,8 @@ class Rack extends Command {
             } else {
                 $this->hosts = $this->loadHardware($result[2]);
             }
-        } catch (\Exception $e) {
-            throw new \RuntimeException(sprintf(
+        } catch (Exception $e) {
+            throw new RuntimeException(sprintf(
                 'Unable to load information about rack "%s" [%s]: %s',
                 $this->objectTitle,
                 $this->objectID,
@@ -174,7 +180,7 @@ class Rack extends Command {
             !array_key_exists('location_path', $location['parent']) ||
             !is_string($location['parent']['location_path']) ||
             strlen($location['parent']['location_path']) === 0) {
-            throw new \RuntimeException('Unknown location path');
+            throw new RuntimeException('Unknown location path');
         }
 
         return $location['parent']['location_path'];
@@ -184,7 +190,7 @@ class Rack extends Command {
         if (!array_key_exists('rackunits', $formfactor) ||
             !is_numeric($formfactor['rackunits']) ||
             (int) $formfactor['rackunits'] <= 0) {
-            throw new \RuntimeException('Unknown rack units');
+            throw new RuntimeException('Unknown rack units');
         }
 
         return (int) $formfactor['rackunits'];
@@ -195,7 +201,7 @@ class Rack extends Command {
      *
      * @return array
      *
-     * @throws \Exception on error^
+     * @throws Exception on error^
      */
     protected function loadHardware(array $hosts): array {
         $objectIDs = [];
@@ -203,7 +209,7 @@ class Rack extends Command {
         foreach ($hosts as $host) {
             if (!array_key_exists('objID', $host) ||
                 !$this->useValidate()->isIDAsString($host['objID'])) {
-                throw new \RuntimeException('Unknown host');
+                throw new RuntimeException('Unknown host');
             }
 
             $objectIDs[] = (int) $host['objID'];
