@@ -25,6 +25,7 @@
         "bheisig/idoitapi": "^0.7"
     },
     "require-dev": {
+        "php": ">=7.1.0",
         "jakub-onderka/php-parallel-lint": "^1.0",
         "macfja/phar-builder": "^0.2.6",
         "phploc/phploc": "^4.0",
@@ -131,7 +132,7 @@
         ],
         "win-build": [
             "@composer dump-autoload --classmap-authoritative",
-            ".\\vendor\\bin\\phar-builder.bat package --quiet composer.json",
+            ".\\vendor\\bin\\phar-builder.bat package composer.json",
             "powershell mv \"$(composer config extra.name).phar\" \"$(composer config extra.name)\"",
             "@composer dump-autoload"
         ],
@@ -141,7 +142,8 @@
             "@composer --version",
             "@composer validate",
             "@composer diagnose & exit 0",
-            "@composer check-platform-reqs"
+            "@composer check-platform-reqs",
+            "@composer config extra.version"
         ]
     },
     "scripts-descriptions": {

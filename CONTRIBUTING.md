@@ -51,9 +51,10 @@ Notice, that any of your contributions merged into this repository will be [lice
 
 Developers must meet these requirements:
 
-*   See requirements mentioned in the [documentation](README.md)
-*   [Composer](https://getcomposer.org/)
-*   [Git](https://git-scm.com/)
+-   See requirements mentioned in the [documentation](README.md)
+-   PHP 7.1 or higher (end-of-life versions are not supported by some tools we need for development/testing)
+-   [Composer](https://getcomposer.org/)
+-   [Git](https://git-scm.com/)
 
 
 ##  Run it!
@@ -154,9 +155,9 @@ This project comes with some useful composer scripts:
 | `composer phive`              | Build PHIVE files                                         |
 | `composer phpcpd`             | Detect copy/paste in source code                          |
 | `composer phpcs`              | Detect violations of defined coding standards             |
-| `composer phpdox`             | Create source code documentation                          |
 | `composer phploc`             | Print source code statistics                              |
 | `composer phpmd`              | Detect mess in source code                                |
+| `composer phpmnd`             | Detect magic numbers in source code                       |
 | `composer phpstan`            | Analyze source code                                       |
 | `composer security-checker`   | Look for dependencies with known security vulnerabilities |
 | `composer syntax-check`       | Check syntax of source code                               |

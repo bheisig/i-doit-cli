@@ -7,12 +7,12 @@ clone_depth: 5
 
 environment:
   matrix:
-  - PHP_VERSION: '7.0'
-    XDEBUG_VERSION: '2.6.0-7.0-vc14-nts-x86_64'
   - PHP_VERSION: '7.1'
-    XDEBUG_VERSION: '2.6.0-7.1-vc14-nts-x86_64'
+    XDEBUG_VERSION: '2.6.1-7.1-vc14-nts-x86_64'
   - PHP_VERSION: '7.2'
-    XDEBUG_VERSION: '2.6.0-7.2-vc15-nts-x86_64'
+    XDEBUG_VERSION: '2.6.1-7.2-vc15-nts-x86_64'
+  - PHP_VERSION: '7.3'
+    XDEBUG_VERSION: '2.7.0-7.3-vc15-nts-x86_64'
 
 cache:
   - '%LOCALAPPDATA%\Composer\files -> composer.lock'
@@ -48,6 +48,7 @@ install:
   - appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar
   - cd %APPVEYOR_BUILD_FOLDER%
   - appveyor-retry composer install --no-progress --profile
+  - appveyor-retry composer self-update --update-keys
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
