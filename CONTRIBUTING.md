@@ -153,6 +153,7 @@ This project comes with some useful composer scripts:
 | `composer gource`             | Visualize Git history                                     |
 | `composer is-built`           | Test whether binary is already built                      |
 | `composer phive`              | Build PHIVE files                                         |
+| `composer phpcompatibility`   | Run PHP compatibility checks                              |
 | `composer phpcpd`             | Detect copy/paste in source code                          |
 | `composer phpcs`              | Detect violations of defined coding standards             |
 | `composer phploc`             | Print source code statistics                              |
