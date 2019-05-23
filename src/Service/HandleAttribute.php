@@ -469,7 +469,8 @@ class HandleAttribute extends Service {
                 }
 
                 foreach ($value as $block) {
-                    if (!array_key_exists('title', $block) ||
+                    if (!is_array($block) ||
+                        !array_key_exists('title', $block) ||
                         is_string($block['title']) ||
                         strlen($block['title']) === 0) {
                         return false;
