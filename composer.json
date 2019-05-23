@@ -105,10 +105,7 @@
             "cp `composer config extra.name` `composer config extra.name`.phar",
             "gpg --detach-sign --output `composer config extra.name`.phar.asc `composer config extra.name`.phar"
         ],
-        "phpcompatibility": [
-            "./vendor/bin/phpcs -p --colors --extensions=php --standard=PHPCompatibility --runtime-set testVersion 7.0 src/",
-            "./vendor/bin/phpcs -p --colors --extensions=php --standard=PHPCompatibility --runtime-set testVersion 7.1 tests/"
-        ],
+        "phpcompatibility": "./vendor/bin/phpcs -p --colors --extensions=php --standard=PHPCompatibility --runtime-set testVersion 7.0 src/",
         "phpcpd": "./vendor/bin/phpcpd src/",
         "phpcs": "./vendor/bin/phpcs --extensions=php --standard=PSR1,PSR2 --exclude=PSR2.Classes.ClassDeclaration,Squiz.Functions.MultiLineFunctionDeclaration bin/ src/",
         "phploc": "./vendor/bin/phploc --exclude=vendor --exclude=docs .",
