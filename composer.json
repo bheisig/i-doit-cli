@@ -19,8 +19,8 @@
     },
     "require": {
         "php": ">=7.0.0",
-        "ext-bz2": "*",
         "ext-Phar": "*",
+        "ext-zlib": "*",
         "bheisig/cli": "^0.2",
         "bheisig/idoitapi": "^0.7"
     },
@@ -132,7 +132,7 @@
             "@composer is-built",
             "./`composer config extra.name` --help",
             "./`composer config extra.name` --version",
-            "for command in $(./`composer config extra.name` list --no-colors | awk '{print $1}'); do echo \"Run command $command\" ; ./`composer config extra.name` \"$command\" --help > /dev/null || echo \"Command $command failed with non-zero exit code\"; done"
+            "for command in $(./`composer config extra.name` list 2> /dev/null | awk '{print $1}'); do echo Run \"./`composer config extra.name` $command --help\" ; ./`composer config extra.name` \"$command\" --help > /dev/null || echo \"Command $command failed with non-zero exit code\"; done"
         ],
         "win-ci": [
             "@composer win-system-check",
@@ -185,7 +185,7 @@
             "skip-shebang": false,
             "include-dev": false,
             "entry-point": "bin/idoitcli.php",
-            "compression": "BZip2",
+            "compression": "GZip",
             "name": "idoitcli.phar",
             "output-dir": "./",
             "include": ["config"]

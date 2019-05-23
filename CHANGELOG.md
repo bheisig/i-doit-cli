@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##  [Unreleased]
 
 
+##  Changed
+
+-   Require PHP extension `zlib` instead of `bz2`
+
+
 ##  Fixed
 
 -   `save`/`show`: Prevent PHP fatal error when encoding empty dialog+ attribute
