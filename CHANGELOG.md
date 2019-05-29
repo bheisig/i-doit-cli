@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##  Fixed
 
 -   `save`/`show`: Prevent PHP fatal error when encoding empty dialog+ attribute
+-   `show`: Prevent any unwanted user interaction (`--yes`) if object not found or selection ambiguous
 
 
 ##  [0.7] – 2018-12-18

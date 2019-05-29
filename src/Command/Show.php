@@ -104,6 +104,12 @@ class Show extends Command {
 
                     switch (count($objects)) {
                         case 0:
+                            if ($this->useUserInteraction()->isInteractive() === false) {
+                                throw new BadMethodCallException(
+                                    'Object not found'
+                                );
+                            }
+
                             $this->log->warning('Object not found');
                             $object = $this->askForObject();
 
@@ -136,6 +142,12 @@ class Show extends Command {
                             }
 
                             $this->log->printEmptyLine();
+
+                            if ($this->useUserInteraction()->isInteractive() === false) {
+                                throw new BadMethodCallException(
+                                    'Object selection is ambiguous. Select one by title or numeric identifier'
+                                );
+                            }
 
                             while (true) {
                                 $answer = $this->useUserInteraction()->askQuestion(
