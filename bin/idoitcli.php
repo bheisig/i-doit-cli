@@ -129,6 +129,12 @@ try {
             __NAMESPACE__ . '\\Command\\Types',
             'Print a list of available object types and group them'
         )
+        // Common options:
+        ->addOption(
+            'y',
+            'yes',
+            App::NO_VALUE
+        )
         // Used by command "save":
         ->addOption(
             'a',
