@@ -572,17 +572,17 @@ class Read extends Command {
                     switch (gettype($entry[$attribute])) {
                         case 'array':
                             if (array_key_exists('title', $entry[$attribute])) {
-                                $value = $entry[$attribute]['title'];
+                                $value = (string) $entry[$attribute]['title'];
                             } else {
                                 $value = '...';
                             }
                             break;
                         default:
-                            $value = $entry[$attribute];
+                            $value = (string) $entry[$attribute];
                             break;
                     }
 
-                    if (!isset($value) || $value === '') {
+                    if (strlen($value) === 0) {
                         $value = '-';
                     }
 
@@ -684,17 +684,17 @@ class Read extends Command {
                     switch (gettype($entry[$attributeKey])) {
                         case 'array':
                             if (array_key_exists('title', $entry[$attributeKey])) {
-                                $value = $entry[$attributeKey]['title'];
+                                $value = (string) $entry[$attributeKey]['title'];
                             } else {
                                 $value = '...';
                             }
                             break;
                         default:
-                            $value = $entry[$attributeKey];
+                            $value = (string) $entry[$attributeKey];
                             break;
                     }
 
-                    if (!isset($value) || $value === '') {
+                    if (strlen($value) === 0) {
                         $value = '-';
                     }
 

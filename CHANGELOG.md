@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   `save`/`show`: Prevent PHP fatal error when encoding empty dialog+ attribute
 -   `show`: Prevent any unwanted user interaction (`--yes`) if object not found or selection ambiguous
 -   Make CLI option `-y`/`--yes` work after it was completely ignored
+-   `read`: Convert values to strings before printing them which prevents PHP fatal errors
 
 
 ##  [0.7] – 2018-12-18
