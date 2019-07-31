@@ -52,7 +52,6 @@ Notice, that any of your contributions merged into this repository will be [lice
 Developers must meet these requirements:
 
 -   See requirements mentioned in the [documentation](README.md)
--   PHP 7.1 or higher (end-of-life versions are not supported by some tools we need for development/testing)
 -   [Composer](https://getcomposer.org/)
 -   [Git](https://git-scm.com/)
 

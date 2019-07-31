@@ -16,11 +16,6 @@ install:
 script:
   - composer ci
 
-matrix:
-  allow_failures:
-    - php:
-      - 7.4snapshot
-
 notifications:
   email:
     on_success: never

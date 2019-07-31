@@ -26,10 +26,10 @@ This application provides a simple, but powerful command line interface to acces
 
 Before using this app your system must meet the following requirements:
 
-*   Of course, i-doit pro/open, version 1.12 or higher
-*   i-doit API add-on, version 1.10 or higher
+*   Of course, i-doit pro/open, version 1.13 or higher
+*   i-doit API add-on, version 1.10.3 or higher
 *   Any POSIX operating system (GNU/Linux, *BSD, MacOS) or Windows
-*   PHP >= 7.0 (7.2 is recommended)
+*   PHP >= 7.1 (7.3 is recommended)
 *   PHP extensions `calendar`, `cli`, `cURL`, `json`, `phar` and `zlib`
 *   PHP extension `pcntl` is optional, but highly recommended (non-Windows only)
 
