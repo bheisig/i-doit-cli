@@ -74,16 +74,34 @@ class Call extends Command {
 
         $this->useIdoitAPIFactory()->getAPI()->request($request['method'], $params);
 
+        $requestContent = json_encode(
+            $this->useIdoitAPIFactory()->getAPI()->getLastRequestContent(),
+            JSON_PRETTY_PRINT
+        );
+
+        if (!is_string($requestContent)) {
+            $requestContent = '–';
+        }
+
+        $responseContent = json_encode(
+            $this->useIdoitAPIFactory()->getAPI()->getLastResponse(),
+            JSON_PRETTY_PRINT
+        );
+
+        if (!is_string($responseContent)) {
+            $responseContent = '–';
+        }
+
         IO::out('');
         IO::out('Request:');
         IO::out('========');
         IO::out($this->useIdoitAPIFactory()->getAPI()->getLastRequestHeaders());
-        IO::out(json_encode($this->useIdoitAPIFactory()->getAPI()->getLastRequestContent(), JSON_PRETTY_PRINT));
+        IO::out($requestContent);
         IO::out('');
         IO::out('Response:');
         IO::out('=========');
         IO::out($this->useIdoitAPIFactory()->getAPI()->getLastResponseHeaders());
-        IO::out(json_encode($this->useIdoitAPIFactory()->getAPI()->getLastResponse(), JSON_PRETTY_PRINT));
+        IO::out($responseContent);
 
         return $this;
     }
