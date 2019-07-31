@@ -35,13 +35,19 @@ use \RuntimeException;
  */
 class Rack extends Command {
 
+    const HORIZONTAL_ASSEMBLED = 3;
+    const FRONT_SIDE = 1;
+    const BACK_SIDE = 0;
+    const BOTH_SIDES = 2;
+
     protected $objectID = 0;
     protected $objectTitle = '';
     protected $objectTypeTitle = '';
     protected $objectTypeConstant = '';
     protected $locationPath = '';
     protected $rackUnits = 0;
-    protected $hosts = [];
+    protected $formattedUnits = [];
+    protected $side = self::FRONT_SIDE;
 
     protected $innerWidth = 0;
     protected $paddingLeft = 1;
@@ -61,10 +67,26 @@ class Rack extends Command {
         $this->log
             ->printAsMessage()
             ->info($this->getDescription())
-            ->printEmptyLine();
+            ->printEmptyLine()
+            ->debug('Collect data…');
 
-        $this->log->debug('Collect data…');
+        $this
+            ->identifyRackObject()
+            ->setDimensions()
+            ->loadRack($this->objectID)
+            ->printHeader()
+            ->printRackHeader()
+            ->printRackBody($this->formattedUnits)
+            ->printRackFooter();
 
+        return $this;
+    }
+
+    /**
+     * @return self Returns itself
+     * @throws Exception on error
+     */
+    protected function identifyRackObject(): self {
         switch (count($this->config['arguments'])) {
             case 0:
                 if ($this->useUserInteraction()->isInteractive() === false) {
@@ -91,6 +113,10 @@ class Rack extends Command {
                 );
         }
 
+        return $this;
+    }
+
+    protected function setDimensions(): self {
         $this->innerWidth =
             $this->maxWidth -
             $this->marginLeft -
@@ -100,13 +126,6 @@ class Rack extends Command {
             $this->paddingRight -
             // Amount of vertical lines in rack:
             4;
-
-        $this
-            ->loadRack($this->objectID)
-            ->printHeader()
-            ->printRackHeader()
-            ->printRackBody()
-            ->printRackFooter();
 
         return $this;
     }
@@ -160,7 +179,16 @@ class Rack extends Command {
                     'Rack has no hardware'
                 );
             } else {
-                $this->hosts = $this->loadHardware($result[2]);
+                $this->formattedUnits =
+                    $this->formatUnits(
+                        $this->sortHardware(
+                            $this->reduceHardware(
+                                $this->mapHardware(
+                                    $this->loadHardware($result[2])
+                                )
+                            )
+                        )
+                    );
             }
         } catch (Exception $e) {
             throw new RuntimeException(sprintf(
@@ -217,8 +245,8 @@ class Rack extends Command {
 
         $objects = $this->useIdoitAPIFactory()->getCMDBObjects()->read(
             ['ids' => $objectIDs],
-            100,
-            0,
+            null,
+            null,
             null,
             null,
             [
@@ -228,6 +256,190 @@ class Rack extends Command {
         );
 
         return $objects;
+    }
+
+    protected function mapHardware(array $hosts): array {
+        $filteredHosts = [];
+
+        foreach ($hosts as $host) {
+            if (!array_key_exists('categories', $host) ||
+                !is_array($host['categories'])) {
+                continue;
+            }
+
+            if (!array_key_exists('C__CATG__LOCATION', $host['categories']) ||
+                !is_array($host['categories']['C__CATG__LOCATION']) ||
+                !array_key_exists(0, $host['categories']['C__CATG__LOCATION']) ||
+                !is_array($host['categories']['C__CATG__LOCATION'][0])) {
+                continue;
+            }
+
+            if (!array_key_exists('option', $host['categories']['C__CATG__LOCATION'][0]) ||
+                !is_array($host['categories']['C__CATG__LOCATION'][0]['option']) ||
+                !array_key_exists('title', $host['categories']['C__CATG__LOCATION'][0]['option']) ||
+                (int) $host['categories']['C__CATG__LOCATION'][0]['option']['id'] !== self::HORIZONTAL_ASSEMBLED) {
+                continue;
+            }
+
+            if (!array_key_exists('insertion', $host['categories']['C__CATG__LOCATION'][0]) ||
+                !is_array($host['categories']['C__CATG__LOCATION'][0]['insertion']) ||
+                !array_key_exists('id', $host['categories']['C__CATG__LOCATION'][0]['insertion']) ||
+                !in_array(
+                    (int) $host['categories']['C__CATG__LOCATION'][0]['insertion']['id'],
+                    [$this->side, self::BOTH_SIDES]
+                )
+            ) {
+                continue;
+            }
+
+            if (!array_key_exists('pos', $host['categories']['C__CATG__LOCATION'][0]) ||
+                !is_array($host['categories']['C__CATG__LOCATION'][0]['pos']) ||
+                !array_key_exists('title', $host['categories']['C__CATG__LOCATION'][0]['pos']) ||
+                !is_numeric($host['categories']['C__CATG__LOCATION'][0]['pos']['title']) ||
+                (int) $host['categories']['C__CATG__LOCATION'][0]['pos']['title'] <= 0) {
+                continue;
+            }
+
+            if (!array_key_exists('C__CATG__FORMFACTOR', $host['categories']) ||
+                !is_array($host['categories']['C__CATG__FORMFACTOR']) ||
+                !array_key_exists(0, $host['categories']['C__CATG__FORMFACTOR']) ||
+                !is_array($host['categories']['C__CATG__FORMFACTOR'][0])) {
+                continue;
+            }
+
+            if (!array_key_exists('rackunits', $host['categories']['C__CATG__FORMFACTOR'][0]) ||
+                !is_numeric($host['categories']['C__CATG__FORMFACTOR'][0]['rackunits']) ||
+                (int) $host['categories']['C__CATG__FORMFACTOR'][0]['rackunits'] <= 0) {
+                continue;
+            }
+
+            $filteredHosts[] = $host;
+        }
+
+        return $filteredHosts;
+    }
+
+    protected function reduceHardware(array $hosts): array {
+        $reducedHosts = [];
+
+        foreach ($hosts as $host) {
+            $reducedHosts[] = [
+                'id' => $host['id'],
+                'title' => $host['title'],
+                'type' => $host['type_title'],
+                'lowestPosition' => $this->calculateLowestPosition(
+                    (int) $host['categories']['C__CATG__LOCATION'][0]['pos']['title'],
+                    (int) $host['categories']['C__CATG__FORMFACTOR'][0]['rackunits'],
+                    $this->rackUnits
+                ),
+                'highestPosition' => $this->calculateHighestPosistion(
+                    (int) $host['categories']['C__CATG__LOCATION'][0]['pos']['title'],
+                    $this->rackUnits
+                )
+            ];
+        }
+
+        return $reducedHosts;
+    }
+
+    protected function sortHardware(array $hosts): array {
+        $positions = [];
+
+        foreach ($hosts as $host) {
+            for ($position = $host['lowestPosition']; $position <= $host['highestPosition']; $position++) {
+                $positions[$position] = $host;
+            }
+        }
+
+        return $positions;
+    }
+
+    protected function drawObjectType(string $title): string {
+        return sprintf(
+            '[%s]',
+            strtolower($title)
+        );
+    }
+
+    protected function drawObjectID(int $objectID): string {
+        return sprintf('[#%s]', $objectID);
+    }
+
+    protected function drawObjectTitle(string $objectTitle): string {
+        return $objectTitle;
+    }
+
+    protected function calculateLowestPosition(int $position, int $usedRackUnits, int $allowedRackUnits): int {
+        return $allowedRackUnits - $position + 2 - $usedRackUnits;
+    }
+
+    protected function calculateHighestPosistion(int $position, int $allowedRackUnits): int {
+        return $allowedRackUnits - $position + 1;
+    }
+
+    protected function formatUnits(array $positionedHardware): array {
+        $formattedUnits = [];
+
+        for ($rackUnit = 1; $rackUnit <= $this->rackUnits; $rackUnit++) {
+            $isOccupied = false;
+
+            foreach ($positionedHardware as $occupiedRackUnit => $hardware) {
+                if ($rackUnit === $occupiedRackUnit) {
+                    $formattedUnits[$rackUnit] = $this->drawUnit($hardware);
+                    $isOccupied = true;
+                    break;
+                }
+            }
+
+            if ($isOccupied === false) {
+                $formattedUnits[$rackUnit] = $this->drawEmptyUnit();
+            }
+        }
+
+        return $formattedUnits;
+    }
+
+    protected function drawUnit(array $hardware): string {
+        $title = $this->drawObjectTitle($hardware['title']);
+        $type = $this->drawObjectType($hardware['type']);
+        $identifier = $this->drawObjectID($hardware['id']);
+
+        $emptySpace = (int) $this->innerWidth -
+            strlen($title) -
+            strlen($type) -
+            strlen($identifier) -
+            // Space between type and identifier:
+            1;
+
+        // @todo Check for enough space!
+
+        return sprintf(
+            '%s<strong>%s</strong><dim>%s%s %s%s',
+            str_repeat(' ', $this->paddingLeft),
+            $title,
+            str_repeat(' ', $emptySpace),
+            $type,
+            $identifier,
+            str_repeat(' ', $this->paddingRight)
+        );
+    }
+
+    protected function drawOccupiedUnit(): string {
+        return sprintf(
+            '%s%s%s',
+            str_repeat(' ', $this->paddingLeft),
+            str_repeat(' ', $this->innerWidth),
+            str_repeat(' ', $this->paddingRight)
+        );
+    }
+
+    protected function drawEmptyUnit() {
+        return sprintf(
+            '%s%s%s',
+            str_repeat(' ', $this->paddingLeft),
+            str_repeat('█', $this->innerWidth),
+            str_repeat(' ', $this->paddingRight)
+        );
     }
 
     protected function printHeader(): self {
@@ -293,15 +505,24 @@ class Rack extends Command {
         return $this;
     }
 
-    protected function printRackBody(): self {
+    protected function printRackBody(array $formattedUnits): self {
+        $lastUnit = '';
+        $drawLines = true;
+
         for ($i = $this->rackUnits; $i > 0; $i--) {
+            $innerLines = str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight);
+
+            if ($drawLines === false) {
+                $innerLines = str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight);
+            }
+
             $this->log
                 ->printAsOutput()
                 ->info(
                     '%s<dim>╠%s╬%s╬%s╣</dim>',
                     str_repeat(' ', $this->marginLeft),
                     str_repeat('═', $this->digits),
-                    str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                    $innerLines,
                     str_repeat('═', $this->digits)
                 );
 
@@ -311,15 +532,26 @@ class Rack extends Command {
                 $digit = '0' . $i;
             }
 
+            $content = $formattedUnits[$i];
+
+            $drawLines = true;
+
+            if ($lastUnit === $content) {
+                $content = $this->drawOccupiedUnit();
+                $drawLines = false;
+            }
+
             $this->log
                 ->printAsOutput()
                 ->info(
                     '%s<dim>║%s║%s║%s║</dim>',
                     str_repeat(' ', $this->marginLeft),
                     $digit,
-                    str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                    $content,
                     $digit
                 );
+
+            $lastUnit = $formattedUnits[$i];
         }
 
         $this->log
