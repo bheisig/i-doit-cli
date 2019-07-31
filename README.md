@@ -1,4 +1,4 @@
-#   i-doit CLI tool
+# i-doit CLI tool
 
 Access your CMDB on the command line interface
 
@@ -6,23 +6,20 @@ Access your CMDB on the command line interface
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.0-8892BF.svg)](https://php.net/)
 [![Build Status](https://travis-ci.org/bheisig/i-doit-cli.svg?branch=master)](https://travis-ci.org/bheisig/i-doit-cli)
 
-
-##  About
+## About
 
 [i-doit](https://i-doit.com) is a software application for IT documentation and a CMDB (Configuration Management Database). This application is very useful to collect all your knowledge about the IT infrastructure you are dealing with. i-doit is a Web application and [has an exhausting API](https://kb.i-doit.com/pages/viewpage.action?pageId=37355644) which is very useful to automate your infrastructure.
 
 This application provides a simple, but powerful command line interface to access your CMDB data stored in i-doit.
 
-
-##  Features
+## Features
 
 *   Read information about objects their types and even their attributes
 *   Find your needle in the haystack called CMDB
 *   Do you need a free IP address in a particular subnet? This app suggests one for you.
 *   Stress your system: auto-generate thousands of objects
 
-
-##  Requirements
+## Requirements
 
 Before using this app your system must meet the following requirements:
 
@@ -33,14 +30,12 @@ Before using this app your system must meet the following requirements:
 *   PHP extensions `calendar`, `cli`, `cURL`, `json`, `phar` and `zlib`
 *   PHP extension `pcntl` is optional, but highly recommended (non-Windows only)
 
-
-##  Install and update
+## Install and update
 
 You have two good options to download and install this application:
 
 *   Download any stable release (**recommended**)
 *   Use [PHIVE](https://phar.io/)
-
 
 ### Download release
 
@@ -53,7 +48,6 @@ sudo mv idoitcli /usr/local/bin/
 ~~~
 
 To be up-to-date just repeat the steps above.
-
 
 ### Use PHIVE
 
@@ -71,8 +65,7 @@ If a new release is available you can perform an update:
 sudo phive update --global
 ~~~
 
-
-##  Usage
+## Usage
 
 Just run the application to show the basic usage:
 
@@ -80,8 +73,7 @@ Just run the application to show the basic usage:
 idoitcli
 ~~~
 
-
-##  First steps
+## First steps
 
 This application caches a lot locally to give you the best user experience. Run the `init` command:
 
@@ -105,8 +97,7 @@ idoitcli status
 
 This gives you some basic information about your i-doit installation, your settings and your user.
 
-
-##  Access your CMDB data
+## Access your CMDB data
 
 This is probably the best part: Read information about objects, their types and even attributes.
 
@@ -192,8 +183,7 @@ idoitcli read host.example.net/model
 
 **Notice:** These examples work great with unique names. That is why it is common practice to give objects unique titles that are not in conflict with object types and categories.
 
-
-##  Show everything about an object
+## Show everything about an object
 
 ~~~ {.bash}
 idoitcli show myserver
@@ -201,8 +191,7 @@ idoitcli show "My Server"
 idoitcli show 42
 ~~~
 
-
-##  Find your data
+## Find your data
 
 Find your needle in the haystack called CMDB:
 
@@ -211,8 +200,7 @@ idoitcli search myserver
 idoitcli search "My Server"
 ~~~
 
-
-##  Show the next free IPv4 address
+## Show the next free IPv4 address
 
 Get the next free IPv4 address for a particular subnet:
 
@@ -222,8 +210,7 @@ idoitcli nextip SUBNET
 
 `SUBNET` may be the object title or its identifier.
 
-
-##  Auto-generate objects
+## Auto-generate objects
 
 For testing purposes stress your i-doit installation and let the app create thousands of objects, attributes and relations between objects:
 
@@ -233,8 +220,7 @@ idoitcli -c FILE random
 
 There are some examples located under `docs/`.
 
-
-##  Update the caches
+## Update the caches
 
 If your CMDB configuration has changed you need to re-create the cache files by running the `cache` command:
 
@@ -242,8 +228,7 @@ If your CMDB configuration has changed you need to re-create the cache files by 
 idoitcli cache
 ~~~
 
-
-##  Playground
+## Playground
 
 Perform self-defined API requests – pass request as argument:
 
@@ -269,8 +254,7 @@ Read request from standard input (double-enter to execute):
 idoitcli call
 ~~~
 
-
-##  Configuration
+## Configuration
 
 There are some ways to set your configurations settings:
 
@@ -282,13 +266,11 @@ Keep in mind this order matters. Each file is optional. Any combination is possi
 
 The configuration files are JSON-formatted.
 
-
-##  Contribute
+## Contribute
 
 Please, report any issues to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues). Pull requests and OS distribution packages are very welcomed. For further information, see file [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-
-##  Copyright & License
+## Copyright & License
 
 Copyright (C) 2016-19 [Benjamin Heisig](https://benjamin.heisig.name/)
 

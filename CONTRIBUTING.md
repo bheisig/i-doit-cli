@@ -1,31 +1,26 @@
-#   Contributors welcome!
+# Contributors welcome!
 
 Thank you very much for your interest in this project! There are plenty of ways you can support us. :-)
 
-
-##  Code of Conduct
+## Code of Conduct
 
 We like you to read and follow our [code of conduct](CODE_OF_CONDUCT.md) before contributing. Thank you.
 
-
-##  Use it
+## Use it
 
 The best and (probably) easiest way is to use this application. It would be very nice to share your thoughts with us. We love to hear from you.
 
 If you have questions how to use it properly read the [documentation](README.md) carefully.
 
-
-##  Report bugs
+## Report bugs
 
 If you find something strange please report it to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
 
-
-##  Make a wish
+## Make a wish
 
 Of course, there are some features in the pipeline. However, if you have good ideas how to improve this application please let us know! Write a feature request [in our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
 
-
-##  Setup a development environment
+## Setup a development environment
 
 If you like to contribute source code, documentation snippets, self-explaining examples or other useful bits, fork this repository, setup the environment and make a pull request.
 
@@ -46,8 +41,7 @@ Now it is the time to do your stuff. Do not forget to commit your changes. When 
 
 Notice, that any of your contributions merged into this repository will be [licensed under the AGPLv3](LICENSE).
 
-
-##  Requirements
+## Requirements
 
 Developers must meet these requirements:
 
@@ -55,8 +49,7 @@ Developers must meet these requirements:
 -   [Composer](https://getcomposer.org/)
 -   [Git](https://git-scm.com/)
 
-
-##  Run it!
+## Run it!
 
 To run `idoitcli` you do not need to build a binary first. Just run:
 
@@ -64,8 +57,7 @@ To run `idoitcli` you do not need to build a binary first. Just run:
 bin/idoitcli
 ~~~
 
-
-##  Add your own command
+## Add your own command
 
 Each command has its own PHP class located under `src/Command`. There is a dummy class you can use as a skeleton. Copy it:
 
@@ -97,11 +89,10 @@ bin/idoitcli my-command
 
 Further steps:
 
-*   Add options to your command with `$app->addOption()`
-*   Overwrite public method `showUsage()` to print usage with option `--help`
+-   Add options to your command with `$app->addOption()`
+-   Overwrite public method `showUsage()` to print usage with option `--help`
 
-
-##  Release new version
+## Release new version
 
 … to the public. You need commit rights for this repository.
 
@@ -124,8 +115,7 @@ Further steps:
 
 If any step produces an error please think twice before releasing. ;-)
 
-
-##  Create OS-related packages
+## Create OS-related packages
 
 At the moment, only Debian GNU/Linux is supported:
 
@@ -135,8 +125,7 @@ At the moment, only Debian GNU/Linux is supported:
 
 This results in a file `idoitcli_<VERSION>_all.deb`.
 
-
-##  Composer scripts
+## Composer scripts
 
 This project comes with some useful composer scripts:
 
@@ -151,6 +140,11 @@ This project comes with some useful composer scripts:
 | `composer gitstats`           | Create Git statistics                                     |
 | `composer gource`             | Visualize Git history                                     |
 | `composer is-built`           | Test whether binary is already built                      |
+| `composer lint`               | Perform all lint checks                                   |
+| `composer lint-php`           | Check syntax of PHP files                                 |
+| `composer lint-json`          | Check syntax of JSON files                                |
+| `composer lint-xml`           | Check syntax of XML files                                 |
+| `composer lint-yaml`          | Check syntax of YAML files                                |
 | `composer phive`              | Build PHIVE files                                         |
 | `composer phpcompatibility`   | Run PHP compatibility checks                              |
 | `composer phpcpd`             | Detect copy/paste in source code                          |
@@ -160,13 +154,11 @@ This project comes with some useful composer scripts:
 | `composer phpmnd`             | Detect magic numbers in source code                       |
 | `composer phpstan`            | Analyze source code                                       |
 | `composer security-checker`   | Look for dependencies with known security vulnerabilities |
-| `composer syntax-check`       | Check syntax of source code                               |
 | `composer system-check`       | Run some system checks                                    |
 | `composer test`               | Perform some tests with the built binary                  |
 
 For example, execute `composer phpstan`.
 
-
-##  Donate
+## Donate
 
 Last but not least, if you think this script is useful for your daily work, consider a donation. What about a beer?
