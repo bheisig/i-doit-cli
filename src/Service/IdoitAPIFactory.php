@@ -74,7 +74,10 @@ class IdoitAPIFactory extends Service {
 
         try {
             $this->api = new API($this->config['api']);
-            $this->api->login();
+            if (array_key_exists(API::USERNAME, $this->config['api']) &&
+                array_key_exists(API::PASSWORD, $this->config['api'])) {
+                $this->api->login();
+            }
         } catch (Exception $e) {
             throw new Exception(
                 'No proper configuration for i-doit API calls: ' . $e->getMessage()

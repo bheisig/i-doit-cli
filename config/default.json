@@ -2,8 +2,6 @@
     "api": {
         "url": "",
         "key": "",
-        "username": "",
-        "password": "",
         "language": "en"
     },
     "cacheLifetime": 15768000,

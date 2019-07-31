@@ -7,18 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##  [Unreleased][]
 
-**Notice:**
-
--   PHP 7.0 is end-of-life and not supported anymore. Please upgrade to PHP 7.1 or higher. 7.3 is recommended.
--   i-doit 1.13 or higher is required
--   i-doit API add-on 1.10.3 is required
-
 ##  Changed
 
+-   Require PHP >= 7.1 (PHP 7.0 is end-of-life); recommend PHP 7.3
+-   i-doit 1.13 or higher is required
+-   i-doit API add-on 1.10.3 is required
 -   Require PHP extension `zlib` instead of `bz2`
 
 ## Fixed
 
+-   Allow API calls without credentials
 -   `save`/`show`: Prevent PHP fatal error when encoding empty dialog+ attribute
 -   `show`: Prevent any unwanted user interaction (`--yes`) if object not found or selection ambiguous
 -   Make CLI option `-y`/`--yes` work after it was completely ignored
