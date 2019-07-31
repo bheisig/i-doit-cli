@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##  [Unreleased][]
 
+##  [0.8][] – 2019-07-31
+
+☀️☀️☀️ Happy summer time ☀️☀️☀️
+
 ##  Changed
 
 -   Require PHP >= 7.1 (PHP 7.0 is end-of-life); recommend PHP 7.3
@@ -129,7 +133,8 @@ This release is a great step forward with new features and tons of improvements.
 
 Initial release
 
-[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.7...HEAD
+[Unreleased]: https://github.com/bheisig/i-doit-cli/compare/0.8...HEAD
+[0.8]: https://github.com/bheisig/i-doit-cli/compare/0.7...0.8
 [0.7]: https://github.com/bheisig/i-doit-cli/compare/0.6...0.7
 [0.6]: https://github.com/bheisig/i-doit-cli/compare/0.5...0.6
 [0.5]: https://github.com/bheisig/i-doit-cli/compare/0.4...0.5

@@ -214,7 +214,7 @@
     },
     "extra": {
         "name": "idoitcli",
-        "version": "0.8-dev",
+        "version": "0.8",
         "phar-builder": {
             "skip-shebang": false,
             "include-dev": false,
