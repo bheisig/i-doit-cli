@@ -39,6 +39,8 @@ class Rack extends Command {
     protected const FRONT_SIDE = 1;
     protected const BACK_SIDE = 0;
     protected const BOTH_SIDES = 2;
+    protected const EMPTY_CHAR = '█';
+    protected const ELLIPSIS_CHAR = '…';
 
     protected $objectID = 0;
     protected $objectTitle = '';
@@ -477,8 +479,6 @@ class Rack extends Command {
                 );
                 break;
             default:
-                $char = '…';
-
                 $emptySpace = (int) $this->innerWidth - 1;
 
                 if ($emptySpace <= 0) {
@@ -488,7 +488,7 @@ class Rack extends Command {
                 return sprintf(
                     '%s%s%s%s',
                     str_repeat(' ', $this->paddingLeft),
-                    $char,
+                    self::ELLIPSIS_CHAR,
                     str_repeat(' ', $emptySpace),
                     str_repeat(' ', $this->paddingRight)
                 );
@@ -508,7 +508,7 @@ class Rack extends Command {
         return sprintf(
             '%s%s%s',
             str_repeat(' ', $this->paddingLeft),
-            str_repeat('█', $this->innerWidth),
+            str_repeat(self::EMPTY_CHAR, $this->innerWidth),
             str_repeat(' ', $this->paddingRight)
         );
     }
@@ -592,14 +592,15 @@ class Rack extends Command {
         for ($i = $this->rackUnits; $i > 0; $i--) {
             $content = $formattedUnits[$i];
 
-            $drawLines = true;
+            $nonRelatedRU = true;
 
-            if ($lastUnit === $content) {
+            if ($lastUnit === $content &&
+                strpos($lastUnit, self::EMPTY_CHAR, $this->paddingLeft) !== 1) {
                 $content = $this->drawOccupiedUnit();
-                $drawLines = false;
+                $nonRelatedRU = false;
             }
 
-            if ($drawLines) {
+            if ($nonRelatedRU) {
                 $this->log
                     ->printAsOutput()
                     ->info(
