@@ -35,10 +35,10 @@ use \RuntimeException;
  */
 class Rack extends Command {
 
-    const HORIZONTAL_ASSEMBLED = 3;
-    const FRONT_SIDE = 1;
-    const BACK_SIDE = 0;
-    const BOTH_SIDES = 2;
+    protected const HORIZONTAL_ASSEMBLED = 3;
+    protected const FRONT_SIDE = 1;
+    protected const BACK_SIDE = 0;
+    protected const BOTH_SIDES = 2;
 
     protected $objectID = 0;
     protected $objectTitle = '';
@@ -399,29 +399,76 @@ class Rack extends Command {
         return $formattedUnits;
     }
 
-    protected function drawUnit(array $hardware): string {
-        $title = $this->drawObjectTitle($hardware['title']);
-        $type = $this->drawObjectType($hardware['type']);
-        $identifier = $this->drawObjectID($hardware['id']);
+    protected function drawUnit(array $hardware, $tryShorter = 0): string {
+        switch ($tryShorter) {
+            case 0:
+                $title = $this->drawObjectTitle($hardware['title']);
+                $type = $this->drawObjectType($hardware['type']);
+                $identifier = $this->drawObjectID($hardware['id']);
 
-        $emptySpace = (int) $this->innerWidth -
-            strlen($title) -
-            strlen($type) -
-            strlen($identifier) -
-            // Space between type and identifier:
-            1;
+                $emptySpace = (int) $this->innerWidth -
+                    strlen($title) -
+                    strlen($type) -
+                    strlen($identifier) -
+                    // Space between type and identifier:
+                    1;
 
-        // @todo Check for enough space!
+                if ($emptySpace <= 0) {
+                    return $this->drawUnit($hardware, ($tryShorter+1));
+                }
 
-        return sprintf(
-            '%s<strong>%s</strong><dim>%s%s %s%s',
-            str_repeat(' ', $this->paddingLeft),
-            $title,
-            str_repeat(' ', $emptySpace),
-            $type,
-            $identifier,
-            str_repeat(' ', $this->paddingRight)
-        );
+                return sprintf(
+                    '%s<strong>%s</strong><dim>%s%s %s%s',
+                    str_repeat(' ', $this->paddingLeft),
+                    $title,
+                    str_repeat(' ', $emptySpace),
+                    $type,
+                    $identifier,
+                    str_repeat(' ', $this->paddingRight)
+                );
+                break;
+            case 1:
+                $title = $this->drawObjectTitle($hardware['title']);
+                $type = $this->drawObjectType($hardware['type']);
+
+                $emptySpace = (int) $this->innerWidth -
+                    strlen($title) -
+                    strlen($type);
+
+                if ($emptySpace <= 0) {
+                    return $this->drawUnit($hardware, ($tryShorter+1));
+                }
+
+                return sprintf(
+                    '%s<strong>%s</strong><dim>%s%s%s',
+                    str_repeat(' ', $this->paddingLeft),
+                    $title,
+                    str_repeat(' ', $emptySpace),
+                    $type,
+                    str_repeat(' ', $this->paddingRight)
+                );
+                break;
+            case 2:
+                $title = $this->drawObjectTitle($hardware['title']);
+
+                $emptySpace = (int) $this->innerWidth -
+                    strlen($title);
+
+                if ($emptySpace <= 0) {
+                    return $this->drawUnit($hardware, ($tryShorter+1));
+                }
+
+                return sprintf(
+                    '%s<strong>%s</strong><dim>%s%s',
+                    str_repeat(' ', $this->paddingLeft),
+                    $title,
+                    str_repeat(' ', $emptySpace),
+                    str_repeat(' ', $this->paddingRight)
+                );
+                break;
+            default:
+                return '…';
+        }
     }
 
     protected function drawOccupiedUnit(): string {
@@ -440,6 +487,16 @@ class Rack extends Command {
             str_repeat('█', $this->innerWidth),
             str_repeat(' ', $this->paddingRight)
         );
+    }
+
+    protected function drawDigit(int $number): string {
+        $digit = '' . $number;
+
+        if ($number < 10) {
+            $digit = '0' . $number;
+        }
+
+        return $digit;
     }
 
     protected function printHeader(): self {
@@ -507,31 +564,8 @@ class Rack extends Command {
 
     protected function printRackBody(array $formattedUnits): self {
         $lastUnit = '';
-        $drawLines = true;
 
         for ($i = $this->rackUnits; $i > 0; $i--) {
-            $innerLines = str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight);
-
-            if ($drawLines === false) {
-                $innerLines = str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight);
-            }
-
-            $this->log
-                ->printAsOutput()
-                ->info(
-                    '%s<dim>╠%s╬%s╬%s╣</dim>',
-                    str_repeat(' ', $this->marginLeft),
-                    str_repeat('═', $this->digits),
-                    $innerLines,
-                    str_repeat('═', $this->digits)
-                );
-
-            $digit = '' . $i;
-
-            if ($i < 10) {
-                $digit = '0' . $i;
-            }
-
             $content = $formattedUnits[$i];
 
             $drawLines = true;
@@ -541,14 +575,36 @@ class Rack extends Command {
                 $drawLines = false;
             }
 
+            if ($drawLines) {
+                $this->log
+                    ->printAsOutput()
+                    ->info(
+                        '%s<dim>╠%s╬%s╬%s╣</dim>',
+                        str_repeat(' ', $this->marginLeft),
+                        str_repeat('═', $this->digits),
+                        str_repeat('═', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                        str_repeat('═', $this->digits)
+                    );
+            } else {
+                $this->log
+                    ->printAsOutput()
+                    ->info(
+                        '%s<dim>╠%s╣%s╠%s╣</dim>',
+                        str_repeat(' ', $this->marginLeft),
+                        str_repeat('═', $this->digits),
+                        str_repeat(' ', $this->innerWidth + $this->paddingLeft + $this->paddingRight),
+                        str_repeat('═', $this->digits)
+                    );
+            }
+
             $this->log
                 ->printAsOutput()
                 ->info(
                     '%s<dim>║%s║%s║%s║</dim>',
                     str_repeat(' ', $this->marginLeft),
-                    $digit,
+                    $this->drawDigit($i),
                     $content,
-                    $digit
+                    $this->drawDigit($i)
                 );
 
             $lastUnit = $formattedUnits[$i];
