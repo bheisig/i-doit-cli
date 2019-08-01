@@ -178,6 +178,17 @@ try {
             'type',
             App::OPTION_NOT_REQUIRED
         )
+        // Used by command "rack":
+        ->addOption(
+            null,
+            'front',
+            App::NO_VALUE
+        )
+        ->addOption(
+            null,
+            'back',
+            App::NO_VALUE
+        )
         ->run();
 } catch (Exception $e) {
     IO::err($e->getMessage());

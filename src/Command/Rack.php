@@ -75,6 +75,7 @@ class Rack extends Command {
 
         $this
             ->identifyRackObject()
+            ->selectSide()
             ->setDimensions()
             ->loadRack($this->objectID)
             ->printHeader()
@@ -114,6 +115,23 @@ class Rack extends Command {
                 throw new BadMethodCallException(
                     'Too many arguments; please provide only one object title or numeric identifier'
                 );
+        }
+
+        return $this;
+    }
+
+    protected function selectSide(): self {
+        if (!array_key_exists('options', $this->config) ||
+            !is_array($this->config['options'])) {
+            return $this;
+        }
+
+        if (array_key_exists('front', $this->config['options']) &&
+            $this->config['options']['front'] === true) {
+            $this->side = self::FRONT_SIDE;
+        } elseif (array_key_exists('back', $this->config['options']) &&
+            $this->config['options']['back'] === true) {
+            $this->side = self::BACK_SIDE;
         }
 
         return $this;
@@ -677,6 +695,10 @@ class Rack extends Command {
     
 <strong>ARGUMENTS</strong>
     OBJECT              <dim>Object title or numeric identifier</dim>
+
+<strong>COMMAND OPTIONS</strong>
+    --front             <dim>Draw front side of rack (default)</dim>
+    --back              <dim>Draw back side of rack</dim>
 
 <strong>COMMON OPTIONS</strong>
     -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
