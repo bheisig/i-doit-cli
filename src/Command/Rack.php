@@ -53,6 +53,7 @@ class Rack extends Command {
     protected $paddingLeft = 1;
     protected $paddingRight = 1;
     protected $digits = 2;
+    protected $minWidth = 30;
     protected $maxWidth = 80;
     protected $marginLeft = 4;
 
@@ -116,6 +117,10 @@ class Rack extends Command {
         return $this;
     }
 
+    /**
+     * @return self
+     * @throws Exception on error
+     */
     protected function setDimensions(): self {
         $this->innerWidth =
             $this->maxWidth -
@@ -126,6 +131,11 @@ class Rack extends Command {
             $this->paddingRight -
             // Amount of vertical lines in rack:
             4;
+
+        if ($this->innerWidth <= 0 ||
+            $this->maxWidth < $this->minWidth) {
+            throw new Exception('There is too few space left for each rack unit.');
+        }
 
         return $this;
     }
@@ -467,7 +477,21 @@ class Rack extends Command {
                 );
                 break;
             default:
-                return '…';
+                $char = '…';
+
+                $emptySpace = (int) $this->innerWidth - 1;
+
+                if ($emptySpace <= 0) {
+                    return '';
+                }
+
+                return sprintf(
+                    '%s%s%s%s',
+                    str_repeat(' ', $this->paddingLeft),
+                    $char,
+                    str_repeat(' ', $emptySpace),
+                    str_repeat(' ', $this->paddingRight)
+                );
         }
     }
 
