@@ -37,7 +37,6 @@ use bheisig\idoitcli\Service\HandleAttribute;
 use bheisig\idoitcli\Service\IdoitAPI;
 use bheisig\idoitcli\Service\IdoitAPIFactory;
 use bheisig\idoitcli\Service\PrintData;
-use bheisig\idoitcli\Service\UserInteraction;
 use bheisig\idoitcli\Service\Validate;
 
 /**
@@ -73,11 +72,6 @@ abstract class Command extends BaseCommand {
      * @var PrintData
      */
     protected $printData;
-
-    /**
-     * @var UserInteraction
-     */
-    protected $userInteraction;
 
     /**
      * @var Validate
@@ -182,19 +176,6 @@ abstract class Command extends BaseCommand {
         }
 
         return $this->printData;
-    }
-
-    /**
-     * Load service for user interaction
-     *
-     * @return UserInteraction
-     */
-    protected function useUserInteraction(): UserInteraction {
-        if (!isset($this->userInteraction)) {
-            $this->userInteraction = new UserInteraction($this->config, $this->log);
-        }
-
-        return $this->userInteraction;
     }
 
     /**

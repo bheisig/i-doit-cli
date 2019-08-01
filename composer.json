@@ -45,7 +45,7 @@
     "suggest": {
         "ext-xdebug": "Needed for code coverage with phpunit"
     },
-    "prefer-stable" : true,
+    "prefer-stable" : false,
     "autoload": {
         "psr-4": {
             "bheisig\\idoitcli\\": "src/"
