@@ -711,10 +711,10 @@ class Rack extends Command {
 %3\$s
 
 <strong>USAGE</strong>
-    \$ %1\$s %2\$s [OPTIONS] [OBJECT]
+    \$ %1\$s %2\$s [OPTIONS] [RACK]
     
 <strong>ARGUMENTS</strong>
-    OBJECT              <dim>Object title or numeric identifier</dim>
+    RACK                <dim>Object title or numeric identifier</dim>
 
 <strong>COMMAND OPTIONS</strong>
     --%4\$s             <dim>Draw front side of rack (default)</dim>
