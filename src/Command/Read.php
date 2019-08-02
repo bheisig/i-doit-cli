@@ -48,7 +48,7 @@ class Read extends Command {
             ->printEmptyLine()
             ->printAsOutput();
 
-        $path = $this->getQuery();
+        $path = $this->config['arguments'][0];
 
         $parts = explode('/', $path);
 

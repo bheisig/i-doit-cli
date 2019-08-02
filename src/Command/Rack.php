@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace bheisig\idoitcli\Command;
 
 use \Exception;
-use \BadMethodCallException;
 use \RuntimeException;
 
 /**
@@ -48,8 +47,6 @@ class Rack extends Command {
 
     protected $objectID = 0;
     protected $objectTitle = '';
-    protected $objectTypeTitle = '';
-    protected $objectTypeConstant = '';
     protected $locationPath = '';
     protected $rackUnits = 0;
     protected $formattedUnits = [];
@@ -77,8 +74,11 @@ class Rack extends Command {
             ->printEmptyLine()
             ->debug('Collect data…');
 
+        $object = $this->identifyObjectByArgument();
+        $this->objectID = (int) $object['id'];
+        $this->objectTitle = $object['title'];
+
         $this
-            ->identifyRackObject()
             ->selectSide()
             ->setDimensions()
             ->loadRack($this->objectID)
@@ -86,40 +86,6 @@ class Rack extends Command {
             ->printRackHeader()
             ->printRackBody($this->formattedUnits)
             ->printRackFooter();
-
-        return $this;
-    }
-
-    /**
-     * @return self Returns itself
-     * @throws Exception on error
-     */
-    protected function identifyRackObject(): self {
-        switch (count($this->config['arguments'])) {
-            case 0:
-                if ($this->useUserInteraction()->isInteractive() === false) {
-                    throw new BadMethodCallException(
-                        'No object, no visuals'
-                    );
-                }
-
-                $object = $this->askForObject();
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
-                break;
-            case 1:
-                $object = $this->useIdoitAPI()->identifyObject(
-                    $this->config['arguments'][0]
-                );
-
-                $this->objectID = (int) $object['id'];
-                $this->objectTitle = $object['title'];
-                break;
-            default:
-                throw new BadMethodCallException(
-                    'Too many arguments; please provide only one object title or numeric identifier'
-                );
-        }
 
         return $this;
     }

@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli;
 
+use bheisig\idoitcli\Command\Network;
 use bheisig\idoitcli\Command\Rack;
 use \Exception;
 use bheisig\cli\App;
@@ -86,9 +87,14 @@ try {
             'Print entries from i-doit logbook'
         )
         ->addCommand(
+            'network',
+            __NAMESPACE__ . '\\Command\\Network',
+            'Print list of IPv4 addresses'
+        )
+        ->addCommand(
             'nextip',
             __NAMESPACE__ . '\\Command\\NextIP',
-            'Fetch the next free IP address for a given subnet'
+            'Fetch the next free IPv4 address'
         )
         ->addCommand(
             'rack',
@@ -178,6 +184,17 @@ try {
             null,
             'type',
             App::OPTION_NOT_REQUIRED
+        )
+        // Used by command "network":
+        ->addOption(
+            null,
+            Network::OPTION_FREE,
+            App::NO_VALUE
+        )
+        ->addOption(
+            null,
+            Network::OPTION_USED,
+            App::NO_VALUE
         )
         // Used by command "rack":
         ->addOption(

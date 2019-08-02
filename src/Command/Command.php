@@ -232,6 +232,31 @@ abstract class Command extends BaseCommand {
     }
 
     /**
+     * @return array Object
+     * @throws Exception on error
+     */
+    protected function identifyObjectByArgument(): array {
+        switch (count($this->config['arguments'])) {
+            case 0:
+                if ($this->useUserInteraction()->isInteractive() === false) {
+                    throw new BadMethodCallException(
+                        'No object, no visuals'
+                    );
+                }
+
+                return $this->askForObject();
+            case 1:
+                return $this->useIdoitAPI()->identifyObject(
+                    $this->config['arguments'][0]
+                );
+            default:
+                throw new BadMethodCallException(
+                    'Too many arguments; please provide only one object title or numeric identifier'
+                );
+        }
+    }
+
+    /**
      * Ask user for object title or numeric identifier
      *
      * …until object has been identified
