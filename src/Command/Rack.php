@@ -463,7 +463,7 @@ class Rack extends Command {
                 }
 
                 return sprintf(
-                    '%s<strong>%s</strong><dim>%s%s %s%s',
+                    '%s<strong>%s</strong>%s%s %s%s',
                     str_repeat(' ', $this->paddingLeft),
                     $title,
                     str_repeat(' ', $emptySpace),
@@ -485,7 +485,7 @@ class Rack extends Command {
                 }
 
                 return sprintf(
-                    '%s<strong>%s</strong><dim>%s%s%s',
+                    '%s<strong>%s</strong>%s%s%s',
                     str_repeat(' ', $this->paddingLeft),
                     $title,
                     str_repeat(' ', $emptySpace),
@@ -504,7 +504,7 @@ class Rack extends Command {
                 }
 
                 return sprintf(
-                    '%s<strong>%s</strong><dim>%s%s',
+                    '%s<strong>%s</strong>%s%s',
                     str_repeat(' ', $this->paddingLeft),
                     $title,
                     str_repeat(' ', $emptySpace),
@@ -663,7 +663,7 @@ class Rack extends Command {
             $this->log
                 ->printAsOutput()
                 ->info(
-                    '%s<dim>║%s║%s║%s║</dim>',
+                    '%s<dim>║%s║</dim>%s<dim>║%s║</dim>',
                     str_repeat(' ', $this->marginLeft),
                     $this->drawDigit($i),
                     $content,
@@ -744,6 +744,7 @@ class Rack extends Command {
     <dim># Select rack by its title:</dim>
     \$ %1\$s %2\$s "Colocation Rack A001"
     \$ %1\$s %2\$s Colocation\\ Rack\\ A001
+    \$ %1\$s %2\$s "*A001"
 
     <dim># …or by its numeric identifier:</dim>
     \$ %1\$s %2\$s 123
