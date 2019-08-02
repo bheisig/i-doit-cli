@@ -35,6 +35,10 @@ use \RuntimeException;
  */
 class Rack extends Command {
 
+    public const OPTION_FRONT = 'front';
+    public const OPTION_BACK = 'back';
+    public const OPTION_SKIP_EMPTY_UNITS = 'skip-empty-units';
+
     protected const HORIZONTAL_ASSEMBLED = 3;
     protected const FRONT_SIDE = 1;
     protected const BACK_SIDE = 0;
@@ -126,15 +130,26 @@ class Rack extends Command {
             return $this;
         }
 
-        if (array_key_exists('front', $this->config['options']) &&
-            $this->config['options']['front'] === true) {
+        if (array_key_exists(self::OPTION_FRONT, $this->config['options']) &&
+            $this->config['options'][self::OPTION_FRONT] === true) {
             $this->side = self::FRONT_SIDE;
-        } elseif (array_key_exists('back', $this->config['options']) &&
-            $this->config['options']['back'] === true) {
+        } elseif (array_key_exists(self::OPTION_BACK, $this->config['options']) &&
+            $this->config['options'][self::OPTION_BACK] === true) {
             $this->side = self::BACK_SIDE;
         }
 
         return $this;
+    }
+
+    protected function skipEmptyRackUnits(): bool {
+        if (array_key_exists('options', $this->config) &&
+            is_array($this->config['options']) &&
+            array_key_exists(self::OPTION_SKIP_EMPTY_UNITS, $this->config['options']) &&
+            $this->config['options'][self::OPTION_SKIP_EMPTY_UNITS] === true) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -610,6 +625,11 @@ class Rack extends Command {
         for ($i = $this->rackUnits; $i > 0; $i--) {
             $content = $formattedUnits[$i];
 
+            if ($this->skipEmptyRackUnits() &&
+                strpos($content, self::EMPTY_CHAR, $this->paddingLeft) === 1) {
+                continue;
+            }
+
             $nonRelatedRU = true;
 
             if ($lastUnit === $content &&
@@ -697,8 +717,9 @@ class Rack extends Command {
     OBJECT              <dim>Object title or numeric identifier</dim>
 
 <strong>COMMAND OPTIONS</strong>
-    --front             <dim>Draw front side of rack (default)</dim>
-    --back              <dim>Draw back side of rack</dim>
+    --%4\$s             <dim>Draw front side of rack (default)</dim>
+    --%5\$s              <dim>Draw back side of rack</dim>
+    --%6\$s  <dim>Draw only occupied rack units</dim>
 
 <strong>COMMON OPTIONS</strong>
     -c <u>FILE</u>,            <dim>Include settings stored in a JSON-formatted</dim>
@@ -730,7 +751,10 @@ EOF
             ,
             $this->config['composer']['extra']['name'],
             $this->getName(),
-            $this->getDescription()
+            $this->getDescription(),
+            self::OPTION_FRONT,
+            self::OPTION_BACK,
+            self::OPTION_SKIP_EMPTY_UNITS
         );
 
         return $this;

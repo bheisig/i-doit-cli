@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace bheisig\idoitcli;
 
+use bheisig\idoitcli\Command\Rack;
 use \Exception;
 use bheisig\cli\App;
 use bheisig\cli\IO;
@@ -181,12 +182,17 @@ try {
         // Used by command "rack":
         ->addOption(
             null,
-            'front',
+            Rack::OPTION_FRONT,
             App::NO_VALUE
         )
         ->addOption(
             null,
-            'back',
+            Rack::OPTION_BACK,
+            App::NO_VALUE
+        )
+        ->addOption(
+            null,
+            Rack::OPTION_SKIP_EMPTY_UNITS,
             App::NO_VALUE
         )
         ->run();
