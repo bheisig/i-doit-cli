@@ -161,10 +161,6 @@ class Rack extends Command {
                 $categoryConstants
             );
 
-            if (count($result) !== count($categoryConstants)) {
-                throw new RuntimeException('Unexpected result');
-            }
-
             if (!array_key_exists(0, $result) ||
                 !is_array($result[0]) ||
                 !array_key_exists(0, $result[0]) ||

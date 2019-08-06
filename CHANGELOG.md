@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##  [Unreleased][]
 
+### Added
+
+-   `network`: Add new command to print list of IPv4 addresses
 -   `rack`: Add new command to visualize hardware racks
 
 ##  [0.8][] – 2019-07-31
