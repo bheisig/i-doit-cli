@@ -50,6 +50,8 @@ class HandleAttribute extends Service {
     const LINK = 'link';
     const PASSWORD = 'password';
     const FILE = 'file';
+    const UNIT = 'unit';
+    const CAPACITY = 'capacity';
     const HORIZONTAL_LINE = 'hr';
     const EMBEDED_HTML = 'html';
     const EMBEDED_JAVASCRIPT = 'js';
@@ -129,6 +131,8 @@ class HandleAttribute extends Service {
             case self::GEO_COORDINATES:
             case self::LINK:
             case self::PASSWORD:
+            case self::CAPACITY:
+            case self::UNIT:
                 return false;
             // @todo Add support for files!
             case self::FILE:
@@ -172,18 +176,22 @@ class HandleAttribute extends Service {
 
         switch ($this->type) {
             case self::TEXT:
+            case self::DATE:
+            case self::LINK:
+            case self::PASSWORD:
+            case self::UNIT:
                 return $value;
             case self::TEXT_AREA:
                 // Rich-text editor with HTML:
                 return strip_tags($value);
-            case self::DATE:
-                return $value;
             case self::DATETIME:
-                return $value['title'];
             case self::DIALOG:
             case self::DIALOG_PLUS:
+            case self::OBJECT_RELATION:
+            case self::CAPACITY:
                 return $value['title'];
             case self::DIALOG_PLUS_MULTI_SELECTION:
+            case self::OBJECT_RELATIONS:
                 $values = [];
 
                 foreach ($value as $block) {
@@ -202,15 +210,6 @@ class HandleAttribute extends Service {
                 );
 
                 return ($check) ? 'yes' : 'no';
-            case self::OBJECT_RELATION:
-                return $value['title'];
-            case self::OBJECT_RELATIONS:
-                $values = [];
-
-                foreach ($value as $block) {
-                    $values[] = $block['title'];
-                }
-                return implode(', ', $values);
             case self::IP_ADDRESS:
                 return $value['ref_title'];
             case self::GEO_COORDINATES:
@@ -241,10 +240,6 @@ class HandleAttribute extends Service {
                     return '';
                 }
                 break;
-            case self::LINK:
-                return $value;
-            case self::PASSWORD:
-                return $value;
             case self::FILE:
                 // @todo Return file title with download link!
                 return $value;
@@ -322,14 +317,42 @@ class HandleAttribute extends Service {
             case self::TEXT:
             case self::TEXT_AREA:
             case self::IP_ADDRESS:
+            case self::LINK:
+            case self::PASSWORD:
                 $decodedValue = $value;
                 break;
-            case self::DATE:
-                $unixTimestamp = strtotime($value);
-                if (is_int($unixTimestamp)) {
-                    $decodedValue = date('Y-m-d', $unixTimestamp);
+            case self::UNIT:
+                $decodedValue = (float) $value;
+                break;
+            case self::CAPACITY:
+                switch (strtolower($value)) {
+                    case 'b':
+                    case 'byte':
+                        $decodedValue = 1000;
+                        break;
+                    case 'kb':
+                    case 'kilobyte':
+                    case 'kbyte':
+                        $decodedValue = 1;
+                        break;
+                    case 'mb':
+                    case 'megabyte':
+                    case 'mbyte':
+                        $decodedValue = 2;
+                        break;
+                    case 'gb':
+                    case 'gigabyte':
+                    case 'gbyte':
+                        $decodedValue = 3;
+                        break;
+                    case 'tb':
+                    case 'terabyte':
+                    case 'tbyte':
+                        $decodedValue = 4;
+                        break;
                 }
                 break;
+            case self::DATE:
             case self::DATETIME:
                 $unixTimestamp = strtotime($value);
                 if (is_int($unixTimestamp)) {
@@ -374,12 +397,6 @@ class HandleAttribute extends Service {
                     $decodedValue[] = $this->identifyObject($value);
                 }
 
-                break;
-            case self::LINK:
-                $decodedValue = $value;
-                break;
-            case self::PASSWORD:
-                $decodedValue = $value;
                 break;
             case self::GEO_COORDINATES:
                 // Ignore!
@@ -426,6 +443,8 @@ class HandleAttribute extends Service {
             case self::GEO_COORDINATES:
             case self::LINK:
             case self::PASSWORD:
+            case self::UNIT:
+            case self::CAPACITY:
                 return is_string($value) && strlen($value) > 0;
             // @todo Add support for files!
             case self::FILE:
@@ -449,18 +468,18 @@ class HandleAttribute extends Service {
 
         switch ($this->type) {
             case self::TEXT:
-                return is_string($value) && strlen($value) > 0;
             case self::TEXT_AREA:
-                return is_string($value) && strlen($value) > 0;
             case self::DATE:
+            case self::LINK:
+            case self::PASSWORD:
+            case self::UNIT:
+            case self::CAPACITY:
                 return is_string($value) && strlen($value) > 0;
             case self::DATETIME:
-                return is_array($value) &&
-                    array_key_exists('title', $value);
             case self::DIALOG:
-                return is_array($value) &&
-                    array_key_exists('title', $value);
             case self::DIALOG_PLUS:
+            case self::YES_NO_DIALOG:
+            case self::OBJECT_RELATION:
                 return is_array($value) &&
                     array_key_exists('title', $value);
             case self::DIALOG_PLUS_MULTI_SELECTION:
@@ -478,12 +497,6 @@ class HandleAttribute extends Service {
                 }
 
                 return true;
-            case self::YES_NO_DIALOG:
-                return is_array($value) &&
-                    array_key_exists('title', $value);
-            case self::OBJECT_RELATION:
-                return is_array($value) &&
-                    array_key_exists('title', $value);
             case self::OBJECT_RELATIONS:
                 if (!is_array($value)) {
                     return false;
@@ -507,21 +520,12 @@ class HandleAttribute extends Service {
                     is_string($value['longitude']) &&
                     array_key_exists('latitude', $value) &&
                     is_string($value['latitude']);
-            case self::LINK:
-                return is_string($value) && strlen($value) > 0;
-            case self::PASSWORD:
-                return is_string($value) && strlen($value) > 0;
+            // @todo Add support for files!
             case self::FILE:
-                // @todo Add support for files!
-                return false;
             case self::HORIZONTAL_LINE:
-                return false;
             case self::EMBEDED_HTML:
-                return false;
             case self::EMBEDED_JAVASCRIPT:
-                return false;
             case self::UNKNOWN:
-                return true;
             default:
                 return true;
         }
@@ -534,10 +538,10 @@ class HandleAttribute extends Service {
 
         switch ($this->type) {
             case self::TEXT:
-                return is_string($value);
             case self::TEXT_AREA:
-                return is_string($value);
             case self::DATE:
+            case self::LINK:
+            case self::PASSWORD:
                 return is_string($value);
             case self::DATETIME:
                 return is_array($value) &&
@@ -545,14 +549,14 @@ class HandleAttribute extends Service {
                     is_string($value['title']) &&
                     strtotime($value['title']) !== false;
             case self::DIALOG:
-                return is_array($value) &&
-                    array_key_exists('title', $value) &&
-                    is_string($value['title']);
             case self::DIALOG_PLUS:
+            case self::OBJECT_RELATION:
+            case self::CAPACITY:
                 return is_array($value) &&
                     array_key_exists('title', $value) &&
                     is_string($value['title']);
             case self::DIALOG_PLUS_MULTI_SELECTION:
+            case self::OBJECT_RELATIONS:
                 if (!is_array($value)) {
                     return false;
                 }
@@ -574,24 +578,6 @@ class HandleAttribute extends Service {
                         FILTER_VALIDATE_BOOLEAN,
                         FILTER_NULL_ON_FAILURE
                     ) !== null;
-            case self::OBJECT_RELATION:
-                return is_array($value) &&
-                    array_key_exists('title', $value) &&
-                    is_string($value['title']);
-            case self::OBJECT_RELATIONS:
-                if (!is_array($value)) {
-                    return false;
-                }
-
-                foreach ($value as $block) {
-                    if (!array_key_exists('title', $block) ||
-                        is_string($block['title']) ||
-                        strlen($block['title']) === 0) {
-                        return false;
-                    }
-                }
-
-                return true;
             case self::IP_ADDRESS:
                 return is_array($value) &&
                     array_key_exists('ref_title', $value) &&
@@ -602,10 +588,8 @@ class HandleAttribute extends Service {
                     is_string($value['longitude']) &&
                     array_key_exists('latitude', $value) &&
                     is_string($value['latitude']);
-            case self::LINK:
-                return is_string($value);
-            case self::PASSWORD:
-                return is_string($value);
+            case self::UNIT:
+                return is_numeric($value);
             case self::UNKNOWN:
             default:
                 throw new RuntimeException(sprintf(
@@ -627,24 +611,20 @@ class HandleAttribute extends Service {
 
         switch ($this->type) {
             case self::TEXT_AREA:
-                return strlen($value) <= self::LONG_TEXT_LENGTH;
-            case self::TEXT:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
-            case self::DIALOG:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
-            case self::DIALOG_PLUS:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DIALOG_PLUS_MULTI_SELECTION:
-                return strlen($value) <= self::LONG_TEXT_LENGTH;
-            case self::OBJECT_RELATION:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::OBJECT_RELATIONS:
                 return strlen($value) <= self::LONG_TEXT_LENGTH;
+            case self::TEXT:
+            case self::DIALOG:
+            case self::DIALOG_PLUS:
+            case self::OBJECT_RELATION:
             case self::IP_ADDRESS:
+            case self::LINK:
+            case self::PASSWORD:
+            case self::UNIT:
+            case self::CAPACITY:
                 return strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::DATE:
-                $unixTimestamp = strtotime($value);
-                return is_integer($unixTimestamp) && $unixTimestamp > 0;
             case self::DATETIME:
                 $unixTimestamp = strtotime($value);
                 return is_integer($unixTimestamp) && $unixTimestamp > 0;
@@ -659,10 +639,6 @@ class HandleAttribute extends Service {
             case self::UNKNOWN:
             case self::GEO_COORDINATES:
                 return true;
-            case self::LINK:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
-            case self::PASSWORD:
-                return strlen($value) <= self::SHORT_TEXT_LENGTH;
             default:
                 throw new RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -678,27 +654,24 @@ class HandleAttribute extends Service {
 
         switch ($this->type) {
             case self::TEXT:
-                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::IP_ADDRESS:
+            case self::DATE:
+            case self::DATETIME:
+            case self::LINK:
+            case self::PASSWORD:
                 return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             case self::TEXT_AREA:
                 return is_string($value) && strlen($value) <= self::LONG_TEXT_LENGTH;
             case self::DIALOG:
-                return (is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH) ||
-                    (is_integer($value) && $value > 0);
             case self::DIALOG_PLUS:
                 return (is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH) ||
-                    (is_integer($value) && $value > 0);
+                    (is_int($value) && $value > 0);
             case self::DIALOG_PLUS_MULTI_SELECTION:
-                return is_array($value);
-            case self::OBJECT_RELATION:
-                return is_int($value) && $value > 0;
             case self::OBJECT_RELATIONS:
                 return is_array($value);
-            case self::DATE:
-                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
-            case self::DATETIME:
-                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
+            case self::OBJECT_RELATION:
+            case self::CAPACITY:
+                return is_int($value) && $value > 0;
             case self::YES_NO_DIALOG:
                 $check = filter_var(
                     $value,
@@ -707,13 +680,11 @@ class HandleAttribute extends Service {
                 );
 
                 return is_bool($check);
+            case self::UNIT:
+                return is_float($value);
             case self::UNKNOWN:
             case self::GEO_COORDINATES:
                 return true;
-            case self::LINK:
-                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
-            case self::PASSWORD:
-                return is_string($value) && strlen($value) <= self::SHORT_TEXT_LENGTH;
             default:
                 throw new RuntimeException(sprintf(
                     'Unable to validate value for attribute "%s"',
@@ -801,6 +772,11 @@ class HandleAttribute extends Service {
             array_key_exists(1, $this->definition['format']['callback']) &&
             $this->definition['format']['callback'][1] === 'get_yes_or_no') {
             $this->type = self::YES_NO_DIALOG;
+        } elseif (array_key_exists('data', $this->definition) &&
+            is_array($this->definition['data']) &&
+            array_key_exists('source_table', $this->definition['data']) &&
+            $this->definition['data']['source_table'] === 'isys_memory_unit') {
+            $this->type = self::CAPACITY;
         } elseif (array_key_exists('format', $this->definition) &&
             is_array($this->definition['format']) &&
             array_key_exists('callback', $this->definition['format']) &&
@@ -903,6 +879,11 @@ class HandleAttribute extends Service {
             array_key_exists('type', $this->definition['ui']) &&
             $this->definition['ui']['type'] === 'dialog') {
             $this->type = self::DIALOG;
+        } elseif (array_key_exists('format', $this->definition) &&
+            is_array($this->definition['format']) &&
+            array_key_exists('unit', $this->definition['format']) &&
+            $this->definition['format']['unit'] === 'unit') {
+            $this->type = self::UNIT;
         } else {
             $this->type = self::UNKNOWN;
         }
