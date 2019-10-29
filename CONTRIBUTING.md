@@ -8,17 +8,17 @@ We like you to read and follow our [code of conduct](CODE_OF_CONDUCT.md) before 
 
 ## Use it
 
-The best and (probably) easiest way is to use this application. It would be very nice to share your thoughts with us. We love to hear from you.
+The best and (probably) easiest way to help is to use this library in your own projects. It would be very nice to share your thoughts with us. We love to hear from you.
 
 If you have questions how to use it properly read the [documentation](README.md) carefully.
 
 ## Report bugs
 
-If you find something strange please report it to [our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
+If you find something strange please report it to [our issue tracker][issues].
 
 ## Make a wish
 
-Of course, there are some features in the pipeline. However, if you have good ideas how to improve this application please let us know! Write a feature request [in our issue tracker](https://github.com/bheisig/i-doit-cli/issues).
+Of course, there are some features in the pipeline. However, if you have good ideas how to improve this application please let us know! Write a feature request [in our issue tracker][issues].
 
 ## Setup a development environment
 
@@ -94,7 +94,7 @@ Further steps:
 
 ## Release new version
 
-… to the public. You need commit rights for this repository.
+…to the public. You need commit rights for this repository.
 
 1.  Bump version: `composer config extra.version <VERSION>`
 3.  Keep [`CHANGELOG.md`](CHANGELOG.md) up-to-date
@@ -104,12 +104,12 @@ Further steps:
 7.  Create distribution tarball: `composer dist`
 8.  Build PHIVE files: `composer phive`
 9.  Create Git tag: `git tag -s -a -m "Release version $(composer config extra.version)" $(composer config extra.version)`
-10. Push changes: `git push && git push --tags`
+10. Push changes: `git push --follow-tags`
 11. Create new release on GitHub based on the last tag
 12. Upload these files and add them to the release:
-    *   Distribution tarball: `idoitcli-<VERSION>.tar.gz`
-    *   Binaray file: `idoitcli`
-    *   PHIVE files: `idoitcli.phar`, `idoitcli.phar.asc`
+    -   Distribution tarball: `idoitcli-<VERSION>.tar.gz`
+    -   Binaray file: `idoitcli`
+    -   PHIVE files: `idoitcli.phar`, `idoitcli.phar.asc`
 13. Cleanup project directory: `composer clean`
 
 If any step produces an error please think twice before releasing. ;-)
@@ -156,8 +156,14 @@ This project comes with some useful composer scripts:
 | `composer system-check`       | Run some system checks                                    |
 | `composer test`               | Perform some tests with the built binary                  |
 
-For example, execute `composer phpstan`.
+For example, execute `composer ci`.
 
 ## Donate
 
-Last but not least, if you think this script is useful for your daily work, consider a donation. What about a beer?
+Last but not least, if you think this project is useful for your daily work, consider a donation. What about a beer?
+
+## Further reading
+
+-   [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)
+
+[issues]: https://github.com/bheisig/i-doit-cli/issues

@@ -112,7 +112,6 @@
             "cp -r CONTRIBUTING.md ./`composer config extra.name`-`composer config extra.version`/",
             "cp -r LICENSE ./`composer config extra.name`-`composer config extra.version`/",
             "cp -r README.md ./`composer config extra.name`-`composer config extra.version`/",
-            "cp -r docs/ ./`composer config extra.name`-`composer config extra.version`/",
             "tar czf `composer config extra.name`-`composer config extra.version`.tar.gz ./`composer config extra.name`-`composer config extra.version`/",
             "rm -r ./`composer config extra.name`-`composer config extra.version`/"
         ],
