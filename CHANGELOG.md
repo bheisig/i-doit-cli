@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   `save`: Do not ignore capacity (float) incl. unit (b, kb, mb, gb, tb)
--   `read`: Prevent PHP notice when no arguments are given
+-   `read`: Print object types when no arguments are given
 
 ##  [0.8][] – 2019-07-31
 
