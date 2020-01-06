@@ -48,6 +48,10 @@ class Read extends Command {
             ->printEmptyLine()
             ->printAsOutput();
 
+        if (count($this->config['arguments']) === 0) {
+            throw new \BadMethodCallException('Insufficient arguments. PATH missing.');
+        }
+
         $path = $this->config['arguments'][0];
 
         $parts = explode('/', $path);
