@@ -717,8 +717,10 @@ class HandleAttribute extends Service {
             is_array($this->definition['data']) &&
             array_key_exists('type', $this->definition['data']) &&
             $this->definition['data']['type'] === 'text' &&
-            array_key_exists('format', $this->definition) &&
-            $this->definition['format'] === null) {
+            (
+                !array_key_exists('format', $this->definition) ||
+                $this->definition['format'] === null)
+            ) {
             $this->type = self::TEXT;
         } elseif (array_key_exists('ui', $this->definition) &&
             is_array($this->definition['ui']) &&

@@ -1185,14 +1185,8 @@ class Save extends Command {
             }
         } else {
             foreach ($categories as $category) {
-                if (strtolower($category['title']) === strtolower($candidate)) {
-                    $this->attributeDefinitions = $category['properties'];
-                    $this->categoryConstant = $category['const'];
-                    $this->categoryID = (int) $category['id'];
-                    $this->categoryTitle = $category['title'];
-                    $this->multiValue = ($category['multi_value'] === '0') ? false : true;
-                    return true;
-                } elseif (strtolower($category['const']) === strtolower($candidate)) {
+                if (strtolower($category['title']) === strtolower($candidate) ||
+                    strtolower($category['const']) === strtolower($candidate)) {
                     $this->attributeDefinitions = $category['properties'];
                     $this->categoryConstant = $category['const'];
                     $this->categoryID = (int) $category['id'];
